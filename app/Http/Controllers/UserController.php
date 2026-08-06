@@ -6,6 +6,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Prefecture;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -39,11 +40,79 @@ class UserController extends Controller
     /**
      * Formulaire de création.
      */
-    public function create(): View
+    // public function create(): View
+    // {
+    //     $roles = Role::orderBy('nom')->get();
+
+    //     return view('users.create', compact('roles'));
+    // }
+
+
+
+    //     public function create(Request $request)
+    // {
+    //     $prefecture = null;
+
+    //     if ($request->has('prefecture')) {
+
+    //         $prefecture = Prefecture::findOrFail(
+    //             $request->prefecture
+    //         );
+
+    //     }
+
+    //     $roles = Role::orderBy('nom')->get();
+
+    //     $prefectures = Prefecture::orderBy('nom')->get();
+
+    //     return view(
+    //         'users.create',
+    //         compact(
+    //             'roles',
+    //             'prefectures',
+    //             'prefecture'
+    //         )
+    //     );
+    // }
+
+
+        public function create(Request $request)
     {
+        $role = null;
+        $prefecture = null;
+
+        // Si on vient du détail d'une préfecture
+        if ($request->has('prefecture')) {
+
+            $prefecture = Prefecture::findOrFail(
+                $request->prefecture
+            );
+
+        }
+
+        // Si un rôle est passé dans l'URL
+        if ($request->has('role') && $request->role === 'directeur') {
+
+            $role = Role::where(
+                'nom',
+                'Directeur préfectoral'
+            )->first();
+
+        }
+
         $roles = Role::orderBy('nom')->get();
 
-        return view('users.create', compact('roles'));
+        $prefectures = Prefecture::orderBy('nom')->get();
+
+        return view(
+            'users.create',
+            compact(
+                'roles',
+                'prefectures',
+                'prefecture',
+                'role'
+            )
+        );
     }
 
     /**

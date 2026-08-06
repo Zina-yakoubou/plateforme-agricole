@@ -12,18 +12,51 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('campagne_recensements', function (Blueprint $table) {
+
             $table->id('idCampagne');
-            $table->string('codeRNA')->unique();
+
+            // Référence officielle de la campagne
+            $table->string('codeRNA')
+                ->unique();
+
+            // Exemple : Recensement Agricole National 2026
             $table->string('libelle');
-            $table->string('annee');
+
+
+            // Période de déroulement
             $table->date('dateDebut');
-            $table->date('dateFin')->nullable();
-            $table->string('statut');
-            $table->boolean('estOfficielleMAEH')->default(false);
-            $table->foreignId('responsable_id')->nullable()->constrained('utilisateurs', 'idUtilisateur')->onDelete('set null');
+
+            $table->date('dateFin')
+                ->nullable();
+
+
+            // Préparation, Active, Clôturée, Archivée
+            $table->string('statut')
+                ->default('Préparation');
+
+
+            // Une seule campagne peut être active
+            $table->boolean('active')
+                ->default(false);
+
+
+            // Campagne officiellement reconnue par le MAEH
+            $table->boolean('estOfficielle')
+                ->default(false);
+
+
+            // Responsable administratif de la campagne
+            $table->foreignId('responsable_id')
+                ->nullable()
+                ->constrained('users', 'id')
+                ->nullOnDelete();
+
+
             $table->timestamps();
+
         });
     }
+
 
     /**
      * Reverse the migrations.

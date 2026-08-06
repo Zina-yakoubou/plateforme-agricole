@@ -243,14 +243,14 @@
 
 
 
-                                <a href="{{ route('prefectures.edit',$prefecture) }}"
+                                {{-- <a href="{{ route('prefectures.edit',$prefecture) }}"
                                    class="px-3 py-1 rounded-lg bg-blue-600 text-white">
 
 
                                     Modifier
 
 
-                                </a>
+                                </a> --}}
 
 
 

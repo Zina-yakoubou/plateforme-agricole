@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Prefecture;
 use App\Models\Region;
+use App\Models\Affectation;
 
 use App\Http\Requests\StorePrefectureRequest;
 use App\Http\Requests\UpdatePrefectureRequest;
@@ -152,11 +153,29 @@ class PrefectureController extends Controller
             'communes'
         );
 
+        $directeur = Affectation::where('prefecture_id', $prefecture->idPrefecture)
+        ->whereHas('user.role', function ($query) {
+            $query->where('nom', 'Directeur préfectoral');
+        })
+        ->with('user')
+        ->first();
+
+        $agents = Affectation::where('prefecture_id', $prefecture->idPrefecture)
+        ->whereHas('user.role', function ($query) {
+            $query->where('nom', 'Agent recenseur');
+        })
+        ->with('user')
+        ->get();
+
 
 
         return view(
             'prefectures.show',
-            compact('prefecture')
+            compact(
+                'prefecture',
+                'directeur',
+                'agents'
+            )
         );
 
     }
@@ -247,5 +266,8 @@ class PrefectureController extends Controller
             );
 
     }
+
+
+    
 
 }

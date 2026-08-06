@@ -1,4 +1,4 @@
-<aside class="w-72 min-h-screen bg-slate-900 text-slate-200 flex flex-col shadow-2xl">
+<aside class="w-72 min-h-screen bg-slate text-black flex flex-col shadow-2xl">
 
 @php
     $user = auth()->user();
@@ -39,7 +39,7 @@
 
             <a href="{{ route('dashboard') }}"
                class="flex items-center gap-3 px-4 py-3 rounded-xl transition
-               {{ request()->routeIs('dashboard') ? 'bg-green-600 text-white' : 'hover:bg-slate-800' }}">
+               {{ request()->routeIs('dashboard') ? 'bg-green-600 text-white' : 'hover:bg-green' }}">
 
                 📊
 
@@ -65,7 +65,7 @@
 
             <details class="group">
 
-                <summary class="cursor-pointer px-4 py-3 rounded-xl hover:bg-slate-800">
+                <summary class="cursor-pointer px-4 py-3 rounded-xl hover:bg-green-800">
 
                     🌍 Localisation
 
@@ -162,13 +162,13 @@
                 </div>
 
             </details> --}}
-            <details class="group mt-2">
+            {{-- <details class="group mt-2">
 
                 <summary class="cursor-pointer px-4 py-3 rounded-xl hover:bg-slate-800">
 
                     👥 Utilisateurs
 
-                </summary>
+                </summary> --}}
 
                 <div class="ml-6 mt-2 space-y-1">
 
@@ -176,33 +176,34 @@
                     class="block py-2 hover:text-green-400
                     {{ request()->routeIs('users.*') ? 'text-green-400' : '' }}">
 
-                        Gestion des utilisateurs
+                       👥 Gestion des utilisateurs
 
                     </a>
 
                 </div>
 
-            </details>
+            {{-- </details> --}}
 
-            <details class="group mt-2">
+            {{-- <details class="group mt-2">
 
                 <summary class="cursor-pointer px-4 py-3 rounded-xl hover:bg-slate-800">
 
                     📅 Campagnes
 
-                </summary>
+                </summary> --}}
 
-                <div class="ml-6 mt-2 space-y-1">
+               <div class="ml-6 mt-2 space-y-1">
 
-                    <a href="#" class="block py-2 hover:text-green-400">
+                <a href="{{ route('campagnes.index') }}"
+                class="block py-2 hover:text-green-400">
 
-                        Campagnes agricoles
+                    📅 Campagnes agricoles
 
-                    </a>
+                </a>
 
-                </div>
+            </div>
 
-            </details>
+            {{-- </details> --}}
 
         </div>
 

@@ -163,12 +163,12 @@
 
                                 </a>
 
-                                <a href="{{ route('communes.edit',$commune) }}"
+                                {{-- <a href="{{ route('communes.edit',$commune) }}"
                                    class="px-3 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
 
                                     Modifier
 
-                                </a>
+                                </a> --}}
 
                             </div>
 

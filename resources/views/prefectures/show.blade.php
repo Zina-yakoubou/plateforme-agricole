@@ -50,7 +50,15 @@ Modifier
 
 </a>
 
+   <a href="{{ route('users.create', [
+      'role' => 'directeur',
+      'prefecture' => $prefecture->idPrefecture
+   ]) }}"
+      class="px-5 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
 
+      + Affecter un directeur
+
+   </a>
 
 
 <a href="{{ route('prefectures.index') }}"

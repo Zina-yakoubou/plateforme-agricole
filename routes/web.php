@@ -9,6 +9,7 @@ use App\Http\Controllers\PrefectureController;
 use App\Http\Controllers\CommuneController;
 use App\Http\Controllers\CantonController;
 use App\Http\Controllers\VillageController;
+use App\Http\Controllers\CampagneRecensementController;
 
 
 Route::get('/', function () {
@@ -48,6 +49,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('cantons', CantonController::class);
 
     Route::resource('villages', VillageController::class);
+    Route::resource('campagnes', CampagneRecensementController::class);
+
 
 
 });

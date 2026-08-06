@@ -194,12 +194,12 @@
 
 
                                 {{-- Modifier --}}
-                                <a href="{{ route('regions.edit',$region) }}"
+                                {{-- <a href="{{ route('regions.edit',$region) }}"
                                    class="px-3 py-1 rounded-lg bg-blue-600 text-white">
 
                                     Modifier
 
-                                </a>
+                                </a> --}}
 
 
                             </div>

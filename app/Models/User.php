@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class User extends Authenticatable
 {
     use Notifiable;
@@ -58,5 +58,31 @@ class User extends Authenticatable
     public function isAgent(): bool
     {
         return $this->role()->where('nom', 'Agent recenseur')->exists();
+    }
+
+
+    /**
+     * Affectations de l'utilisateur.
+    */
+    public function affectations(): HasMany
+    {
+        return $this->hasMany(
+            Affectation::class,
+            'user_id',
+            'id'
+        );
+    }
+
+
+    /**
+     * Affectation active.
+     */
+    public function affectationActive()
+    {
+        return $this->hasOne(
+            Affectation::class,
+            'user_id',
+            'id'
+        )->where('statut', 'ACTIVE');
     }
 }

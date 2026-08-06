@@ -12,16 +12,54 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('affectations', function (Blueprint $table) {
+
             $table->id('idAffectation');
+
+            // Référence unique de l'affectation
             $table->string('reference')->unique();
+
+            // Période de validité
             $table->date('dateDebut')->nullable();
             $table->date('dateFin')->nullable();
-            $table->string('statut');
-            $table->foreignId('user_id')->constrained('users', 'idUser')->onDelete('cascade');
-            $table->foreignId('campagne_id')->constrained('campagne_recensements', 'idCampagne')->onDelete('cascade');
-            $table->foreignId('prefecture_id')->constrained('prefectures', 'idPrefecture')->onDelete('cascade')->nullable();
-            $table->foreignId('canton_id')->constrained('cantons', 'idCanton')->onDelete('cascade')->nullable();
-            $table->foreignId('village_id')->nullable()->constrained('villages', 'idVillage')->onDelete('set null');
+
+            // Statut de l'affectation
+            $table->string('statut')->default('ACTIVE');
+
+            /*
+            |--------------------------------------------------------------------------
+            | Relations
+            |--------------------------------------------------------------------------
+            */
+
+            // Utilisateur concerné
+            $table->foreignId('user_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            // Campagne de recensement
+            $table->foreignId('campagne_id')
+                ->nullable()
+                ->constrained('campagne_recensements', 'idCampagne')
+                ->nullOnDelete();
+
+            // Préfecture de rattachement (Directeur préfectoral)
+            $table->foreignId('prefecture_id')
+                ->nullable()
+                ->constrained('prefectures', 'idPrefecture')
+                ->nullOnDelete();
+
+            // Canton d'affectation (si nécessaire)
+            $table->foreignId('canton_id')
+                ->nullable()
+                ->constrained('cantons', 'idCanton')
+                ->nullOnDelete();
+
+            // Village d'affectation (Agent recenseur)
+            $table->foreignId('village_id')
+                ->nullable()
+                ->constrained('villages', 'idVillage')
+                ->nullOnDelete();
+
             $table->timestamps();
         });
     }
