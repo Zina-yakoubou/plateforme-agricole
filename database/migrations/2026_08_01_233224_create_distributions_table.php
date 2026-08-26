@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamp('dateDistribution');
             $table->string('lieuDistribution');
             $table->boolean('signatureExploitant')->default(false);
-            $table->foreignId('agentDistributeur_id')->constrained('users', 'idUser')->onDelete('cascade');
+            $table->foreignId('agentDistributeur_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('allocation_id')->constrained('allocations', 'idAllocation')->onDelete('cascade');
             $table->timestamps();
             

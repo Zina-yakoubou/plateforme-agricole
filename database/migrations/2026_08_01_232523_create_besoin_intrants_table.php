@@ -16,7 +16,7 @@ return new class extends Migration
             $table->float('quantitePrevue');
             $table->string('unite');
             $table->date('dateEvaluation');
-            $table->foreignId('agentEvaluateur_id')->constrained('users', 'idUser')->onDelete('cascade');
+            $table->foreignId('agentEvaluateur_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('culture_id')->constrained('cultures', 'idCulture')->onDelete('cascade');
             $table->foreignId('intrant_id')->constrained('intrants', 'idIntrant')->onDelete('cascade');
             $table->timestamps();

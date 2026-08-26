@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nom');
             $table->string('localisation');
             $table->float('capacite');
-            $table->foreignId('responsable_id')->nullable()->constrained('users', 'idUser')->onDelete('set null');
+            $table->foreignId('responsable_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
     }

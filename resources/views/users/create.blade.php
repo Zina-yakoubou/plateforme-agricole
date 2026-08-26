@@ -16,20 +16,15 @@
 
     </div>
 
-
     <div class="bg-white rounded-xl shadow p-6">
-
 
         <form method="POST" action="{{ route('users.store') }}">
 
             @include('users._form')
 
-
         </form>
 
-
     </div>
-
 
 </div>
 

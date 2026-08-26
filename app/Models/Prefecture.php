@@ -41,12 +41,46 @@ class Prefecture extends Model
     }
 
     /**
-     * Affectations des utilisateurs dans cette préfecture.
+     * Utilisateurs actuellement rattachés
+     * à cette préfecture.
+     */
+    public function users(): HasMany
+    {
+        return $this->hasMany(
+            User::class,
+            'prefecture_id',
+            'idPrefecture'
+        );
+    }
+
+    /**
+     * Affectations de campagnes dans cette préfecture.
      */
     public function affectations(): HasMany
     {
         return $this->hasMany(
             Affectation::class,
+            'prefecture_id',
+            'idPrefecture'
+        );
+    }
+
+    /**
+     * Historique des rattachements des utilisateurs.
+     */
+    public function rattachements(): HasMany
+    {
+        return $this->hasMany(
+            RattachementPrefecture::class,
+            'prefecture_id',
+            'idPrefecture'
+        );
+    }
+
+        public function deploiements(): HasMany
+    {
+        return $this->hasMany(
+            CampagneDeploiement::class,
             'prefecture_id',
             'idPrefecture'
         );

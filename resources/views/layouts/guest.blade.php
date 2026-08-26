@@ -21,23 +21,24 @@
                     <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
                 </a>
             </div> --}}
-            <div class="flex flex-col items-center">
-    <a href="{{ url('/') }}">
-        <img
-            src="{{ asset('images/sira-mo.png') }}"
-            alt="Logo SIRA-MO"
-            class="h-24 w-auto"
-        >
-    </a>
+            {{-- <div class="flex flex-col items-center">
+                <a href="{{ url('/') }}">
+                    <img
+                        src="{{ asset('images/sira-mo.png') }}"
+                        alt="Logo SIRA-MO"
+                        class="h-24 w-auto"
+                    >
+                </a>
 
-            <h1 class="mt-3 text-2xl font-bold text-green-700">
-                SIRA-MO
-            </h1>
+                <h1 class="mt-3 text-2xl font-bold text-green-700">
+                    SIRA-MO
+                </h1>
 
-            <p class="text-sm text-gray-600 text-center">
-                Système Intégré de Recensement Agricole
-            </p>
-        </div>
+                <p class="text-sm text-gray-600 text-center">
+                    Système Intégré de Recensement Agricole
+                </p>
+            </div> --}}
+        {{-- </div> --}}
 
             <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
                 {{ $slot }}

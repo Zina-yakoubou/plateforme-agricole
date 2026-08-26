@@ -1,127 +1,113 @@
 <x-guest-layout>
 
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+    <div class="mb-8 text-center">
+        <img
+            src="{{ asset('images/logo_recensement_agricole_mo.png') }}"
+            alt="SIRA-Mô"
+            class="mx-auto h-20 w-auto"
+        >
 
+        <h1 class="mt-6 text-2xl font-semibold text-slate-800">
+            Connexion
+        </h1>
 
-        <div class="text-center mb-8">
+        <p class="mt-2 text-sm text-slate-500">
+            Accédez à votre espace SIRA-Mô
+        </p>
+    </div>
 
-            <img 
-                src="{{ asset('images/sira-mo.png') }}"
-                class="w-20 h-20 mx-auto mb-4"
-                alt="SIRA-MO">
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
 
+        {{-- Email --}}
+        <div>
+            <x-input-label
+                for="email"
+                value="Adresse e-mail"
+            />
 
-            <h1 class="text-2xl font-bold text-green-800">
-                Connexion SIRA-MO
-            </h1>
+            <x-text-input
+                id="email"
+                class="mt-1 block w-full"
+                type="email"
+                name="email"
+                :value="old('email')"
+                required
+                autofocus
+                autocomplete="username"
+                placeholder="exemple@siramo.tg"
+            />
 
-
-            <p class="text-gray-500 mt-2">
-                Système Intégré de Recensement Agricole
-            </p>
-
+            <x-input-error
+                :messages="$errors->get('email')"
+                class="mt-2"
+            />
         </div>
 
 
+        {{-- Mot de passe --}}
+        <div class="mt-4">
+            <x-input-label
+                for="password"
+                value="Mot de passe"
+            />
 
-        <x-auth-session-status 
-            class="mb-4" 
-            :status="session('status')" />
+            <x-text-input
+                id="password"
+                class="mt-1 block w-full"
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                placeholder="Votre mot de passe"
+            />
 
-
-
-        <form method="POST" action="{{ route('login') }}">
-
-            @csrf
-
-
-            <!-- Login -->
-
-            <div>
-
-                <x-input-label 
-                    for="login" 
-                    value="Login" />
-
-
-                <x-text-input
-
-                    id="login"
-
-                    class="block mt-1 w-full"
-
-                    type="text"
-
-                    name="login"
-
-                    :value="old('login')"
-
-                    required
-
-                    autofocus />
+            <x-input-error
+                :messages="$errors->get('password')"
+                class="mt-2"
+            />
+        </div>
 
 
+        {{-- Se souvenir --}}
+        <div class="mt-4 flex items-center">
+            <input
+                id="remember"
+                type="checkbox"
+                name="remember"
+                class="rounded border-slate-300 text-[#266486] shadow-sm focus:ring-[#266486]"
+            >
 
-                <x-input-error 
-                    :messages="$errors->get('login')" 
-                    class="mt-2" />
-
-            </div>
-
-
-
-
-            <!-- Mot de passe -->
-
-            <div class="mt-5">
-
-
-                <x-input-label 
-                    for="password" 
-                    value="Mot de passe" />
+            <label
+                for="remember"
+                class="ms-2 text-sm text-slate-600"
+            >
+                Se souvenir de moi
+            </label>
+        </div>
 
 
-                <x-text-input
+        {{-- Actions --}}
+        <div class="mt-6 flex items-center justify-between">
 
-                    id="password"
-
-                    class="block mt-1 w-full"
-
-                    type="password"
-
-                    name="password"
-
-                    required />
-
-
-                <x-input-error 
-                    :messages="$errors->get('password')" 
-                    class="mt-2" />
-
-            </div>
-
-
-
-
-            <!-- Bouton -->
+            @if (Route::has('password.request'))
+                <a
+                    href="{{ route('password.request') }}"
+                    class="text-sm text-[#266486] hover:text-[#15384a] hover:underline"
+                >
+                    Mot de passe oublié ?
+                </a>
+            @endif
 
             <button
-
                 type="submit"
-
-                class="w-full mt-8 bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-semibold transition">
-
-
+                class="rounded-md bg-[#266486] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#1a4a63] focus:outline-none focus:ring-4 focus:ring-[#266486]/25"
+            >
                 Se connecter
-
-
             </button>
 
+        </div>
 
-        </form>
-
-
-    </div>
-
+    </form>
 
 </x-guest-layout>

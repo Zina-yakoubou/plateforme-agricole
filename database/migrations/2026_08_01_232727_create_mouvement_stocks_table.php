@@ -17,7 +17,7 @@ return new class extends Migration
             $table->float('quantite');
             $table->timestamp('date');
             $table->string('motif')->nullable();
-            $table->foreignId('agentResponsable_id')->constrained('users', 'idUser')->onDelete('cascade');
+            $table->foreignId('agentResponsable_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('intrant_id')->constrained('intrants', 'idIntrant')->onDelete('cascade');
             $table->foreignId('magasin_id')->constrained('magasins', 'idMagasin')->onDelete('cascade');
             $table->foreignId('fournisseur_id')->nullable()->constrained('fournisseurs', 'idFournisseur')->onDelete('set null');

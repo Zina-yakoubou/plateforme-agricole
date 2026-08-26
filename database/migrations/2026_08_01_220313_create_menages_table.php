@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('menages', function (Blueprint $table) {
             $table->id('idMenage');
+            $table->string('numeroMenage');
             $table->string('nomChef');
             $table->integer('nombrePersonnes');
             $table->boolean('aChamp')->default(false);

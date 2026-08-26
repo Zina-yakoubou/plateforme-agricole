@@ -7,59 +7,136 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Créer la table des campagnes de recensement.
      */
     public function up(): void
     {
         Schema::create('campagne_recensements', function (Blueprint $table) {
 
+            /*
+            |--------------------------------------------------------------------------
+            | IDENTIFICATION
+            |--------------------------------------------------------------------------
+            */
+
             $table->id('idCampagne');
 
-            // Référence officielle de la campagne
-            $table->string('codeRNA')
+            $table->string('codeCampagne')
                 ->unique();
 
-            // Exemple : Recensement Agricole National 2026
             $table->string('libelle');
 
-
-            // Période de déroulement
-            $table->date('dateDebut');
-
-            $table->date('dateFin')
+            $table->text('description')
                 ->nullable();
 
 
-            // Préparation, Active, Clôturée, Archivée
-            $table->string('statut')
-                ->default('Préparation');
+            /*
+            |--------------------------------------------------------------------------
+            | CADRE DU RECENSEMENT
+            |--------------------------------------------------------------------------
+            */
+
+            $table->text('objectifs');
+            $table->longText('resultatsAttendus');
 
 
-            // Une seule campagne peut être active
-            $table->boolean('active')
-                ->default(false);
+            $table->longText('methodologie')
+                ->nullable();
+
+            $table->longText('instructions')
+                ->nullable();
+            
+           
+
+            /*
+            |--------------------------------------------------------------------------
+            | PORTÉE TERRITORIALE
+            |--------------------------------------------------------------------------
+            |
+            | Définit le niveau territorial général de la campagne.
+            |
+            | nationale    : tout le territoire national
+            | regionale    : une ou plusieurs régions
+            | prefectorale : une ou plusieurs préfectures
+            |
+            | Les territoires précis sont enregistrés dans
+            | campagne_zones.
+            |
+            */
+
+            $table->enum('portee', [
+                'nationale',
+                'regionale',
+                'prefectorale',
+            ]);
 
 
-            // Campagne officiellement reconnue par le MAEH
+            /*
+            |--------------------------------------------------------------------------
+            | PÉRIODE GÉNÉRALE
+            |--------------------------------------------------------------------------
+            */
+
+            $table->dateTime('dateDebut');
+
+            $table->dateTime('dateFin')
+                ->nullable();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CYCLE DE VIE
+            |--------------------------------------------------------------------------
+            */
+
+            $table->enum('statut', [
+                'planifiee',
+                'active',
+                'cloturee',
+                'archivee',
+            ])->default('planifiee');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CARACTÈRE OFFICIEL
+            |--------------------------------------------------------------------------
+            */
+
             $table->boolean('estOfficielle')
-                ->default(false);
+                ->default(false)->nullable();
 
 
-            // Responsable administratif de la campagne
-            $table->foreignId('responsable_id')
+    
+
+            /*
+            |--------------------------------------------------------------------------
+            | UTILISATEUR AYANT CRÉÉ LA CAMPAGNE
+            |--------------------------------------------------------------------------
+            |
+            | Utilisateur ayant enregistré la campagne dans SIRA.
+            |
+            */
+
+            $table->foreignId('created_by')
                 ->nullable()
                 ->constrained('users', 'id')
                 ->nullOnDelete();
 
 
-            $table->timestamps();
+            /*
+            |--------------------------------------------------------------------------
+            | DATES TECHNIQUES
+            |--------------------------------------------------------------------------
+            */
 
+            $table->timestamps();
         });
     }
 
 
     /**
-     * Reverse the migrations.
+     * Supprimer la table des campagnes.
      */
     public function down(): void
     {

@@ -2,55 +2,36 @@
 
 @section('content')
 
+<div class="mx-auto max-w-3xl">
 
-<div class="max-w-5xl mx-auto">
+    <div class="mb-6">
 
+        <h1 class="text-2xl font-bold text-slate-800">
+            Modifier la campagne
+        </h1>
 
-<div class="mb-6">
+        <p class="mt-1 text-sm text-slate-500">
+            Mise à jour des informations de la campagne.
+        </p>
 
-<h1 class="text-2xl font-bold text-slate-800">
+    </div>
 
-Modifier la campagne
+    <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
 
-</h1>
+        <form
+            method="POST"
+            action="{{ route('campagnes.update', $campagne) }}"
+            class="space-y-5"
+        >
 
+            @method('PUT')
 
-<p class="text-sm text-gray-500">
+            @include('campagnes._form')
 
-Mise à jour des informations de la campagne.
+        </form>
 
-</p>
-
-
-</div>
-
-
-
-<div class="bg-white rounded-xl shadow p-6">
-
-
-<form method="POST"
-      action="{{ route('campagnes.update',$campagne) }}">
-
-
-@csrf
-
-@method('PUT')
-
-
-@include('campagnes._form')
-
-
-
-</form>
-
-
+    </div>
 
 </div>
-
-
-
-</div>
-
 
 @endsection

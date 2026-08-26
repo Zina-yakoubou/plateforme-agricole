@@ -23,7 +23,7 @@ return new class extends Migration
             $table->date('dateFin')->nullable();
 
             // Statut de l'affectation
-            $table->string('statut')->default('ACTIVE');
+            $table->string('statut')->nullable()->default('ACTIVE');
 
             /*
             |--------------------------------------------------------------------------

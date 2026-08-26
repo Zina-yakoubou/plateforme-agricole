@@ -4,43 +4,125 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     /**
-     * Création des utilisateurs par défaut.
+     * Création des utilisateurs de test SIRA-Mô.
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Administrateur SIRA-MO',
-            'login' => 'admin',
-            'email' => 'admin@siramo.tg',
-            'telephone' => '90000000',
-            'password' => Hash::make('admin123'),
-            'statut' => 'actif',
-            'role_id' => 1,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Administrateur
+        |--------------------------------------------------------------------------
+        */
 
-        User::create([
-            'name' => 'Directeur Préfectoral',
-            'login' => 'directeur01',
-            'email' => 'directeur@siramo.tg',
-            'telephone' => '91111111',
-            'password' => Hash::make('directeur123'),
-            'statut' => 'actif',
-            'role_id' => 2,
-        ]);
+        User::updateOrCreate(
+            ['telephone' => '90000000'],
+            [
+                'name' => 'Koffi Mensah',
+                'email' => 'koffi.mensah@gmail.com',
+                'password' => 'password',
+                'telephone_verified_at' => now(),
+                'statut' => true,
+                'role_id' => 'R01',
+            ]
+        );
 
-        User::create([
-            'name' => 'Agent Recenseur',
-            'login' => 'agent001',
-            'email' => 'agent@siramo.tg',
-            'telephone' => '92222222',
-            'password' => Hash::make('agent123'),
-            'statut' => 'actif',
-            'role_id' => 3,
-        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | DPA
+        |--------------------------------------------------------------------------
+        */
+
+        User::updateOrCreate(
+            ['telephone' => '91111111'],
+            [
+                'name' => 'Kodjo Agbeko',
+                'email' => 'kodjo.agbeko@gmail.com',
+                'password' => 'password',
+                'telephone_verified_at' => now(),
+                'statut' => true,
+                'role_id' => 'R02',
+            ]
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Superviseur
+        |--------------------------------------------------------------------------
+        */
+
+        User::updateOrCreate(
+            ['telephone' => '92222222'],
+            [
+                'name' => 'Kossi Amouzou',
+                'email' => 'kossi.amouzou@gmail.com',
+                'password' => 'password',
+                'telephone_verified_at' => now(),
+                'statut' => true,
+                'role_id' => 'R03',
+            ]
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Technicien
+        |--------------------------------------------------------------------------
+        */
+
+        User::updateOrCreate(
+            ['telephone' => '93333333'],
+            [
+                'name' => 'Yawovi Lawson',
+                'email' => 'yawovi.lawson@gmail.com',
+                'password' => 'password',
+                'telephone_verified_at' => now(),
+                'statut' => true,
+                'role_id' => 'R04',
+            ]
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CACH
+        |--------------------------------------------------------------------------
+        */
+
+        User::updateOrCreate(
+            ['telephone' => '94444444'],
+            [
+                'name' => 'Ama Koudjo',
+                'email' => 'ama.koudjo@gmail.com',
+                'password' => 'password',
+                'telephone_verified_at' => now(),
+                'statut' => true,
+                'role_id' => 'R05',
+            ]
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Agent recenseur
+        |--------------------------------------------------------------------------
+        */
+
+        User::updateOrCreate(
+            ['telephone' => '95555555'],
+            [
+                'name' => 'Komlan Adjeoda',
+                'email' => 'komlan.adjeoda@gmail.com',
+                'password' => 'password',
+                'telephone_verified_at' => now(),
+                'statut' => true,
+                'role_id' => 'R06',
+            ]
+        );
     }
 }

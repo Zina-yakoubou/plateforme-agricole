@@ -15,25 +15,72 @@ class CantonController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->search;
+        $search = $request->input('search');
+
+        $user = auth()->user();
 
         $cantons = Canton::with('commune')
-            ->when($search, function ($query) use ($search) {
+            ->when($user->isDpa(), function ($query) use ($user) {
 
-                $query->where('nom', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhereHas('commune', function ($q) use ($search) {
+                $query->whereHas('commune', function ($q) use ($user) {
 
-                        $q->where('nom', 'like', "%{$search}%");
+                    $q->where(
+                        'prefecture_id',
+                        $user->prefecture_id
+                    );
 
-                    });
+                });
 
             })
             ->orderBy('nom')
+            ->when($search, function ($query, $search) {
+
+                $query->where(function ($q) use ($search) {
+
+                    $q->where('nom', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%")
+                        ->orWhereHas('commune', function ($q) use ($search) {
+
+                            $q->where('nom', 'like', "%{$search}%");
+
+                        });
+
+                });
+
+            })
             ->paginate(5);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Communes disponibles
+        |--------------------------------------------------------------------------
+        |
+        | Admin → toutes les communes
+        | DPA   → uniquement les communes de sa préfecture
+        |
+        */
 
-        return view('cantons.index', compact('cantons'));
+        $communes = Commune::when(
+            $user->isDpa(),
+            function ($query) use ($user) {
+
+                $query->where(
+                    'prefecture_id',
+                    $user->prefecture_id
+                );
+
+            }
+        )
+        ->orderBy('nom')
+        ->get();
+
+        return view(
+            'cantons.index',
+            compact(
+                'cantons',
+                'communes'
+            )
+        );
     }
 
 
@@ -42,6 +89,8 @@ class CantonController extends Controller
      */
     public function create(Request $request)
     {
+        $user = auth()->user();
+
         $commune = null;
 
 
@@ -57,6 +106,21 @@ class CantonController extends Controller
                 $request->commune
             );
 
+            /*
+            |--------------------------------------------------------------------------
+            | Sécurité DPA
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $user->isDpa() &&
+                $commune->prefecture_id !== $user->prefecture_id
+            ) {
+
+                abort(403);
+
+            }
+
         }
 
 
@@ -66,8 +130,19 @@ class CantonController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $communes = Commune::orderBy('nom')
-            ->get();
+        $communes = Commune::when(
+            $user->isDpa(),
+            function ($query) use ($user) {
+
+                $query->where(
+                    'prefecture_id',
+                    $user->prefecture_id
+                );
+
+            }
+        )
+        ->orderBy('nom')
+        ->get();
 
 
         return view(
@@ -80,15 +155,43 @@ class CantonController extends Controller
     }
 
 
-
     /**
      * Enregistrement
      */
     public function store(StoreCantonRequest $request)
     {
+        $user = auth()->user();
+
+        $data = $request->validated();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Sécurité DPA
+        |--------------------------------------------------------------------------
+        |
+        | Le DPA ne peut créer un canton que dans une
+        | commune appartenant à sa préfecture.
+        |
+        */
+
+        if ($user->isDpa()) {
+
+            $commune = Commune::findOrFail(
+                $data['commune_id']
+            );
+
+            if (
+                $commune->prefecture_id !== $user->prefecture_id
+            ) {
+
+                abort(403);
+
+            }
+
+        }
 
         Canton::create(
-            $request->validated()
+            $data
         );
 
 
@@ -98,9 +201,7 @@ class CantonController extends Controller
                 'success',
                 'Canton ajouté avec succès.'
             );
-
     }
-
 
 
     /**
@@ -108,17 +209,39 @@ class CantonController extends Controller
      */
     public function show(Canton $canton)
     {
+        $user = auth()->user();
 
-        $canton->load('commune');
+        /*
+        |--------------------------------------------------------------------------
+        | Sécurité DPA
+        |--------------------------------------------------------------------------
+        */
 
+        if ($user->isDpa()) {
+
+            $canton->load('commune');
+
+            if (
+                !$canton->commune ||
+                $canton->commune->prefecture_id !== $user->prefecture_id
+            ) {
+
+                abort(403);
+
+            }
+
+        }
+
+        $canton->load([
+            'commune',
+            'villages'
+        ]);
 
         return view(
             'cantons.show',
             compact('canton')
         );
-
     }
-
 
 
     /**
@@ -126,9 +249,49 @@ class CantonController extends Controller
      */
     public function edit(Canton $canton)
     {
+        $user = auth()->user();
 
-        $communes = Commune::orderBy('nom')
-            ->get();
+        /*
+        |--------------------------------------------------------------------------
+        | Vérification du canton
+        |--------------------------------------------------------------------------
+        */
+
+        $canton->load('commune');
+
+        if ($user->isDpa()) {
+
+            if (
+                !$canton->commune ||
+                $canton->commune->prefecture_id !== $user->prefecture_id
+            ) {
+
+                abort(403);
+
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Communes disponibles
+        |--------------------------------------------------------------------------
+        */
+
+        $communes = Commune::when(
+            $user->isDpa(),
+            function ($query) use ($user) {
+
+                $query->where(
+                    'prefecture_id',
+                    $user->prefecture_id
+                );
+
+            }
+        )
+        ->orderBy('nom')
+        ->get();
 
 
         return view(
@@ -138,9 +301,7 @@ class CantonController extends Controller
                 'communes'
             )
         );
-
     }
-
 
 
     /**
@@ -151,9 +312,53 @@ class CantonController extends Controller
         Canton $canton
     )
     {
+        $user = auth()->user();
+
+        $data = $request->validated();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vérification du canton actuel
+        |--------------------------------------------------------------------------
+        */
+
+        $canton->load('commune');
+
+        if ($user->isDpa()) {
+
+            if (
+                !$canton->commune ||
+                $canton->commune->prefecture_id !== $user->prefecture_id
+            ) {
+
+                abort(403);
+
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Vérification de la nouvelle commune
+            |--------------------------------------------------------------------------
+            */
+
+            $commune = Commune::findOrFail(
+                $data['commune_id']
+            );
+
+            if (
+                $commune->prefecture_id !== $user->prefecture_id
+            ) {
+
+                abort(403);
+
+            }
+
+        }
+
 
         $canton->update(
-            $request->validated()
+            $data
         );
 
 
@@ -163,9 +368,7 @@ class CantonController extends Controller
                 'success',
                 'Canton modifié avec succès.'
             );
-
     }
-
 
 
     /**
@@ -173,6 +376,29 @@ class CantonController extends Controller
      */
     public function destroy(Canton $canton)
     {
+        $user = auth()->user();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Sécurité DPA
+        |--------------------------------------------------------------------------
+        */
+
+        if ($user->isDpa()) {
+
+            $canton->load('commune');
+
+            if (
+                !$canton->commune ||
+                $canton->commune->prefecture_id !== $user->prefecture_id
+            ) {
+
+                abort(403);
+
+            }
+
+        }
+
 
         $canton->delete();
 
@@ -183,6 +409,5 @@ class CantonController extends Controller
                 'success',
                 'Canton supprimé avec succès.'
             );
-
     }
 }

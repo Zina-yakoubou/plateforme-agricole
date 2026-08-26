@@ -32,17 +32,17 @@
         <div class="flex gap-3">
 
 
-            <a href="{{ route('regions.edit',$region) }}"
+            {{-- <a href="{{ route('regions.edit',$region) }}"
                class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
 
                 Modifier
 
-            </a>
+            </a> --}}
 
 
 
             <a href="{{ route('regions.index') }}"
-               class="px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">
+               class="px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-500">
 
                 Retour
 

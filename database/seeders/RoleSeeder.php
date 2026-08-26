@@ -8,26 +8,51 @@ use App\Models\Role;
 class RoleSeeder extends Seeder
 {
     /**
-     * Création des rôles SIRA-MO.
+     * Création des rôles SIRA-Mô.
      */
     public function run(): void
     {
-        Role::create([
-            'idRole' => 1,
-            'nom' => 'Administrateur',
-            'description' => 'Gestion complète du système SIRA-MO',
-        ]);
+        $roles = [
+            [
+                'idRole' => "R01",
+                'nom' => 'Administrateur',
+                'description' => 'Gestion complète du système SIRA-Mô.',
+            ],
+            [
+                'idRole' => "R02",
+                'nom' => 'DPA',
+                'description' => 'Directeur Préfectoral de l’Agriculture chargé de la coordination et du suivi du recensement agricole au niveau préfectoral.',
+            ],
+            [
+                'idRole' => "R03",
+                'nom' => 'Superviseur',
+                'description' => 'Supervision et contrôle des opérations de recensement agricole au niveau de la préfecture.',
+            ],
+            [
+                'idRole' => "R04",
+                'nom' => 'Technicien',
+                'description' => 'Appui et contrôle technique des opérations de recensement agricole.',
+            ],
+            [
+                'idRole' => "R05",
+                'nom' => 'CACH',
+                'description' => 'Évaluation technique des besoins des exploitants agricoles, notamment en intrants.',
+            ],
+            [
+                'idRole' => "R06",
+                'nom' => 'Agent recenseur',
+                'description' => 'Collecte et saisie des données auprès des ménages, exploitants et exploitations agricoles.',
+            ],
+        ];
 
-        Role::create([
-            'idRole' => 2,
-            'nom' => 'Directeur préfectoral',
-            'description' => 'Supervision du recensement au niveau préfectoral',
-        ]);
-
-        Role::create([
-            'idRole' => 3,
-            'nom' => 'Agent recenseur',
-            'description' => 'Collecte et saisie des données de recensement',
-        ]);
+        foreach ($roles as $role) {
+            Role::updateOrCreate(
+                ['idRole' => $role['idRole']],
+                [
+                    'nom' => $role['nom'],
+                    'description' => $role['description'],
+                ]
+            );
+        }
     }
 }

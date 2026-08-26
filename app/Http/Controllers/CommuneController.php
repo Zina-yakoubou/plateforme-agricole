@@ -8,34 +8,92 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests\StoreCommuneRequest;
 use App\Http\Requests\UpdateCommuneRequest;
+use Illuminate\Support\Facades\Auth;
 
 class CommuneController extends Controller
 {
     /**
      * Liste des communes
      */
-    public function index(Request $request)
+    // public function index(Request $request)
+    // {
+    //     $search = $request->search;
+
+    //     $communes = Commune::with('prefecture.region')
+    //         ->when($search, function ($query) use ($search) {
+
+    //             $query->where('nom', 'like', "%{$search}%")
+    //                   ->orWhere('code', 'like', "%{$search}%");
+
+    //         })
+    //         ->paginate(10);
+
+    //     return view(
+    //         'communes.index',
+    //         compact(
+    //             'communes',
+    //             'search'
+    //         )
+    //     );
+    // }
+
+
+        public function index(Request $request)
     {
-        $search = $request->search;
+        $search = $request->input('search');
+
+        $user = Auth::user();
+        $isDpa = $user && method_exists($user, 'isDpa') ? $user->isDpa() : false;
 
         $communes = Commune::with('prefecture.region')
-            ->when($search, function ($query) use ($search) {
+            ->withCount('cantons')
 
-                $query->where('nom', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
-
+            ->when($isDpa, function ($query) use ($user) {
+                $query->where(
+                    'prefecture_id',
+                    $user->prefecture_id
+                );
             })
+
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nom', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+
             ->paginate(10);
+
+        /*
+        * Pour le filtre/sélecteur de préfecture :
+        *
+        * Administrateur → toutes les préfectures
+        * DPA            → uniquement sa préfecture
+        */
+        if ($isDpa) {
+
+            $prefectures = Prefecture::where(
+                'idPrefecture',
+                $user->prefecture_id
+            )
+            ->orderBy('nom')
+            ->get();
+
+        } else {
+
+            $prefectures = Prefecture::orderBy('nom')->get();
+
+        }
 
         return view(
             'communes.index',
             compact(
                 'communes',
+                'prefectures',
                 'search'
             )
         );
     }
-
     /**
      * Formulaire création
      * Peut venir d'une préfecture

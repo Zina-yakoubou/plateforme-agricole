@@ -21,32 +21,49 @@ class PrefectureController extends Controller
     /**
      * Liste des préfectures
      */
-    public function index(Request $request)
+    // public function index(Request $request)
+    // {
+
+    //     $search = $request->search;
+
+
+    //     $prefectures = Prefecture::with('region')
+    //         ->when($search, function($query) use ($search){
+
+    //             $query->where('nom','like',"%{$search}%");
+
+    //         })
+    //         ->paginate(5);
+
+
+
+    //     return view(
+    //         'prefectures.index',
+    //         compact(
+    //             'prefectures',
+    //             'search'
+    //         )
+    //     );
+
+    // }
+
+
+        public function index(Request $request)
     {
-
-        $search = $request->search;
-
+        $search = $request->input('search');
 
         $prefectures = Prefecture::with('region')
-            ->when($search, function($query) use ($search){
-
-                $query->where('nom','like',"%{$search}%");
-
+            ->withCount('communes')
+            ->when($search, function ($query, $search) {
+                $query->where('nom', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
             })
             ->paginate(5);
 
+        $regions = Region::orderBy('nom')->get(); // <-- à ajouter
 
-
-        return view(
-            'prefectures.index',
-            compact(
-                'prefectures',
-                'search'
-            )
-        );
-
+        return view('prefectures.index', compact('prefectures', 'regions', 'search'));
     }
-
 
 
 

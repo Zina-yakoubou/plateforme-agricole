@@ -18,8 +18,9 @@ return new class extends Migration
             $table->boolean('donneesModifiees')->default(false);
             $table->foreignId('campagne_id')->constrained('campagne_recensements', 'idCampagne')->onDelete('cascade');
             $table->foreignId('exploitant_id')->constrained('exploitants', 'idExploitant')->onDelete('cascade');
-            $table->foreignId('agent_id')->constrained('users', 'idUser')->onDelete('cascade');
-            $table->foreignId('alerte_id')->nullable()->constrained('alertes', 'idAlerte')->onDelete('set null');
+            $table->foreignId('agent_id')
+                ->constrained('users')
+                ->onDelete('cascade');            $table->foreignId('alerte_id')->nullable()->constrained('alertes', 'idAlerte')->onDelete('set null');
             $table->timestamps();
         });
     }

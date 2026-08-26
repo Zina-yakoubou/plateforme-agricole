@@ -13,9 +13,22 @@ return new class extends Migration
     {
         Schema::create('maisons', function (Blueprint $table) {
             $table->id('idMaison');
-            $table->string('numeroMaison');
+
+            // Identifiant technique unique
+            // Utilisé notamment pour le mode hors ligne et la synchronisation
+            $table->uuid('uid')->unique();
+
+            // Référence métier visible sur le terrain
+            $table->string('numeroMaison')->unique();
+
+            // Adresse ou indication complémentaire
             $table->string('adresse')->nullable();
-            $table->foreignId('village_id')->constrained('villages', 'idVillage')->onDelete('cascade');
+
+            // Village auquel appartient la maison
+            $table->foreignId('village_id')
+                ->constrained('villages', 'idVillage')
+                ->onDelete('cascade');
+
             $table->timestamps();
         });
     }
@@ -28,3 +41,4 @@ return new class extends Migration
         Schema::dropIfExists('maisons');
     }
 };
+

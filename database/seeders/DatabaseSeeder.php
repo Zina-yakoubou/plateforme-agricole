@@ -24,11 +24,17 @@ class DatabaseSeeder extends Seeder
 
          $this->call([
             RoleSeeder::class,
-            RegionSeeder::class,
-            PrefectureSeeder::class,
-            CommuneSeeder::class,
+            StructureSeeder::class,
+            ZoneSeeder::class,
             UserSeeder::class,
-            CantonSeeder::class,
+            CampagneRecensementSeeder::class,
+            CampagneZoneSeeder::class,
+            QuestionnaireSeeder::class, // Insère questionnaires + pivot
+
+
+            //DirecteurPrefectureSeeder::class,
+            //AffectationSeeder::class,
+
 
         ]);
     }
