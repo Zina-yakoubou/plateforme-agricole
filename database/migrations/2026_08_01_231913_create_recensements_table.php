@@ -20,7 +20,8 @@ return new class extends Migration
             $table->foreignId('exploitant_id')->constrained('exploitants', 'idExploitant')->onDelete('cascade');
             $table->foreignId('agent_id')
                 ->constrained('users')
-                ->onDelete('cascade');            $table->foreignId('alerte_id')->nullable()->constrained('alertes', 'idAlerte')->onDelete('set null');
+                ->onDelete('cascade');           
+            $table->foreignId('alerte_id')->nullable()->constrained('alertes', 'idAlerte')->onDelete('set null');
             $table->timestamps();
         });
     }

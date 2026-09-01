@@ -33,6 +33,7 @@ class CampagneRecensement extends Model
 
         'objectifs',
         'resultatsAttendus',
+        'zoneConserner',
 
         'methodologie',
         'instructions',

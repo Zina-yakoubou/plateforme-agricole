@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Création de la table des affectations.
      */
     public function up(): void
     {
@@ -15,57 +15,121 @@ return new class extends Migration
 
             $table->id('idAffectation');
 
-            // Référence unique de l'affectation
-            $table->string('reference')->unique();
-
-            // Période de validité
-            $table->date('dateDebut')->nullable();
-            $table->date('dateFin')->nullable();
-
-            // Statut de l'affectation
-            $table->string('statut')->nullable()->default('ACTIVE');
-
             /*
             |--------------------------------------------------------------------------
-            | Relations
+            | IDENTIFICATION
             |--------------------------------------------------------------------------
             */
 
-            // Utilisateur concerné
-            $table->foreignId('user_id')
-                ->constrained()
+            $table->string('reference')->unique();
+
+            /*
+            |--------------------------------------------------------------------------
+            | CAMPAGNE
+            |--------------------------------------------------------------------------
+            */
+
+            $table->foreignId('campagne_id')
+                ->constrained(
+                    'campagne_recensements',
+                    'idCampagne'
+                )
                 ->cascadeOnDelete();
 
-            // Campagne de recensement
-            $table->foreignId('campagne_id')
-                ->nullable()
-                ->constrained('campagne_recensements', 'idCampagne')
-                ->nullOnDelete();
+            /*
+            |--------------------------------------------------------------------------
+            | ÉQUIPE
+            |--------------------------------------------------------------------------
+            |
+            | L'affectation concerne toute l'équipe :
+            | superviseur + agents recenseurs.
+            |
+            */
 
-            // Préfecture de rattachement (Directeur préfectoral)
-            $table->foreignId('prefecture_id')
-                ->nullable()
-                ->constrained('prefectures', 'idPrefecture')
-                ->nullOnDelete();
+            $table->foreignId('equipe_id')
+                ->constrained(
+                    'equipes',
+                    'idEquipe'
+                )
+                ->cascadeOnDelete();
 
-            // Canton d'affectation (si nécessaire)
-            $table->foreignId('canton_id')
-                ->nullable()
-                ->constrained('cantons', 'idCanton')
-                ->nullOnDelete();
+            /*
+            |--------------------------------------------------------------------------
+            | TERRITOIRE
+            |--------------------------------------------------------------------------
+            |
+            | On saisit uniquement le village.
+            |
+            | Village
+            |    ↓
+            | Canton
+            |    ↓
+            | Commune
+            |    ↓
+            | Préfecture
+            |
+            */
 
-            // Village d'affectation (Agent recenseur)
             $table->foreignId('village_id')
-                ->nullable()
-                ->constrained('villages', 'idVillage')
-                ->nullOnDelete();
+                ->constrained(
+                    'villages',
+                    'idVillage'
+                )
+                ->cascadeOnDelete();
+
+            /*
+            |--------------------------------------------------------------------------
+            | PÉRIODE
+            |--------------------------------------------------------------------------
+            */
+
+            $table->date('dateDebut')->nullable();
+
+            $table->date('dateFin')->nullable();
+
+            /*
+            |--------------------------------------------------------------------------
+            | STATUT
+            |--------------------------------------------------------------------------
+            |
+            | active   : affectation en cours
+            | terminee : affectation terminée
+            | annulee  : affectation annulée
+            |
+            */
+
+            $table->string('statut')
+                ->default('active');
+
+            /*
+            |--------------------------------------------------------------------------
+            | OBSERVATIONS
+            |--------------------------------------------------------------------------
+            */
+
+            $table->text('observations')->nullable();
 
             $table->timestamps();
+
+            /*
+            |--------------------------------------------------------------------------
+            | CONTRAINTE
+            |--------------------------------------------------------------------------
+            |
+            | Une même équipe ne peut pas avoir deux affectations
+            | sur le même village pour la même campagne.
+            |
+            */
+
+            $table->unique(
+                ['campagne_id', 'equipe_id', 'village_id'],
+                'affectation_campagne_equipe_village_unique'
+            );
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Suppression de la table.
      */
     public function down(): void
     {

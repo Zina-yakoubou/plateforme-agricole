@@ -1,49 +1,19 @@
 @csrf
 
 @php
-
     /*
     |--------------------------------------------------------------------------
-    | PLANIFICATION EXISTANTE
+    | ANCIENNES VALEURS
     |--------------------------------------------------------------------------
     */
 
-    $planificationActuelle =
-        $planificationPrefectorale
-        ?? $planification
-        ?? null;
-
-
     /*
-    |--------------------------------------------------------------------------
-    | TERRITOIRES EXISTANTS
-    |--------------------------------------------------------------------------
+    | Territoires déjà enregistrés en base
     */
 
-    $territoiresExistants = $planificationActuelle
-        ? $planificationActuelle->territoires
-        : collect();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | COMMUNES SÉLECTIONNÉES
-    |--------------------------------------------------------------------------
-    */
-
-    $communesSelectionnees = $territoiresExistants
-        ->whereNotNull('commune_id')
-        ->pluck('commune_id')
-        ->map(fn ($id) => (string) $id)
-        ->values()
-        ->toArray();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CANTONS SÉLECTIONNÉS
-    |--------------------------------------------------------------------------
-    */
+    $territoiresExistants = isset($planificationPrefectorale)
+        ? $planificationPrefectorale->territoires
+        : (isset($planification) ? $planification->territoires : collect());
 
     $cantonsSelectionnes = $territoiresExistants
         ->whereNotNull('canton_id')
@@ -51,13 +21,6 @@
         ->map(fn ($id) => (string) $id)
         ->values()
         ->toArray();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGES SÉLECTIONNÉS
-    |--------------------------------------------------------------------------
-    */
 
     $villagesSelectionnes = $territoiresExistants
         ->whereNotNull('village_id')
@@ -68,22 +31,24 @@
 
 
     /*
-    |--------------------------------------------------------------------------
-    | BESOINS EXISTANTS
-    |--------------------------------------------------------------------------
+    |----------------------------------------------------------------------
+    | Besoins existants
+    |----------------------------------------------------------------------
     */
 
-    $besoinsExistants = $planificationActuelle
-        ? $planificationActuelle->besoins->map(function ($besoin) {
+    $planificationPourBesoins =
+        $planificationPrefectorale
+        ?? $planification
+        ?? null;
 
+    $besoinsExistants = $planificationPourBesoins
+        ? $planificationPourBesoins->besoins->map(function ($besoin) {
             return [
-                'categorie'    => $besoin->categorie,
-                'designation'  => $besoin->designation,
-                'quantite'     => $besoin->quantite,
-                'unite'        => $besoin->unite ?? '',
-                'observations' => $besoin->observations ?? '',
+                'categorie'   => $besoin->categorie,
+                'designation' => $besoin->designation,
+                'quantite'    => $besoin->quantite,
+                'observations'=> $besoin->observations,
             ];
-
         })->values()->toArray()
         : [];
 
@@ -94,266 +59,18 @@
     x-data="{
         besoins: @js(old('besoins', $besoinsExistants)),
 
-        communesSelectionnees: @js(
-            old('commune_ids', $communesSelectionnees)
-        ),
-
-        cantonsSelectionnes: @js(
-            old('canton_ids', $cantonsSelectionnes)
-        ),
-
-        villagesSelectionnes: @js(
-            old('village_ids', $villagesSelectionnes)
-        ),
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | BESOINS
-        |--------------------------------------------------------------------------
-        */
-
         ajouterBesoin() {
-
             this.besoins.push({
                 categorie: '',
                 designation: '',
                 quantite: '',
-                unite: '',
                 observations: ''
             });
-
         },
 
         supprimerBesoin(index) {
-
             this.besoins.splice(index, 1);
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | TEST COMMUNE
-        |--------------------------------------------------------------------------
-        */
-
-        communeSelectionnee(communeId) {
-
-            return this.communesSelectionnees
-                .includes(String(communeId));
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | TEST CANTON
-        |--------------------------------------------------------------------------
-        */
-
-        cantonSelectionne(cantonId) {
-
-            return this.cantonsSelectionnes
-                .includes(String(cantonId));
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | TEST VILLAGE
-        |--------------------------------------------------------------------------
-        */
-
-        villageSelectionne(villageId) {
-
-            return this.villagesSelectionnes
-                .includes(String(villageId));
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SÉLECTION COMMUNE ENTIÈRE
-        |--------------------------------------------------------------------------
-        */
-
-        selectionnerCommune(communeId) {
-
-            communeId = String(communeId);
-
-
-            /*
-            | Ajouter la commune
-            */
-
-            if (!this.communesSelectionnees.includes(communeId)) {
-
-                this.communesSelectionnees.push(communeId);
-
-            }
-
-
-            /*
-            | Une commune entière couvre tous ses cantons.
-            | On supprime donc les cantons de cette commune.
-            */
-
-            this.cantonsSelectionnes =
-                this.cantonsSelectionnes.filter(cantonId => {
-
-                    return !document.querySelector(
-                        `[data-commune-id='${communeId}'][data-canton-id='${cantonId}']`
-                    );
-
-                });
-
-
-            /*
-            | Une commune entière couvre également tous
-            | les villages de la commune.
-            */
-
-            this.villagesSelectionnes =
-                this.villagesSelectionnes.filter(villageId => {
-
-                    return !document.querySelector(
-                        `[data-commune-id='${communeId}'][data-village-id='${villageId}']`
-                    );
-
-                });
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | DÉSÉLECTION COMMUNE
-        |--------------------------------------------------------------------------
-        */
-
-        deselectionnerCommune(communeId) {
-
-            communeId = String(communeId);
-
-            this.communesSelectionnees =
-                this.communesSelectionnees.filter(
-                    id => id !== communeId
-                );
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SÉLECTION CANTON ENTIER
-        |--------------------------------------------------------------------------
-        */
-
-        selectionnerCanton(cantonId) {
-
-            cantonId = String(cantonId);
-
-
-            /*
-            | Ajouter le canton
-            */
-
-            if (!this.cantonsSelectionnes.includes(cantonId)) {
-
-                this.cantonsSelectionnes.push(cantonId);
-
-            }
-
-
-            /*
-            | Un canton entier couvre tous ses villages.
-            | On supprime donc les villages de ce canton.
-            */
-
-            this.villagesSelectionnes =
-                this.villagesSelectionnes.filter(villageId => {
-
-                    return !document.querySelector(
-                        `[data-canton-id='${cantonId}'][data-village-id='${villageId}']`
-                    );
-
-                });
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | DÉSÉLECTION CANTON
-        |--------------------------------------------------------------------------
-        */
-
-        deselectionnerCanton(cantonId) {
-
-            cantonId = String(cantonId);
-
-            this.cantonsSelectionnes =
-                this.cantonsSelectionnes.filter(
-                    id => id !== cantonId
-                );
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CHANGEMENT COMMUNE
-        |--------------------------------------------------------------------------
-        */
-
-        changerCommune(communeId) {
-
-            communeId = String(communeId);
-
-            if (
-                this.communesSelectionnees
-                    .includes(communeId)
-            ) {
-
-                this.selectionnerCommune(communeId);
-
-            } else {
-
-                this.deselectionnerCommune(communeId);
-
-            }
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CHANGEMENT CANTON
-        |--------------------------------------------------------------------------
-        */
-
-        changerCanton(cantonId) {
-
-            cantonId = String(cantonId);
-
-            if (
-                this.cantonsSelectionnes
-                    .includes(cantonId)
-            ) {
-
-                this.selectionnerCanton(cantonId);
-
-            } else {
-
-                this.deselectionnerCanton(cantonId);
-
-            }
-
         }
-
     }"
 >
 
@@ -364,64 +81,16 @@
 
     <div>
 
-        <div class="mb-5">
+        <div class="mb-4">
 
             <h3 class="text-sm font-semibold text-gray-800">
                 Territoire concerné
             </h3>
 
-            <p class="mt-1 text-xs leading-5 text-gray-500">
-                Sélectionnez les territoires concernés par la campagne.
-                Vous pouvez sélectionner une commune entière, un ou plusieurs
-                cantons entiers, ou seulement certains villages.
+            <p class="mt-1 text-xs text-gray-500">
+                Sélectionnez les cantons ou villages concernés
+                par la planification préfectorale.
             </p>
-
-        </div>
-
-
-        {{-- ======================================================
-            LÉGENDE
-        ======================================================= --}}
-
-        <div class="mb-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-
-            <div class="rounded-lg border border-green-200 bg-green-50 p-3">
-
-                <p class="text-xs font-semibold text-green-800">
-                    Commune entière
-                </p>
-
-                <p class="mt-1 text-xs text-green-700">
-                    Tous les cantons et villages de la commune.
-                </p>
-
-            </div>
-
-
-            <div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
-
-                <p class="text-xs font-semibold text-blue-800">
-                    Canton entier
-                </p>
-
-                <p class="mt-1 text-xs text-blue-700">
-                    Tous les villages du canton.
-                </p>
-
-            </div>
-
-
-            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-
-                <p class="text-xs font-semibold text-gray-800">
-                    Villages
-                </p>
-
-                <p class="mt-1 text-xs text-gray-600">
-                    Sélection de villages précis.
-                </p>
-
-            </div>
 
         </div>
 
@@ -454,9 +123,9 @@
                         Préfecture de {{ $deploiement->prefecture->nom }}
                     </p>
 
-                    <p class="mt-1 text-xs text-green-700">
-                        La sélection est limitée au territoire de cette
-                        préfecture.
+                    <p class="mt-1 text-sm text-green-700">
+                        La planification concerne uniquement le territoire
+                        de cette préfecture.
                     </p>
 
                 </div>
@@ -475,9 +144,8 @@
             @forelse($communes as $commune)
 
                 <div
-                    class="overflow-hidden rounded-xl border border-gray-200 bg-white"
+                    class="overflow-hidden rounded-lg border border-gray-200"
                     x-data="{ ouvert: true }"
-                    data-commune-id="{{ $commune->idCommune }}"
                 >
 
                     {{-- ==================================================
@@ -491,7 +159,6 @@
                             <div
                                 class="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100"
                             >
-
                                 <svg
                                     class="h-5 w-5 text-green-600"
                                     fill="none"
@@ -505,7 +172,6 @@
                                         d="M3 21h18M5 21V9l7-4 7 4v12M9 21v-6h6v6"
                                     />
                                 </svg>
-
                             </div>
 
                             <div>
@@ -524,27 +190,28 @@
                         </div>
 
 
-                        {{-- COMMUNE ENTIÈRE --}}
+                        <button
+                            type="button"
+                            @click="ouvert = !ouvert"
+                            class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                        >
 
-                        <label class="flex cursor-pointer items-center gap-2">
-
-                            <input
-                                type="checkbox"
-                                name="commune_ids[]"
-                                value="{{ $commune->idCommune }}"
-
-                                x-model="communesSelectionnees"
-
-                                @change="changerCommune('{{ $commune->idCommune }}')"
-
-                                class="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            <svg
+                                class="h-5 w-5 transition-transform"
+                                :class="{ 'rotate-180': ouvert }"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                             >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 9l-7 7-7-7"
+                                />
+                            </svg>
 
-                            <span class="text-xs font-semibold text-gray-700">
-                                Commune entière
-                            </span>
-
-                        </label>
+                        </button>
 
                     </div>
 
@@ -562,8 +229,6 @@
 
                             <div
                                 class="rounded-lg border border-gray-200"
-                                data-commune-id="{{ $commune->idCommune }}"
-                                data-canton-id="{{ $canton->idCanton }}"
                                 x-data="{ ouvertCanton: false }"
                             >
 
@@ -577,16 +242,13 @@
                                             type="checkbox"
                                             name="canton_ids[]"
                                             value="{{ $canton->idCanton }}"
-
-                                            x-model="cantonsSelectionnes"
-
-                                            @change="changerCanton('{{ $canton->idCanton }}')"
-
-                                            :disabled="
-                                                communeSelectionnee('{{ $commune->idCommune }}')
-                                            "
-
-                                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            @checked(
+                                                in_array(
+                                                    (string) $canton->idCanton,
+                                                    old('canton_ids', $cantonsSelectionnes)
+                                                )
+                                            )
+                                            class="rounded border-gray-300 text-green-600 focus:ring-green-500"
                                         >
 
                                         <div>
@@ -608,17 +270,9 @@
                                     <button
                                         type="button"
                                         @click="ouvertCanton = !ouvertCanton"
-                                        class="rounded-lg px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                        class="text-xs font-medium text-gray-500 hover:text-gray-700"
                                     >
-
-                                        <span x-show="!ouvertCanton">
-                                            Voir les villages
-                                        </span>
-
-                                        <span x-show="ouvertCanton">
-                                            Masquer
-                                        </span>
-
+                                        Voir les villages
                                     </button>
 
                                 </div>
@@ -633,24 +287,11 @@
                                     class="border-t border-gray-100 bg-gray-50 px-4 py-3"
                                 >
 
-                                    <div class="mb-3">
-
-                                        <p class="text-xs font-medium text-gray-500">
-                                            Sélectionner certains villages
-                                        </p>
-
-                                    </div>
-
-
                                     <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
 
                                         @forelse($canton->villages as $village)
 
                                             <label
-                                                data-commune-id="{{ $commune->idCommune }}"
-                                                data-canton-id="{{ $canton->idCanton }}"
-                                                data-village-id="{{ $village->idVillage }}"
-
                                                 class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 transition hover:bg-gray-50"
                                             >
 
@@ -658,16 +299,13 @@
                                                     type="checkbox"
                                                     name="village_ids[]"
                                                     value="{{ $village->idVillage }}"
-
-                                                    x-model="villagesSelectionnes"
-
-                                                    :disabled="
-                                                        communeSelectionnee('{{ $commune->idCommune }}')
-                                                        ||
-                                                        cantonSelectionne('{{ $canton->idCanton }}')
-                                                    "
-
-                                                    class="rounded border-gray-300 text-gray-700 focus:ring-green-500"
+                                                    @checked(
+                                                        in_array(
+                                                            (string) $village->idVillage,
+                                                            old('village_ids', $villagesSelectionnes)
+                                                        )
+                                                    )
+                                                    class="rounded border-gray-300 text-green-600 focus:ring-green-500"
                                                 >
 
                                                 <span class="text-sm text-gray-700">
@@ -704,7 +342,7 @@
 
             @empty
 
-                <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-5">
+                <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
 
                     <p class="text-sm text-gray-500">
                         Aucune commune enregistrée pour cette préfecture.
@@ -717,28 +355,31 @@
         </div>
 
 
-        {{-- ======================================================
-            ERREURS TERRITOIRES
-        ======================================================= --}}
+        {{-- ERREURS TERRITOIRES --}}
 
-        @foreach([
-            'commune_ids',
-            'commune_ids.*',
-            'canton_ids',
-            'canton_ids.*',
-            'village_ids',
-            'village_ids.*'
-        ] as $champ)
+        @error('canton_ids')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
 
-            @error($champ)
+        @error('canton_ids.*')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
 
-                <p class="mt-2 text-sm text-red-600">
-                    {{ $message }}
-                </p>
+        @error('village_ids')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
 
-            @enderror
-
-        @endforeach
+        @error('village_ids.*')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
 
     </div>
 
@@ -792,7 +433,9 @@
         </div>
 
 
-        {{-- AUCUN BESOIN --}}
+        {{-- ======================================================
+            AUCUN BESOIN
+        ======================================================= --}}
 
         <template x-if="besoins.length === 0">
 
@@ -813,7 +456,9 @@
         </template>
 
 
-        {{-- LISTE DES BESOINS --}}
+        {{-- ======================================================
+            LISTE DES BESOINS
+        ======================================================= --}}
 
         <div class="space-y-4">
 
@@ -833,6 +478,7 @@
                             <span x-text="index + 1"></span>
                         </p>
 
+
                         <button
                             type="button"
                             @click="supprimerBesoin(index)"
@@ -846,11 +492,15 @@
 
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 
-                        {{-- CATÉGORIE --}}
+                        {{-- ==================================================
+                            CATÉGORIE
+                        =================================================== --}}
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700">
+                            <label
+                                class="block text-sm font-medium text-gray-700"
+                            >
                                 Catégorie
                                 <span class="text-red-500">*</span>
                             </label>
@@ -895,11 +545,15 @@
                         </div>
 
 
-                        {{-- DÉSIGNATION --}}
+                        {{-- ==================================================
+                            DÉSIGNATION
+                        =================================================== --}}
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700">
+                            <label
+                                class="block text-sm font-medium text-gray-700"
+                            >
                                 Besoin
                                 <span class="text-red-500">*</span>
                             </label>
@@ -916,11 +570,15 @@
                         </div>
 
 
-                        {{-- QUANTITÉ --}}
+                        {{-- ==================================================
+                            QUANTITÉ
+                        =================================================== --}}
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700">
+                            <label
+                                class="block text-sm font-medium text-gray-700"
+                            >
                                 Quantité
                                 <span class="text-red-500">*</span>
                             </label>
@@ -939,30 +597,15 @@
                         </div>
 
 
-                        {{-- UNITÉ --}}
+                        {{-- ==================================================
+                            OBSERVATIONS DU BESOIN
+                        =================================================== --}}
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700">
-                                Unité
-                            </label>
-
-                            <input
-                                type="text"
-                                :name="`besoins[${index}][unite]`"
-                                x-model="besoin.unite"
-                                placeholder="Ex. unité, litre, jour..."
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                            <label
+                                class="block text-sm font-medium text-gray-700"
                             >
-
-                        </div>
-
-
-                        {{-- OBSERVATIONS --}}
-
-                        <div class="md:col-span-2">
-
-                            <label class="block text-sm font-medium text-gray-700">
                                 Observations
                             </label>
 
@@ -1034,22 +677,22 @@
             class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
         >{{ old(
             'planTravail',
-            $planificationActuelle?->planTravail ?? ''
+            $planificationPrefectorale->planTravail
+                ?? $planification->planTravail
+                ?? ''
         ) }}</textarea>
 
         @error('planTravail')
-
             <p class="mt-1 text-sm text-red-600">
                 {{ $message }}
             </p>
-
         @enderror
 
     </div>
 
 
     {{-- ==========================================================
-        OBSERVATIONS
+        OBSERVATIONS GÉNÉRALES
     =========================================================== --}}
 
     <div class="mt-6">
@@ -1068,15 +711,15 @@
             class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
         >{{ old(
             'observations',
-            $planificationActuelle?->observations ?? ''
+            $planificationPrefectorale->observations
+                ?? $planification->observations
+                ?? ''
         ) }}</textarea>
 
         @error('observations')
-
             <p class="mt-1 text-sm text-red-600">
                 {{ $message }}
             </p>
-
         @enderror
 
     </div>
@@ -1099,12 +742,10 @@
             type="submit"
             class="rounded-lg bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
         >
-
-            {{ $planificationActuelle
+            {{ isset($planificationPrefectorale)
                 ? 'Mettre à jour la planification'
                 : 'Enregistrer la planification'
             }}
-
         </button>
 
     </div>

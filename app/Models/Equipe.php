@@ -4,13 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Equipe extends Model
 {
+    /*
+    |--------------------------------------------------------------------------
+    | TABLE
+    |--------------------------------------------------------------------------
+    */
+
     protected $table = 'equipes';
 
+    /*
+    |--------------------------------------------------------------------------
+    | CLÉ PRIMAIRE
+    |--------------------------------------------------------------------------
+    */
+
     protected $primaryKey = 'idEquipe';
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
+
+    /*
+    |--------------------------------------------------------------------------
+    | CHAMPS AUTORISÉS
+    |--------------------------------------------------------------------------
+    */
 
     protected $fillable = [
         'reference',
@@ -21,10 +43,13 @@ class Equipe extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Superviseur
+    | RELATIONS
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Superviseur responsable de l'équipe.
+     */
     public function superviseur(): BelongsTo
     {
         return $this->belongsTo(
@@ -34,28 +59,23 @@ class Equipe extends Model
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Membres
-    |--------------------------------------------------------------------------
-    */
-
-    public function membres(): HasMany
+    /**
+     * Agents recenseurs membres de l'équipe.
+     */
+    public function membres(): BelongsToMany
     {
-        return $this->hasMany(
-            EquipeMembre::class,
+        return $this->belongsToMany(
+            User::class,
+            'equipe_membres',
             'equipe_id',
-            'idEquipe'
-        );
+            'user_id',
+            'idEquipe',
+            'id'
+        )->withTimestamps();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Affectations
-    |--------------------------------------------------------------------------
-    */
 
-    public function affectations(): HasMany
+        public function affectations()
     {
         return $this->hasMany(
             Affectation::class,

@@ -3,328 +3,411 @@
 namespace App\Http\Controllers\Dpa;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreEquipeRequest;
+use App\Http\Requests\UpdateEquipeRequest;
 use App\Models\Equipe;
-use App\Models\EquipeMembre;
-use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class EquipeController extends Controller
 {
-    /**
-     * Liste des équipes de la préfecture du DPA.
-     */
-    public function index(Request $request)
+    /*
+    |--------------------------------------------------------------------------
+    | INDEX
+    |--------------------------------------------------------------------------
+    */
+
+    // public function index(Request $request): View
+    // {
+    //     $search = $request->input('search');
+
+    //     $equipes = Equipe::with([
+    //         'superviseur',
+    //         'membres',
+    //     ])
+    //         ->when($search, function ($query, $search) {
+
+    //             $query->where(function ($q) use ($search) {
+
+    //                 $q->where('reference', 'like', "%{$search}%")
+    //                     ->orWhere('nom', 'like', "%{$search}%")
+    //                     ->orWhereHas('superviseur', function ($superviseur) use ($search) {
+
+    //                         $superviseur
+    //                             ->where('name', 'like', "%{$search}%")
+    //                             ->orWhere('telephone', 'like', "%{$search}%");
+    //                     });
+    //             });
+    //         })
+    //         ->when(
+    //             $request->filled('statut'),
+    //             fn ($query) =>
+    //                 $query->where(
+    //                     'statut',
+    //                     $request->input('statut')
+    //                 )
+    //         )
+    //         ->latest('idEquipe')
+    //         ->paginate(10)
+    //         ->withQueryString();
+
+    //     return view(
+    //         'dpa.equipes.index',
+    //         compact(
+    //             'equipes',
+    //             'search'
+    //         )
+    //     );
+    // }
+
+
+        public function index(Request $request)
     {
-        $user = Auth::user();
+        $search = $request->input('search');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Préfecture actuelle du DPA
-        |--------------------------------------------------------------------------
-        */
+        $equipes = Equipe::query()
+            ->with('superviseur')
+            ->withCount('membres')
 
-        $prefecture = $user->rattachementPrefectureActif?->prefecture;
+            ->when($search, function ($query, $search) {
 
-        if (!$prefecture) {
-            abort(403, 'Aucune préfecture de rattachement active.');
-        }
+                $query->where(function ($q) use ($search) {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Recherche
-        |--------------------------------------------------------------------------
-        */
+                    $q->where('nom', 'like', '%' . $search . '%')
+                        ->orWhere('reference', 'like', '%' . $search . '%')
 
-        $search = trim($request->input('search', ''));
+                        ->orWhereHas('superviseur', function ($superviseur) use ($search) {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Équipes
-        |--------------------------------------------------------------------------
-        |
-        | Pour le moment, on récupère les équipes dont le superviseur
-        | appartient à cette préfecture.
-        |
-        */
+                            $superviseur
+                                ->where('name', 'like', '%' . $search . '%')
+                                ->orWhere('telephone', 'like', '%' . $search . '%');
 
-        $query = Equipe::query()
-            ->with([
-                'superviseur',
-                'membres.user',
-            ])
-            ->whereHas('superviseur.rattachementPrefectureActif', function ($q) use ($prefecture) {
-                $q->where('prefecture_id', $prefecture->idPrefecture)
-                  ->where('statut', 'actif')
-                  ->whereNull('dateFin');
-            });
+                        });
 
-        if ($search !== '') {
+                });
 
-            $query->where(function ($q) use ($search) {
+            })
 
-                $q->where('reference', 'like', "%{$search}%")
-                    ->orWhere('nom', 'like', "%{$search}%")
-                    ->orWhereHas('superviseur', function ($q) use ($search) {
+            ->when($request->filled('statut'), function ($query) use ($request) {
 
-                        $q->where('name', 'like', "%{$search}%");
+                $query->where('statut', $request->statut);
 
-                    });
+            })
 
-            });
-        }
-
-        $equipes = $query
-            ->latest('idEquipe')
-            ->paginate(10)
+            ->latest()
+            ->paginate(20)
             ->withQueryString();
 
         return view('dpa.equipes.index', compact(
             'equipes',
-            'prefecture',
             'search'
         ));
     }
 
 
-    /**
-     * Formulaire de création d'une équipe.
-     */
-    public function create()
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE
+    |--------------------------------------------------------------------------
+    */
+
+    public function create(): View
     {
-        $user = Auth::user();
-
-        $prefecture = $user->rattachementPrefectureActif?->prefecture;
-
-        if (!$prefecture) {
-            abort(403, 'Aucune préfecture de rattachement active.');
-        }
-
         /*
         |--------------------------------------------------------------------------
-        | Superviseurs disponibles
+        | SUPERVISEURS
         |--------------------------------------------------------------------------
+        |
+        | On recherche le rôle par son nom/code plutôt que de mettre
+        | directement R03 dans la requête.
+        |
         */
 
-        $superviseurs = User::query()
-            ->whereHas('role', function ($q) {
-                $q->where('codeRole', 'R03');
-            })
-            ->whereHas('rattachementPrefectureActif', function ($q) use ($prefecture) {
-                $q->where('prefecture_id', $prefecture->idPrefecture)
-                    ->where('statut', 'actif')
-                    ->whereNull('dateFin');
-            })
+        $superviseurs = \App\Models\User::whereHas('role', function ($query) {
+            $query->where('nom', 'Superviseur');
+        })
             ->where('statut', true)
             ->orderBy('name')
             ->get();
 
+
         /*
         |--------------------------------------------------------------------------
-        | Enquêteurs disponibles
+        | AGENTS RECENSEURS
         |--------------------------------------------------------------------------
         */
 
-        $enqueteurs = User::query()
-            ->whereHas('role', function ($q) {
-                $q->whereIn('codeRole', [
-                    'R04',
-                ]);
-            })
-            ->whereHas('rattachementPrefectureActif', function ($q) use ($prefecture) {
-                $q->where('prefecture_id', $prefecture->idPrefecture)
-                    ->where('statut', 'actif')
-                    ->whereNull('dateFin');
-            })
+        $agents = \App\Models\User::whereHas('role', function ($query) {
+            $query->where('nom', 'Agent recenseur');
+        })
             ->where('statut', true)
             ->orderBy('name')
             ->get();
 
-        return view('dpa.equipes.create', compact(
-            'prefecture',
-            'superviseurs',
-            'enqueteurs'
-        ));
+
+        return view(
+            'dpa.equipes.create',
+            compact(
+                'superviseurs',
+                'agents'
+            )
+        );
     }
 
 
-    /**
-     * Enregistre une nouvelle équipe.
-     */
-    public function store(Request $request)
+    /*
+    |--------------------------------------------------------------------------
+    | STORE
+    |--------------------------------------------------------------------------
+    */
+
+    public function store(StoreEquipeRequest $request): RedirectResponse
     {
-        $user = Auth::user();
+        $equipe = DB::transaction(function () use ($request) {
 
-        $prefecture = $user->rattachementPrefectureActif?->prefecture;
-
-        if (!$prefecture) {
-            abort(403, 'Aucune préfecture de rattachement active.');
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validation
-        |--------------------------------------------------------------------------
-        */
-
-        $validated = $request->validate([
-
-            'nom' => [
-                'required',
-                'string',
-                'max:150',
-            ],
-
-            'superviseur_id' => [
-                'required',
-                'integer',
-                'exists:users,id',
-            ],
-
-            'membres' => [
-                'required',
-                'array',
-                'min:1',
-                'max:3',
-            ],
-
-            'membres.*' => [
-                'integer',
-                'distinct',
-                'exists:users,id',
-            ],
-
-        ], [
-
-            'nom.required' =>
-                'Le nom de l’équipe est obligatoire.',
-
-            'superviseur_id.required' =>
-                'Veuillez sélectionner un superviseur.',
-
-            'membres.required' =>
-                'Veuillez sélectionner au moins un enquêteur.',
-
-            'membres.min' =>
-                'Une équipe doit avoir au moins un enquêteur.',
-
-            'membres.max' =>
-                'Une équipe ne peut pas dépasser 3 enquêteurs.',
-
-            'membres.*.distinct' =>
-                'Un enquêteur ne peut apparaître qu’une seule fois.',
-
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Vérification superviseur
-        |--------------------------------------------------------------------------
-        */
-
-        $superviseur = User::query()
-            ->where('id', $validated['superviseur_id'])
-            ->where('statut', true)
-            ->whereHas('role', function ($q) {
-                $q->where('codeRole', 'R03');
-            })
-            ->whereHas('rattachementPrefectureActif', function ($q) use ($prefecture) {
-                $q->where('prefecture_id', $prefecture->idPrefecture)
-                    ->where('statut', 'actif')
-                    ->whereNull('dateFin');
-            })
-            ->first();
-
-        if (!$superviseur) {
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'superviseur_id' =>
-                        'Le superviseur sélectionné n’appartient pas à votre préfecture.'
-                ]);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Vérification enquêteurs
-        |--------------------------------------------------------------------------
-        */
-
-        $enqueteursValides = User::query()
-            ->whereIn('id', $validated['membres'])
-            ->where('statut', true)
-            ->whereHas('role', function ($q) {
-                $q->whereIn('codeRole', ['R04']);
-            })
-            ->whereHas('rattachementPrefectureActif', function ($q) use ($prefecture) {
-                $q->where('prefecture_id', $prefecture->idPrefecture)
-                    ->where('statut', 'actif')
-                    ->whereNull('dateFin');
-            })
-            ->count();
-
-        if ($enqueteursValides !== count($validated['membres'])) {
-
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'membres' =>
-                        'Un ou plusieurs enquêteurs sélectionnés ne sont pas valides pour votre préfecture.'
-                ]);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Création
-        |--------------------------------------------------------------------------
-        */
-
-        DB::transaction(function () use ($validated) {
-
-            $reference = $this->genererReference();
+            /*
+            |--------------------------------------------------------------------------
+            | CRÉATION DE L'ÉQUIPE
+            |--------------------------------------------------------------------------
+            */
 
             $equipe = Equipe::create([
-                'reference' => $reference,
-                'nom' => $validated['nom'],
-                'superviseur_id' => $validated['superviseur_id'],
+
+                'reference' => $this->genererReference(),
+
+                'nom' => $request->nom,
+
+                'superviseur_id' => $request->superviseur_id,
+
                 'statut' => 'ACTIVE',
             ]);
 
-            foreach ($validated['membres'] as $userId) {
 
-                EquipeMembre::create([
-                    'equipe_id' => $equipe->idEquipe,
-                    'user_id' => $userId,
-                ]);
+            /*
+            |--------------------------------------------------------------------------
+            | AJOUT DES AGENTS RECENSEURS
+            |--------------------------------------------------------------------------
+            */
 
-            }
+            $equipe->membres()->sync(
+                $request->membres
+            );
+
+
+            return $equipe;
         });
 
+
         return redirect()
-            ->route('dpa.equipes.index')
-            ->with('success', 'L’équipe a été créée avec succès.');
+            ->route(
+                'dpa.equipes.index',
+                $equipe
+            )
+            ->with(
+                'success',
+                'L’équipe a été créée avec succès.'
+            );
     }
 
 
-    /**
-     * Génération de la référence de l'équipe.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | SHOW
+    |--------------------------------------------------------------------------
+    */
+
+    public function show(Equipe $equipe): View
+    {
+        $equipe->load([
+            'superviseur',
+            'membres',
+        ]);
+
+        return view(
+            'dpa.equipes.show',
+            compact('equipe')
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | EDIT
+    |--------------------------------------------------------------------------
+    */
+
+    public function edit(Equipe $equipe): View
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | SUPERVISEURS
+        |--------------------------------------------------------------------------
+        */
+
+        $superviseurs = \App\Models\User::whereHas('role', function ($query) {
+            $query->where('nom', 'Superviseur');
+        })
+            ->where('statut', true)
+            ->orderBy('name')
+            ->get();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | AGENTS RECENSEURS
+        |--------------------------------------------------------------------------
+        */
+
+        $agents = \App\Models\User::whereHas('role', function ($query) {
+            $query->where('nom', 'Agent recenseur');
+        })
+            ->where('statut', true)
+            ->orderBy('name')
+            ->get();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | MEMBRES ACTUELS
+        |--------------------------------------------------------------------------
+        */
+
+        $membresActuels = $equipe->membres()
+            ->pluck('users.id')
+            ->toArray();
+
+
+        return view(
+            'dpa.equipes.edit',
+            compact(
+                'equipe',
+                'superviseurs',
+                'agents',
+                'membresActuels'
+            )
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE
+    |--------------------------------------------------------------------------
+    */
+
+    public function update(
+        UpdateEquipeRequest $request,
+        Equipe $equipe
+    ): RedirectResponse {
+
+        DB::transaction(function () use (
+            $request,
+            $equipe
+        ) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | MISE À JOUR DE L'ÉQUIPE
+            |--------------------------------------------------------------------------
+            */
+
+            $equipe->update([
+
+                'nom' => $request->nom,
+
+                'superviseur_id' =>
+                    $request->superviseur_id,
+            ]);
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | SYNCHRONISATION DES AGENTS
+            |--------------------------------------------------------------------------
+            */
+
+            $equipe->membres()->sync(
+                $request->membres
+            );
+        });
+
+
+        return redirect()
+            ->route(
+                'dpa.equipes.show',
+                $equipe
+            )
+            ->with(
+                'success',
+                'L’équipe a été modifiée avec succès.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DESTROY
+    |--------------------------------------------------------------------------
+    */
+
+    public function destroy(Equipe $equipe): RedirectResponse
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | ON NE SUPPRIME PAS L'ÉQUIPE
+        |--------------------------------------------------------------------------
+        |
+        | Comme pour les utilisateurs, on préfère conserver l'historique.
+        |
+        */
+
+        $equipe->update([
+            'statut' => 'INACTIVE',
+        ]);
+
+
+        return redirect()
+            ->route('dpa.equipes.index')
+            ->with(
+                'success',
+                'L’équipe a été désactivée avec succès.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GÉNÉRER UNE RÉFÉRENCE
+    |--------------------------------------------------------------------------
+    */
+
     private function genererReference(): string
     {
         do {
 
-            $reference = 'EQ-' . now()->format('Y') . '-' .
-                str_pad(
-                    (Equipe::max('idEquipe') ?? 0) + 1,
-                    3,
-                    '0',
-                    STR_PAD_LEFT
+            $reference =
+                'EQ-' .
+                now()->format('Y') .
+                '-' .
+                strtoupper(
+                    substr(
+                        bin2hex(
+                            random_bytes(3)
+                        ),
+                        0,
+                        6
+                    )
                 );
 
         } while (
-            Equipe::where('reference', $reference)->exists()
+            Equipe::where(
+                'reference',
+                $reference
+            )->exists()
         );
+
 
         return $reference;
     }

@@ -2,28 +2,86 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateAffectationRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        $user = Auth::user();
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+
+            'campagne_id' => [
+                'required',
+                'exists:campagne_recensements,idCampagne',
+            ],
+
+            'equipe_id' => [
+                'required',
+                'exists:equipes,idEquipe',
+            ],
+
+            'village_id' => [
+                'required',
+                'exists:villages,idVillage',
+            ],
+
+            'dateDebut' => [
+                'required',
+                'date',
+            ],
+
+            'dateFin' => [
+                'nullable',
+                'date',
+                'after_or_equal:dateDebut',
+            ],
+
+            'statut' => [
+                'required',
+                Rule::in([
+                    'active',
+                    'terminee',
+                    'annulee',
+                ]),
+            ],
+
+            'observations' => [
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+
+            'campagne_id.required' =>
+                'Veuillez sélectionner une campagne.',
+
+            'equipe_id.required' =>
+                'Veuillez sélectionner une équipe.',
+
+            'village_id.required' =>
+                'Veuillez sélectionner un village.',
+
+            'dateDebut.required' =>
+                'La date de début est obligatoire.',
+
+            'dateFin.after_or_equal' =>
+                'La date de fin doit être postérieure ou égale à la date de début.',
+
+            'statut.required' =>
+                'Veuillez sélectionner un statut.',
+
         ];
     }
 }

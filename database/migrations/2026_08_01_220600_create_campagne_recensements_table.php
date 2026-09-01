@@ -38,6 +38,7 @@ return new class extends Migration
 
             $table->text('objectifs');
             $table->longText('resultatsAttendus');
+            $table->text('zoneConserner')->nullable();
 
 
             $table->longText('methodologie')

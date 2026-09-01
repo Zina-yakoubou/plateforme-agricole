@@ -775,14 +775,11 @@
          PAGINATION
     ========================================================== --}}
 
+
     @if($users->hasPages())
-
         <div class="flex justify-center pt-2">
-
-            {{ $users->lainks() }}
-
+            {{ $users->links() }}
         </div>
-
     @endif
 
 </div>

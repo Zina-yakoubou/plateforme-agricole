@@ -25,6 +25,26 @@ return new class extends Migration
                 )
                 ->cascadeOnDelete();
 
+
+
+                   /*
+            |--------------------------------------------------------------------------
+            | COMMUNE
+            |--------------------------------------------------------------------------
+            |
+            | NULL = la ligne concerne uniquement un canton ou un village.
+            |
+            */
+
+            $table->foreignId('commune_id')
+                ->nullable()
+                ->constrained(
+                    'communes',
+                    'idCommune'
+                )
+                ->cascadeOnDelete();
+
+
             /*
             |--------------------------------------------------------------------------
             | CANTON

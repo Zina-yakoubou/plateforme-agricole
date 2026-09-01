@@ -60,6 +60,10 @@ class StoreCampagneRecensementRequest extends FormRequest
                 'nullable',
                 'string',
             ],
+             'zoneConserner' => [
+                'nullable',
+                'string',
+            ],
 
 
             /*

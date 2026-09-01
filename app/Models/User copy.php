@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -28,6 +27,7 @@ class User extends Authenticatable
         'role_id',
     ];
 
+
     /*
     |--------------------------------------------------------------------------
     | Champs cachés
@@ -39,6 +39,7 @@ class User extends Authenticatable
         'remember_token',
         'otp_code',
     ];
+
 
     /*
     |--------------------------------------------------------------------------
@@ -56,9 +57,10 @@ class User extends Authenticatable
         ];
     }
 
+
     /*
     |--------------------------------------------------------------------------
-    | RELATIONS
+    | Relations
     |--------------------------------------------------------------------------
     */
 
@@ -74,128 +76,153 @@ class User extends Authenticatable
         );
     }
 
+
     /**
      * Historique des rattachements aux préfectures.
+     *
+     * Un utilisateur peut avoir plusieurs rattachements
+     * au cours de sa carrière.
      */
     public function rattachementsPrefecture(): HasMany
     {
         return $this->hasMany(
             RattachementPrefecture::class,
-            'user_id'
+            'user_id',
+            'id'
         );
     }
 
+
     /**
-     * Rattachement actif.
+     * Rattachement préfectoral actuellement actif.
+     *
+     * Un utilisateur ne doit avoir qu'un seul
+     * rattachement actif à la fois.
      */
     public function rattachementPrefectureActif(): HasOne
     {
         return $this->hasOne(
             RattachementPrefecture::class,
-            'user_id'
-        )
-        ->where('statut', 'actif')
-        ->whereNull('dateFin');
+            'user_id',
+            'id'
+        )->where('statut', 'actif')
+         ->whereNull('dateFin');
     }
 
+
     /**
-     * Préfecture actuelle.
+     * Préfecture actuellement associée à l'utilisateur.
+     *
+     * Cette relation passe désormais par le rattachement actif.
      */
     public function getPrefectureActuelleAttribute(): ?Prefecture
     {
         return $this->rattachementPrefectureActif?->prefecture;
     }
 
+
     /**
-     * Affectations.
+     * Affectations de l'utilisateur dans les campagnes.
+     *
+     * Une affectation correspond à une mission
+     * de terrain dans une campagne.
      */
     public function affectations(): HasMany
     {
         return $this->hasMany(
             Affectation::class,
-            'user_id'
+            'user_id',
+            'id'
         );
     }
 
+
     /**
-     * Affectation active.
+     * Affectation active de l'utilisateur.
      */
     public function affectationActive(): HasOne
     {
         return $this->hasOne(
             Affectation::class,
-            'user_id'
+            'user_id',
+            'id'
         )->where('statut', 'ACTIVE');
     }
 
-    /**
-     * Équipes supervisées.
-     */
-    public function equipesSupervisees(): HasMany
-    {
-        return $this->hasMany(
-            Equipe::class,
-            'superviseur_id',
-            'id'
-        );
-    }
-
-    /**
-     * Équipes dont l'utilisateur est membre.
-     */
-    public function equipes(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Equipe::class,
-            'equipe_membres',
-            'user_id',
-            'equipe_id',
-            'id',
-            'idEquipe'
-        )->withTimestamps();
-    }
 
     /*
     |--------------------------------------------------------------------------
-    | VÉRIFICATION DES RÔLES
+    | Vérification des rôles
     |--------------------------------------------------------------------------
     */
 
-    /**
-     * Vérifie le nom du rôle.
-     */
-    public function hasRole(string $role): bool
-    {
-        return $this->role?->nom === $role;
-    }
-
     public function isAdmin(): bool
     {
-        return $this->hasRole('Administrateur');
+        return $this->role_id === 'R01';
     }
+
 
     public function isDpa(): bool
     {
-        return $this->hasRole('DPA');
+        return $this->role_id === 'R02';
     }
+
 
     public function isSuperviseur(): bool
     {
-        return $this->hasRole('Superviseur');
+        return $this->role_id === 'R03';
     }
+
 
     public function isTechnicien(): bool
     {
-        return $this->hasRole('Technicien');
+        return $this->role_id === 'R04';
     }
+
 
     public function isCach(): bool
     {
-        return $this->hasRole('CACH');
+        return $this->role_id === 'R05';
     }
+
 
     public function isAgent(): bool
     {
-        return $this->hasRole('Agent recenseur');
+        return $this->role_id === 'R06';
     }
+
+
+
+
+    /*
+|--------------------------------------------------------------------------
+| ÉQUIPES SUPERVISÉES
+|--------------------------------------------------------------------------
+*/
+
+public function equipesSupervisees(): HasMany
+{
+    return $this->hasMany(
+        Equipe::class,
+        'superviseur_id'
+    );
+}
+
+/*
+|--------------------------------------------------------------------------
+| ÉQUIPES DONT L'UTILISATEUR EST MEMBRE
+|--------------------------------------------------------------------------
+*/
+
+public function equipes(): BelongsToMany
+{
+    return $this->belongsToMany(
+        Equipe::class,
+        'equipe_membres',
+        'user_id',
+        'equipe_id',
+        'id',
+        'idEquipe'
+    )->withTimestamps();
+}
 }

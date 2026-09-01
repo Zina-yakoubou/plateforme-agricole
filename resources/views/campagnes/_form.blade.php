@@ -484,6 +484,24 @@
             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
     </div>
+    {{-- RESULTATS ATTENDUS --}}
+    <div class="md:col-span-2">
+        <label for="resultatsAttendus" class="block text-sm font-medium text-gray-700">
+            Villages concernées <span class="text-red-500">*</span>
+        </label>
+
+        <textarea
+            id="zoneConcerner"
+            name="zoneConcerner"
+            rows="4"
+            required
+            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+        >{{ old('zoneConcerner', $campagne->zoneConcerner ?? '') }}</textarea>
+
+        @error('zoneConcerner')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+    </div>
 
     {{-- METHODOLOGIE --}}
     <div class="md:col-span-2">

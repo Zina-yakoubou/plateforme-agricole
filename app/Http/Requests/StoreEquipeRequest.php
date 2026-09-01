@@ -5,12 +5,15 @@ namespace App\Http\Requests;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class StoreEquipeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check();
+        $user = Auth::user();
+
+        return $user !== null;
     }
 
     public function rules(): array
@@ -35,11 +38,11 @@ class StoreEquipeRequest extends FormRequest
             |--------------------------------------------------------------------------
             */
 
-            'campagne_id' => [
-                'required',
-                'integer',
-                'exists:campagne_recensements,idCampagne',
-            ],
+            // 'campagne_id' => [
+            //     'required',
+            //     'integer',
+            //     'exists:campagne_recensements,idCampagne',
+            // ],
 
             /*
             |--------------------------------------------------------------------------
@@ -47,11 +50,6 @@ class StoreEquipeRequest extends FormRequest
             |--------------------------------------------------------------------------
             */
 
-            'prefecture_id' => [
-                'required',
-                'integer',
-                'exists:prefectures,idPrefecture',
-            ],
 
             /*
             |--------------------------------------------------------------------------
@@ -72,7 +70,7 @@ class StoreEquipeRequest extends FormRequest
             */
 
             'mode' => [
-                'required',
+                'nullable',
                 Rule::in([
                     'individuel',
                     'groupe',
@@ -172,7 +170,7 @@ class StoreEquipeRequest extends FormRequest
 
                 foreach ($membres as $membre) {
 
-                    if (!$membre->isEnqueteur()) {
+                    if (!$membre->isAgent()) {
 
                         $validator->errors()->add(
                             'membres',

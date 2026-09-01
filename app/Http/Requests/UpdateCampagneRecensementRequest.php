@@ -58,6 +58,11 @@ class UpdateCampagneRecensementRequest extends FormRequest
                 'string',
             ],
 
+            'zoneConcerner' => [
+                'nullable',
+                'string',
+            ],
+
             'resultatsAttendus' => [
                 'required',
                 'string',
@@ -548,6 +553,8 @@ class UpdateCampagneRecensementRequest extends FormRequest
 
             'resultatsAttendus.string' =>
                 'Les résultats attendus doivent être une chaîne de caractères.',
+            'zoneConcerner.string' =>
+                'Les zones  attendus doivent être une chaîne de caractères.',
 
             'methodologie.string' =>
                 'La méthodologie doit être une chaîne de caractères.',

@@ -13,9 +13,17 @@ class PlanificationTerritoire extends Model
 
     protected $fillable = [
         'planification_prefectorale_id',
+        'niveau',
+        'commune_id',
         'canton_id',
         'village_id',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | PLANIFICATION PRÉFECTORALE
+    |--------------------------------------------------------------------------
+    */
 
     public function planificationPrefectorale(): BelongsTo
     {
@@ -26,6 +34,27 @@ class PlanificationTerritoire extends Model
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | COMMUNE
+    |--------------------------------------------------------------------------
+    */
+
+    public function commune(): BelongsTo
+    {
+        return $this->belongsTo(
+            Commune::class,
+            'commune_id',
+            'idCommune'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CANTON
+    |--------------------------------------------------------------------------
+    */
+
     public function canton(): BelongsTo
     {
         return $this->belongsTo(
@@ -34,6 +63,12 @@ class PlanificationTerritoire extends Model
             'idCanton'
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VILLAGE
+    |--------------------------------------------------------------------------
+    */
 
     public function village(): BelongsTo
     {

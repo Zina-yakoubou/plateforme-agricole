@@ -7,37 +7,32 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Affectation extends Model
 {
+    protected $table = 'affectations';
+
     protected $primaryKey = 'idAffectation';
 
     protected $fillable = [
         'reference',
+        'campagne_id',
+        'equipe_id',
+        'village_id',
         'dateDebut',
         'dateFin',
         'statut',
-        'user_id',
-        'campagne_id',
-        'prefecture_id',
-        'canton_id',
-        'village_id',
+        'observations',
     ];
 
-    /**
-     * Utilisateur concerné
-     */
-    // public function user(): BelongsTo
-    // {
-    //     return $this->belongsTo(User::class);
-    // }
+    protected $casts = [
+        'dateDebut' => 'date',
+        'dateFin'   => 'date',
+    ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | CAMPAGNE
+    |--------------------------------------------------------------------------
+    */
 
-        public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'user_id', 'id');
-    }
-
-    /**
-     * Campagne de recensement
-     */
     public function campagne(): BelongsTo
     {
         return $this->belongsTo(
@@ -47,33 +42,27 @@ class Affectation extends Model
         );
     }
 
-    /**
-     * Préfecture de rattachement
-     */
-    public function prefecture(): BelongsTo
+    /*
+    |--------------------------------------------------------------------------
+    | ÉQUIPE
+    |--------------------------------------------------------------------------
+    */
+
+    public function equipe(): BelongsTo
     {
         return $this->belongsTo(
-            Prefecture::class,
-            'prefecture_id',
-            'idPrefecture'
+            Equipe::class,
+            'equipe_id',
+            'idEquipe'
         );
     }
 
-    /**
-     * Canton d'affectation
-     */
-    public function canton(): BelongsTo
-    {
-        return $this->belongsTo(
-            Canton::class,
-            'canton_id',
-            'idCanton'
-        );
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | VILLAGE
+    |--------------------------------------------------------------------------
+    */
 
-    /**
-     * Village d'affectation
-     */
     public function village(): BelongsTo
     {
         return $this->belongsTo(
@@ -81,5 +70,26 @@ class Affectation extends Model
             'village_id',
             'idVillage'
         );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | STATUT
+    |--------------------------------------------------------------------------
+    */
+
+    public function estActive(): bool
+    {
+        return $this->statut === 'active';
+    }
+
+    public function estTerminee(): bool
+    {
+        return $this->statut === 'terminee';
+    }
+
+    public function estAnnulee(): bool
+    {
+        return $this->statut === 'annulee';
     }
 }

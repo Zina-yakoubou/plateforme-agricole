@@ -25,4 +25,6 @@ class Village extends Model
     {
         return $this->hasMany(Affectation::class, 'village_id', 'idVillage');
     }
+
+    
 }

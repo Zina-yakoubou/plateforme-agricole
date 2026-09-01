@@ -17,6 +17,8 @@ use App\Http\Controllers\MenageController;
 use App\Http\Controllers\DpaCampagneController;
 use App\Http\Controllers\CampagnePlanificationController;
 use App\Http\Controllers\Dpa\PlanificationPrefectoraleController;
+use App\Http\Controllers\Dpa\EquipeController;
+
 
 
 /*
@@ -453,6 +455,112 @@ Route::middleware(['auth'])
     ->prefix('dpa')
     ->name('dpa.')
     ->group(function () {
+
+
+        
+
+    // Liste des équipes
+        Route::get('/equipes', [
+            EquipeController::class,
+            'index'
+        ])->name('equipes.index');
+
+        // Formulaire de création
+        Route::get('/equipes/create', [
+            EquipeController::class,
+            'create'
+        ])->name('equipes.create');
+
+        // Enregistrement
+        Route::post('/equipes', [
+            EquipeController::class,
+            'store'
+        ])->name('equipes.store');
+
+        // Détail d'une équipe
+        Route::get('/equipes/{equipe}', [
+            EquipeController::class,
+            'show'
+        ])->name('equipes.show');
+
+        // Formulaire de modification
+        Route::get('/equipes/{equipe}/edit', [
+            EquipeController::class,
+            'edit'
+        ])->name('equipes.edit');
+
+        // Modification
+        Route::put('/equipes/{equipe}', [
+            EquipeController::class,
+            'update'
+        ])->name('equipes.update');
+
+        // Suppression
+        Route::delete('/equipes/{equipe}', [
+            EquipeController::class,
+            'destroy'
+        ])->name('equipes.destroy');
+
+
+
+
+
+
+
+         // =========================================================
+        // AFFECTATIONS DES ÉQUIPES
+        // =========================================================
+
+        // Liste des affectations d'une équipe
+        Route::get(
+            '/equipes/{equipe}/affectations',
+            [AffectationController::class, 'index']
+        )->name('equipes.affectations.index');
+
+        // Formulaire d'affectation
+        Route::get(
+            '/equipes/{equipe}/affectations/create',
+            [AffectationController::class, 'create']
+        )->name('equipes.affectations.create');
+
+        // Enregistrer une affectation
+        Route::post(
+            '/equipes/{equipe}/affectations',
+            [AffectationController::class, 'store']
+        )->name('equipes.affectations.store');
+
+        // Modifier une affectation
+        Route::get(
+            '/equipes/{equipe}/affectations/{affectation}/edit',
+            [AffectationController::class, 'edit']
+        )->name('equipes.affectations.edit');
+
+        Route::put(
+            '/equipes/{equipe}/affectations/{affectation}',
+            [AffectationController::class, 'update']
+        )->name('equipes.affectations.update');
+
+        // Désactiver une affectation
+        Route::patch(
+            '/equipes/{equipe}/affectations/{affectation}/desactiver',
+            [AffectationController::class, 'desactiver']
+        )->name('equipes.affectations.desactiver');
+
+        // =========================================================
+        // RECONDUIRE UNE ÉQUIPE
+        // =========================================================
+
+        // Afficher le formulaire de reconduction
+        // Route::get(
+        //     '/equipes/{equipe}/reconduire',
+        //     [AffectationController::class, 'reconduire']
+        // )->name('equipes.reconduire');
+
+        // Enregistrer la reconduction
+        // Route::post(
+        //     '/equipes/{equipe}/reconduire',
+        //     [AffectationController::class, 'storeReconduction']
+        // )->name('equipes.reconduire.store');
 
         // =========================================================
         // CAMPAGNES

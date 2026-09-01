@@ -760,6 +760,64 @@
 
             </a>
 
+              {{-- =========================================================
+                EQUIPE
+            ========================================================== --}}
+            <a
+                href="{{ route('dpa.equipes.index') }}"
+                :class="[
+                    sidebarCollapsed ? 'justify-center px-0' : 'px-4',
+                    {{ request()->routeIs('dpa.equipes.*') ? 'true' : 'false' }}
+                        ? 'bg-green-50 text-green-700 font-semibold'
+                        : 'text-text-secondary hover:bg-background-muted'
+                ]"
+                class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
+                title="Equipes"
+            >
+
+                <svg
+                    class="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M7 3v4
+                        M17 3v4
+                        M4 9h16
+                        M6 5h12a2 2 0 012 2v12
+                        a2 2 0 01-2 2H6
+                        a2 2 0 01-2-2V7
+                        a2 2 0 012-2z"
+                    />
+
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M8 13h2
+                        M12 13h2
+                        M16 13h.01
+                        M8 17h2
+                        M12 17h2"
+                    />
+                </svg>
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition.opacity
+                    class="whitespace-nowrap"
+                >
+                    Equipes
+                </span>
+
+            </a>
+
+            
+
         </div>
 
     @endif

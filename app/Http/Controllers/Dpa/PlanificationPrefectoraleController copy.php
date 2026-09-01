@@ -3,16 +3,12 @@
 namespace App\Http\Controllers\Dpa;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StorePlanificationPrefectoraleRequest;
 use App\Models\CampagneDeploiement;
 use App\Models\PlanificationPrefectorale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PlanificationTerritoire;
 use Illuminate\Support\Facades\DB;
-use App\Models\Commune;
-use App\Models\Canton;
-use App\Models\Village;
 
 class PlanificationPrefectoraleController extends Controller
 {
@@ -154,10 +150,8 @@ class PlanificationPrefectoraleController extends Controller
      */
    
 
-public function store(
-    StorePlanificationPrefectoraleRequest $request,
-    CampagneDeploiement $deploiement
-) {
+   public function store(Request $request, CampagneDeploiement $deploiement)
+{
     $user = Auth::user();
 
     /*
@@ -166,26 +160,22 @@ public function store(
     |--------------------------------------------------------------------------
     */
 
-    $prefecture = $user->prefectureActuelle;
-
     if (
         !is_callable([$user, 'isDpa']) ||
         !call_user_func([$user, 'isDpa']) ||
-        !$prefecture ||
-        (int) $deploiement->prefecture_id !==
-            (int) $prefecture->idPrefecture
+        !$user->prefectureActuelle ||
+        $deploiement->prefecture_id !== $user->prefectureActuelle->idPrefecture
     ) {
         abort(403);
     }
 
     /*
     |--------------------------------------------------------------------------
-    | EMPÊCHER UNE DEUXIÈME PLANIFICATION
+    | EMPÊCHER LES DOUBLONS
     |--------------------------------------------------------------------------
     */
 
     if ($deploiement->planificationPrefectorale) {
-
         return redirect()
             ->route(
                 'dpa.planifications-prefectorales.show',
@@ -199,318 +189,114 @@ public function store(
 
     /*
     |--------------------------------------------------------------------------
-    | DONNÉES VALIDÉES
+    | VALIDATION
     |--------------------------------------------------------------------------
     */
 
-    $validated = $request->validated();
+    $validated = $request->validate([
+        'planTravail' => [
+            'nullable',
+            'string',
+        ],
 
-    $communeIds = $validated['commune_ids'] ?? [];
-    $cantonIds = $validated['canton_ids'] ?? [];
-    $villageIds = $validated['village_ids'] ?? [];
+        'observations' => [
+            'nullable',
+            'string',
+        ],
 
+        'canton_ids' => [
+            'nullable',
+            'array',
+        ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | COMMUNES DE LA PRÉFECTURE
-    |--------------------------------------------------------------------------
-    */
+        'canton_ids.*' => [
+            'integer',
+            'exists:cantons,idCanton',
+        ],
 
-    $communes = Commune::query()
-        ->whereIn('idCommune', $communeIds)
-        ->where(
-            'prefecture_id',
-            $prefecture->idPrefecture
-        )
-        ->get();
+        'village_ids' => [
+            'nullable',
+            'array',
+        ],
 
+        'village_ids.*' => [
+            'integer',
+            'exists:villages,idVillage',
+        ],
 
-    if ($communes->count() !== count($communeIds)) {
+        'besoins' => [
+            'nullable',
+            'array',
+        ],
 
-        return back()
-            ->withInput()
-            ->withErrors([
-                'commune_ids' =>
-                    'Une ou plusieurs communes sélectionnées n’appartiennent pas à votre préfecture.',
-            ]);
-    }
+        'besoins.*.categorie' => [
+            'required',
+            'string',
+            'max:100',
+        ],
 
+        'besoins.*.designation' => [
+            'required',
+            'string',
+            'max:255',
+        ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | CANTONS DE LA PRÉFECTURE
-    |--------------------------------------------------------------------------
-    */
+        'besoins.*.quantite' => [
+            'required',
+            'numeric',
+            'min:0',
+        ],
 
-    $cantons = Canton::query()
-        ->with('commune')
-        ->whereIn('idCanton', $cantonIds)
-        ->whereHas('commune', function ($query) use ($prefecture) {
+        'besoins.*.unite' => [
+            'nullable',
+            'string',
+            'max:50',
+        ],
 
-            $query->where(
-                'prefecture_id',
-                $prefecture->idPrefecture
-            );
-
-        })
-        ->get();
-
-
-    if ($cantons->count() !== count($cantonIds)) {
-
-        return back()
-            ->withInput()
-            ->withErrors([
-                'canton_ids' =>
-                    'Un ou plusieurs cantons sélectionnés n’appartiennent pas à votre préfecture.',
-            ]);
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGES DE LA PRÉFECTURE
-    |--------------------------------------------------------------------------
-    */
-
-    $villages = Village::query()
-        ->with('canton.commune')
-        ->whereIn('idVillage', $villageIds)
-        ->whereHas(
-            'canton.commune',
-            function ($query) use ($prefecture) {
-
-                $query->where(
-                    'prefecture_id',
-                    $prefecture->idPrefecture
-                );
-
-            }
-        )
-        ->get();
-
-
-    if ($villages->count() !== count($villageIds)) {
-
-        return back()
-            ->withInput()
-            ->withErrors([
-                'village_ids' =>
-                    'Un ou plusieurs villages sélectionnés n’appartiennent pas à votre préfecture.',
-            ]);
-    }
-
+        'besoins.*.observations' => [
+            'nullable',
+            'string',
+            'max:1000',
+        ],
+    ]);
 
     /*
     |--------------------------------------------------------------------------
-    | COMMUNES ENTIÈRES
-    |--------------------------------------------------------------------------
-    */
-
-    $communeIds = collect($communeIds)
-        ->map(fn ($id) => (int) $id)
-        ->unique()
-        ->values();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CANTONS ENTIERS
-    |--------------------------------------------------------------------------
-    |
-    | Si la commune entière est sélectionnée,
-    | les cantons de cette commune deviennent inutiles.
-    |
-    */
-
-    $cantonsAEnregistrer = $cantons
-        ->filter(function ($canton) use ($communeIds) {
-
-            return !$communeIds->contains(
-                (int) $canton->commune_id
-            );
-
-        })
-        ->values();
-
-
-    $cantonIdsAEnregistrer = $cantonsAEnregistrer
-        ->pluck('idCanton')
-        ->map(fn ($id) => (int) $id)
-        ->unique();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGES
-    |--------------------------------------------------------------------------
-    |
-    | Un village n'est enregistré que si :
-    |
-    | - sa commune n'est pas entière ;
-    | - son canton n'est pas entier.
-    |
-    */
-
-    $villagesAEnregistrer = $villages
-        ->filter(function ($village) use (
-            $communeIds,
-            $cantonIdsAEnregistrer
-        ) {
-
-            $communeId =
-                optional($village->canton)->commune_id;
-
-            $cantonId =
-                $village->canton_id;
-
-
-            /*
-            | Commune entière déjà sélectionnée
-            */
-
-            if (
-                $communeId !== null &&
-                $communeIds->contains(
-                    (int) $communeId
-                )
-            ) {
-                return false;
-            }
-
-
-            /*
-            | Canton entier déjà sélectionné
-            */
-
-            if (
-                $cantonId !== null &&
-                $cantonIdsAEnregistrer->contains(
-                    (int) $cantonId
-                )
-            ) {
-                return false;
-            }
-
-
-            return true;
-
-        })
-        ->values();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | AU MOINS UN TERRITOIRE
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $communes->isEmpty() &&
-        $cantonsAEnregistrer->isEmpty() &&
-        $villagesAEnregistrer->isEmpty()
-    ) {
-
-        return back()
-            ->withInput()
-            ->withErrors([
-                'commune_ids' =>
-                    'Vous devez sélectionner au moins un territoire.',
-            ]);
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ENREGISTREMENT TRANSACTIONNEL
+    | CRÉATION
     |--------------------------------------------------------------------------
     */
 
     $planification = DB::transaction(function () use (
         $validated,
         $deploiement,
-        $user,
-        $communes,
-        $cantonsAEnregistrer,
-        $villagesAEnregistrer
+        $user
     ) {
 
-        /*
-        |--------------------------------------------------------------------------
-        | PLANIFICATION
-        |--------------------------------------------------------------------------
-        */
-
         $planification = PlanificationPrefectorale::create([
-
-            'deploiement_id' =>
-                $deploiement->idDeploiement,
-
-            'planifie_par' =>
-                $user->id,
-
-            'planTravail' =>
-                $validated['planTravail'] ?? null,
-
-            'observations' =>
-                $validated['observations'] ?? null,
-
-            'statut' =>
-                'planifier',
+            'deploiement_id' => $deploiement->idDeploiement,
+            'planifie_par' => $user->id,
+            'planTravail' => $validated['planTravail'] ?? null,
+            'observations' => $validated['observations'] ?? null,
+            'statut' => 'planifier',
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
-        | COMMUNES ENTIÈRES
+        | CANTONS
         |--------------------------------------------------------------------------
         */
 
-        foreach ($communes as $commune) {
+        foreach ($validated['canton_ids'] ?? [] as $cantonId) {
 
             PlanificationTerritoire::create([
+                'planification_prefectorale_id'
+                    => $planification->idPlanificationPrefectorale,
 
-                'planification_prefectorale_id' =>
-                    $planification
-                        ->idPlanificationPrefectorale,
+                'canton_id' => $cantonId,
 
-                'commune_id' =>
-                    $commune->idCommune,
-
-                'canton_id' =>
-                    null,
-
-                'village_id' =>
-                    null,
+                'village_id' => null,
             ]);
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CANTONS ENTIERS
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($cantonsAEnregistrer as $canton) {
-
-            PlanificationTerritoire::create([
-
-                'planification_prefectorale_id' =>
-                    $planification
-                        ->idPlanificationPrefectorale,
-
-                'commune_id' =>
-                    $canton->commune_id,
-
-                'canton_id' =>
-                    $canton->idCanton,
-
-                'village_id' =>
-                    null,
-            ]);
-        }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -518,27 +304,17 @@ public function store(
         |--------------------------------------------------------------------------
         */
 
-        foreach ($villagesAEnregistrer as $village) {
+        foreach ($validated['village_ids'] ?? [] as $villageId) {
 
             PlanificationTerritoire::create([
+                'planification_prefectorale_id'
+                    => $planification->idPlanificationPrefectorale,
 
-                'planification_prefectorale_id' =>
-                    $planification
-                        ->idPlanificationPrefectorale,
+                'canton_id' => null,
 
-                'commune_id' =>
-                    optional(
-                        $village->canton
-                    )->commune_id,
-
-                'canton_id' =>
-                    $village->canton_id,
-
-                'village_id' =>
-                    $village->idVillage,
+                'village_id' => $villageId,
             ]);
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -546,36 +322,19 @@ public function store(
         |--------------------------------------------------------------------------
         */
 
-        foreach (
-            $validated['besoins'] ?? []
-            as $besoin
-        ) {
+        foreach ($validated['besoins'] ?? [] as $besoin) {
 
-            $planification
-                ->besoins()
-                ->create([
-
-                    'categorie' =>
-                        $besoin['categorie'],
-
-                    'designation' =>
-                        $besoin['designation'],
-
-                    'quantite' =>
-                        $besoin['quantite'],
-
-                    'unite' =>
-                        $besoin['unite'] ?? null,
-
-                    'observations' =>
-                        $besoin['observations'] ?? null,
-                ]);
+            $planification->besoins()->create([
+                'categorie' => $besoin['categorie'],
+                'designation' => $besoin['designation'],
+                'quantite' => $besoin['quantite'],
+                'unite' => $besoin['unite'] ?? null,
+                'observations' => $besoin['observations'] ?? null,
+            ]);
         }
-
 
         return $planification;
     });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -585,7 +344,7 @@ public function store(
 
     return redirect()
         ->route(
-            'dpa.planifications-prefectorales.show',
+            'dpa.planifications-prefectorales.index',
             $planification
         )
         ->with(
@@ -593,7 +352,6 @@ public function store(
             'La planification préfectorale a été créée avec succès.'
         );
 }
-
 
 
     public function show(
