@@ -11,7 +11,6 @@
 
 <div class="mx-auto max-w-6xl">
 
-
     {{-- ==========================================================
         EN-TÊTE
     =========================================================== --}}
@@ -20,9 +19,7 @@
 
         <div class="flex items-center gap-3">
 
-            <div
-                class="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100"
-            >
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
 
                 <svg
                     class="h-5 w-5 text-green-600"
@@ -30,18 +27,15 @@
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                 >
-
                     <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="2"
                         d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
-
                 </svg>
 
             </div>
-
 
             <div>
 
@@ -50,7 +44,7 @@
                 </h1>
 
                 <p class="mt-1 text-sm text-slate-500">
-                    Définissez les territoires et les besoins de la campagne.
+                    Adapter la planification de la campagne à votre préfecture.
                 </p>
 
             </div>
@@ -61,13 +55,12 @@
 
 
     {{-- ==========================================================
-        INFORMATIONS DU DÉPLOIEMENT
+        INFORMATIONS CAMPAGNE
     =========================================================== --}}
 
     <div class="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
 
         <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
-
 
             {{-- CAMPAGNE --}}
 
@@ -118,9 +111,7 @@
                 <div class="mt-1">
 
                     @php
-
                         $statutClasses = match ($deploiement->statut) {
-
                             'actif', 'active' =>
                                 'bg-green-100 text-green-700',
 
@@ -132,9 +123,7 @@
 
                             default =>
                                 'bg-gray-100 text-gray-600',
-
                         };
-
                     @endphp
 
                     <span
@@ -162,10 +151,7 @@
             method="POST"
             action="{{ route(
                 'dpa.planifications-prefectorales.store',
-                [
-                    'deploiement' =>
-                        $deploiement->idDeploiement
-                ]
+                ['deploiement' => $deploiement->idDeploiement]
             ) }}"
         >
 
@@ -179,15 +165,6 @@
 
                     'planificationPrefectorale' =>
                         $planificationPrefectorale ?? null,
-
-                    'communes' =>
-                        $communes ?? collect(),
-
-                    'cantons' =>
-                        $cantons ?? collect(),
-
-                    'villages' =>
-                        $villages ?? collect(),
 
                     'besoins' =>
                         $besoins ?? collect(),

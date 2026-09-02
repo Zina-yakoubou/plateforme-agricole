@@ -178,8 +178,7 @@ class PlanificationPrefectoraleController extends Controller
     if ($deploiement->planificationPrefectorale) {
         return redirect()
             ->route(
-                'dpa.planifications-prefectorales.show',
-                $deploiement->planificationPrefectorale
+                'dpa.planifications-prefectorales.index'
             )
             ->with(
                 'info',

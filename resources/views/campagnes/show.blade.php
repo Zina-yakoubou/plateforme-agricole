@@ -104,7 +104,7 @@
                 <a
                     href="{{ route('campagnes.edit', $campagne) }}"
                     class="inline-flex items-center gap-2 rounded-lg
-                           bg-blue-600 px-4 py-2.5
+                            bg-green-600 px-4 py-2.5
                            text-sm font-semibold text-white
                            transition hover:bg-blue-700"
                 >
@@ -175,14 +175,14 @@
 @if(!$campagne->planification)
 
     <a href="{{ route('campagnes.planification.create', $campagne) }}"
-       class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+       class="inline-flex items-center gap-2 rounded-lg  bg-green-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
         Planifier la campagne
     </a>
 
 @elseif($campagne->statut === 'planifiee')
 
     <a href="{{ route('campagnes.planification.show', $campagne) }}"
-       class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700">
+       class="inline-flex items-center gap-2 rounded-lg  bg-green-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700">
         Voir la planification
     </a>
 
@@ -794,36 +794,75 @@
                                     </td>
 
 
-                                    <td class="px-4 py-3">
+                                   <td class="px-4 py-3">
 
-                                        @if($zone->zone_type === 'region')
+                                        @switch($zone->zone_type)
 
-                                            <span class="inline-flex rounded-full
-                                                         bg-purple-50 px-3 py-1
-                                                         text-xs font-semibold
-                                                         text-purple-700">
-                                                Région
-                                            </span>
+                                            @case('region')
 
-                                        @elseif($zone->zone_type === 'prefecture')
+                                                <span class="inline-flex rounded-full
+                                                            bg-purple-50 px-3 py-1
+                                                            text-xs font-semibold
+                                                            text-purple-700">
+                                                    Région
+                                                </span>
 
-                                            <span class="inline-flex rounded-full
-                                                         bg-blue-50 px-3 py-1
-                                                         text-xs font-semibold
-                                                         text-blue-700">
-                                                Préfecture
-                                            </span>
+                                                @break
 
-                                        @else
+                                            @case('prefecture')
 
-                                            <span class="inline-flex rounded-full
-                                                         bg-gray-100 px-3 py-1
-                                                         text-xs font-semibold
-                                                         text-gray-600">
-                                                {{ ucfirst($zone->zone_type) }}
-                                            </span>
+                                                <span class="inline-flex rounded-full
+                                                            bg-blue-50 px-3 py-1
+                                                            text-xs font-semibold
+                                                            text-blue-700">
+                                                    Préfecture
+                                                </span>
 
-                                        @endif
+                                                @break
+
+                                            @case('commune')
+
+                                                <span class="inline-flex rounded-full
+                                                            bg-[#e5f2ee] px-3 py-1
+                                                            text-xs font-semibold
+                                                            text-[#006a4f]">
+                                                    Commune
+                                                </span>
+
+                                                @break
+
+                                            @case('canton')
+
+                                                <span class="inline-flex rounded-full
+                                                            bg-amber-50 px-3 py-1
+                                                            text-xs font-semibold
+                                                            text-amber-700">
+                                                    Canton
+                                                </span>
+
+                                                @break
+
+                                            @case('village')
+
+                                                <span class="inline-flex rounded-full
+                                                            bg-gray-100 px-3 py-1
+                                                            text-xs font-semibold
+                                                            text-gray-600">
+                                                    Village
+                                                </span>
+
+                                                @break
+
+                                            @default
+
+                                                <span class="inline-flex rounded-full
+                                                            bg-gray-100 px-3 py-1
+                                                            text-xs font-semibold
+                                                            text-gray-600">
+                                                    Non défini
+                                                </span>
+
+                                        @endswitch
 
                                     </td>
 

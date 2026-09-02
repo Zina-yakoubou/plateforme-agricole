@@ -33,7 +33,6 @@ class CampagneRecensement extends Model
 
         'objectifs',
         'resultatsAttendus',
-        'zoneConserner',
 
         'methodologie',
         'instructions',
@@ -367,5 +366,27 @@ class CampagneRecensement extends Model
                 $campagne->synchroniserStatut();
 
             });
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PRÉFECTURES CONCERNÉES PAR LA CAMPAGNE
+    |--------------------------------------------------------------------------
+    |
+    | Calcule la liste unique des préfectures réellement concernées,
+    | en remontant la hiérarchie territoriale pour chaque zone
+    | (région exclue : une campagne nationale/régionale sans précision
+    | n'implique pas de préfecture déterminée).
+    |
+    */
+
+    public function prefecturesConcernees()
+    {
+        return $this->zones
+            ->map(fn ($zone) => $zone->prefecture_rattachee)
+            ->filter()
+            ->unique('idPrefecture')
+            ->values();
     }
 }

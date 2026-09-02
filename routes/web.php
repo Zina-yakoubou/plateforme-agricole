@@ -511,6 +511,8 @@ Route::middleware(['auth'])
         // AFFECTATIONS DES ÉQUIPES
         // =========================================================
 
+        Route::get('/affectations', [AffectationController::class, 'index'])
+            ->name('affectations.index');
         // Liste des affectations d'une équipe
         Route::get(
             '/equipes/{equipe}/affectations',

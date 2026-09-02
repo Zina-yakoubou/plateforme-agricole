@@ -1,203 +1,197 @@
 @extends('layouts.app')
 
 @section('page-title', 'Planifications préfectorales')
+
 @section('page-subtitle', 'Planifications des campagnes pour votre préfecture')
 
 @section('content')
 
 <div class="space-y-6">
 
-    {{-- =========================================================
-         EN-TÊTE
-    ========================================================== --}}
+    {{-- ================================================================
+        EN-TÊTE
+    ================================================================= --}}
 
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
         <div>
-            <h1 class="text-2xl font-bold text-[#212529]">
+
+            <h1 class="text-xl font-bold text-slate-900">
                 Planifications préfectorales
             </h1>
 
-            <p class="mt-1 text-sm text-gray-500">
-                Planifications des campagnes pour la préfecture
-                de {{ $prefecture->nom ?? $prefecture->libelle }}
+            <p class="mt-1 text-sm text-slate-500">
+                Consultez les planifications des campagnes au niveau préfectoral.
             </p>
+
         </div>
 
     </div>
 
 
-    {{-- =========================================================
-         STATISTIQUES
-    ========================================================== --}}
+    {{-- ================================================================
+        STATISTIQUES
+    ================================================================= --}}
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
         {{-- TOTAL --}}
-        <div class="rounded-lg
-                    border border-[#e5e7eb]
-                    bg-white
-                    px-5 py-4
-                    shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Total planifications
-            </p>
+            <div class="flex items-center justify-between">
 
-            <p class="mt-2 text-2xl font-bold text-[#212529]">
-                {{ $planifications->total() }}
-            </p>
+                <div>
+
+                    <p class="text-sm font-medium text-slate-500">
+                        Total
+                    </p>
+
+                    <p class="mt-1 text-2xl font-bold text-slate-900">
+                        {{ $planifications->total() }}
+                    </p>
+
+                </div>
+
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#006a4f]/10">
+
+                    <svg
+                        class="h-5 w-5 text-[#006a4f]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                    </svg>
+
+                </div>
+
+            </div>
 
         </div>
 
 
-        {{-- AFFICHÉES --}}
-        <div class="rounded-lg
-                    border border-[#e5e7eb]
-                    bg-white
-                    px-5 py-4
-                    shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+        {{-- EN COURS --}}
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Planifications affichées
-            </p>
+            <div class="flex items-center justify-between">
 
-            <p class="mt-2 text-2xl font-bold text-[#006a4f]">
-                {{ $planifications->count() }}
-            </p>
+                <div>
+
+                    <p class="text-sm font-medium text-slate-500">
+                        En cours
+                    </p>
+
+                    <p class="mt-1 text-2xl font-bold text-emerald-600">
+                        {{ $planifications->whereIn('statut', ['active', 'en_cours'])->count() }}
+                    </p>
+
+                </div>
+
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50">
+
+                    <svg
+                        class="h-5 w-5 text-emerald-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                    </svg>
+
+                </div>
+
+            </div>
 
         </div>
 
 
-        {{-- PRÉFECTURE --}}
-        <div class="rounded-lg
-                    border border-[#e5e7eb]
-                    bg-white
-                    px-5 py-4
-                    shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+        {{-- TERMINÉES --}}
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Préfecture
-            </p>
+            <div class="flex items-center justify-between">
 
-            <p class="mt-2 truncate text-lg font-bold text-[#212529]">
-                {{ $prefecture->nom ?? $prefecture->libelle }}
-            </p>
+                <div>
+
+                    <p class="text-sm font-medium text-slate-500">
+                        Terminées
+                    </p>
+
+                    <p class="mt-1 text-2xl font-bold text-slate-700">
+                        {{ $planifications->whereIn('statut', ['cloturee', 'terminee', 'termine'])->count() }}
+                    </p>
+
+                </div>
+
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
+
+                    <svg
+                        class="h-5 w-5 text-slate-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 13l4 4L19 7"
+                        />
+                    </svg>
+
+                </div>
+
+            </div>
 
         </div>
 
     </div>
 
 
-    {{-- =========================================================
-         TABLEAU
-    ========================================================== --}}
+    {{-- ================================================================
+        TABLEAU
+    ================================================================= --}}
 
-    <div class="overflow-hidden
-                rounded-lg
-                border border-[#e5e7eb]
-                bg-white
-                shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-
-
-        {{-- =====================================================
-             EN-TÊTE DU TABLEAU
-        ====================================================== --}}
-
-        <div class="flex flex-col gap-1
-                    border-b border-[#e5e7eb]
-                    px-6 py-5
-                    sm:flex-row
-                    sm:items-center
-                    sm:justify-between">
-
-            <div>
-
-                <h2 class="text-base font-semibold text-[#212529]">
-                    Planifications
-                </h2>
-
-                <p class="mt-1 text-xs text-gray-500">
-                    Liste des planifications préfectorales enregistrées.
-                </p>
-
-            </div>
-
-            <div class="text-sm text-gray-500">
-
-                <span class="font-semibold text-[#006a4f]">
-                    {{ $planifications->total() }}
-                </span>
-
-                planification(s)
-
-            </div>
-
-        </div>
-
-
-        {{-- =====================================================
-             TABLE
-        ====================================================== --}}
+    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
         <div class="overflow-x-auto">
 
-            <table class="w-full min-w-[1050px] text-sm">
+            <table class="min-w-full divide-y divide-slate-200">
 
-                {{-- =================================================
-                     THEAD
-                ================================================== --}}
+                <thead class="bg-slate-50">
 
-                <thead class="bg-[#f8faf9]">
+                    <tr>
 
-                    <tr class="border-b border-[#e5e7eb]">
-
-                        <th class="px-6 py-4 text-left
-                                   text-xs font-semibold
-                                   uppercase tracking-wide
-                                   text-gray-500">
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                             N°
                         </th>
 
-                        <th class="px-6 py-4 text-left
-                                   text-xs font-semibold
-                                   uppercase tracking-wide
-                                   text-gray-500">
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                             Campagne
                         </th>
 
-                        <th class="px-6 py-4 text-left
-                                   text-xs font-semibold
-                                   uppercase tracking-wide
-                                   text-gray-500">
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                             Préfecture
                         </th>
 
-                        <th class="px-6 py-4 text-left
-                                   text-xs font-semibold
-                                   uppercase tracking-wide
-                                   text-gray-500">
-                            Territoires
-                        </th>
-
-                        <th class="px-6 py-4 text-left
-                                   text-xs font-semibold
-                                   uppercase tracking-wide
-                                   text-gray-500">
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                             Besoins
                         </th>
 
-                        <th class="px-6 py-4 text-center
-                                   text-xs font-semibold
-                                   uppercase tracking-wide
-                                   text-gray-500">
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                             Statut
                         </th>
 
-                        <th class="px-6 py-4 text-right
-                                   text-xs font-semibold
-                                   uppercase tracking-wide
-                                   text-gray-500">
+                        <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
                             Actions
                         </th>
 
@@ -206,130 +200,62 @@
                 </thead>
 
 
-                {{-- =================================================
-                     TBODY
-                ================================================== --}}
-
-                <tbody class="divide-y divide-[#e5e7eb]">
+                <tbody class="divide-y divide-slate-200 bg-white">
 
                     @forelse($planifications as $planification)
 
                         @php
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | TERRITOIRES
-                            |--------------------------------------------------------------------------
-                            */
-
-                            $territoires = $planification->territoires;
-
-                            $cantonIds = $territoires
-                                ->whereNotNull('canton_id')
-                                ->pluck('canton_id');
-
-                            $villageIds = $territoires
-                                ->whereNotNull('village_id')
-                                ->pluck('village_id');
-
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | COMMUNES DÉDUITES DES CANTONS
-                            |--------------------------------------------------------------------------
-                            */
-
-                            $communeIdsDepuisCantons = $territoires
-                                ->whereNotNull('canton_id')
-                                ->filter(fn ($t) => $t->canton)
-                                ->map(fn ($t) => $t->canton->commune_id)
-                                ->filter();
-
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | COMMUNES DÉDUITES DES VILLAGES
-                            |--------------------------------------------------------------------------
-                            */
-
-                            $communeIdsDepuisVillages = $territoires
-                                ->whereNotNull('village_id')
-                                ->filter(fn ($t) => $t->village?->canton)
-                                ->map(fn ($t) => $t->village->canton->commune_id)
-                                ->filter();
-
-
-                            $communeCount = $communeIdsDepuisCantons
-                                ->merge($communeIdsDepuisVillages)
-                                ->unique()
-                                ->count();
-
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | STATUT
-                            |--------------------------------------------------------------------------
-                            */
 
                             $statut = $planification->statut;
 
                             $classes = match ($statut) {
 
                                 'brouillon' =>
-                                    'bg-gray-100 text-gray-700',
+                                    'bg-amber-100 text-amber-700',
 
-                                'soumise' =>
-                                    'bg-yellow-50 text-yellow-700',
+                                'active' =>
+                                    'bg-emerald-100 text-emerald-700',
 
-                                'validee' =>
-                                    'bg-green-50 text-green-700',
+                                'en_cours' =>
+                                    'bg-blue-100 text-blue-700',
 
-                                'rejetee' =>
-                                    'bg-red-50 text-red-700',
+                                'cloturee' =>
+                                    'bg-slate-100 text-slate-700',
+
+                                'terminee' =>
+                                    'bg-slate-100 text-slate-700',
 
                                 default =>
-                                    'bg-gray-100 text-gray-700',
+                                    'bg-slate-100 text-slate-700',
                             };
 
                         @endphp
 
 
-                        <tr class="group transition hover:bg-[#f8faf9]">
+                        <tr class="transition hover:bg-slate-50">
 
+                            {{-- N° --}}
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
 
-                            {{-- =================================================
-                                 N°
-                            ================================================== --}}
-
-                            <td class="px-6 py-4 text-sm text-gray-400">
-
-                                {{ $loop->iteration + (($planifications->currentPage() - 1) * $planifications->perPage()) }}
+                                {{ $planifications->firstItem() + $loop->index }}
 
                             </td>
 
 
-                            {{-- =================================================
-                                 CAMPAGNE
-                            ================================================== --}}
-
+                            {{-- CAMPAGNE --}}
                             <td class="px-6 py-4">
 
-                                <div class="min-w-0">
+                                <div>
 
-                                    <div class="truncate font-semibold text-[#212529]">
-
+                                    <p class="font-medium text-slate-900">
                                         {{ $planification->deploiement?->campagne?->libelle ?? '—' }}
-
-                                    </div>
-
+                                    </p>
 
                                     @if($planification->deploiement?->campagne?->codeCampagne)
 
-                                        <div class="mt-1 text-xs text-gray-500">
-
+                                        <p class="mt-0.5 text-xs text-slate-500">
                                             {{ $planification->deploiement->campagne->codeCampagne }}
-
-                                        </div>
+                                        </p>
 
                                     @endif
 
@@ -338,243 +264,107 @@
                             </td>
 
 
-                            {{-- =================================================
-                                 PRÉFECTURE
-                            ================================================== --}}
+                            {{-- PREFECTURE --}}
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700">
 
-                            <td class="px-6 py-4 text-[#434343]">
-
-                                {{ $planification->deploiement?->prefecture?->nom
-                                    ?? $planification->deploiement?->prefecture?->libelle
-                                    ?? '—' }}
+                                {{ $planification->deploiement?->prefecture?->nom ?? '—' }}
 
                             </td>
 
 
-                            {{-- =================================================
-                                 TERRITOIRES
-                            ================================================== --}}
+                            {{-- BESOINS --}}
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700">
 
-                            <td class="px-6 py-4">
+                                @if($planification->relationLoaded('besoins'))
 
-                                <div class="space-y-1 text-sm">
+                                    {{ $planification->besoins->count() }}
 
-                                    <div class="text-[#434343]">
+                                @else
 
-                                        <span class="font-semibold text-[#212529]">
-                                            {{ $communeCount }}
-                                        </span>
+                                    {{ $planification->besoins()->count() }}
 
-                                        commune(s)
-
-                                    </div>
-
-
-                                    <div class="text-gray-500">
-
-                                        <span class="font-semibold text-[#434343]">
-                                            {{ $cantonIds->unique()->count() }}
-                                        </span>
-
-                                        canton(s)
-
-                                    </div>
-
-
-                                    <div class="text-gray-500">
-
-                                        <span class="font-semibold text-[#434343]">
-                                            {{ $villageIds->unique()->count() }}
-                                        </span>
-
-                                        village(s)
-
-                                    </div>
-
-                                </div>
-
-                            </td>
-
-
-                            {{-- =================================================
-                                 BESOINS
-                            ================================================== --}}
-
-                            <td class="px-6 py-4 text-[#434343]">
-
-                                <span class="font-semibold text-[#212529]">
-                                    {{ $planification->besoins?->count() ?? 0 }}
-                                </span>
+                                @endif
 
                                 besoin(s)
 
                             </td>
 
 
-                            {{-- =================================================
-                                 STATUT
-                            ================================================== --}}
-
-                            <td class="px-6 py-4 text-center">
+                            {{-- STATUT --}}
+                            <td class="whitespace-nowrap px-6 py-4">
 
                                 <span
-                                    class="inline-flex
-                                           items-center
-                                           gap-1.5
-                                           rounded-full
-                                           px-3 py-1
-                                           text-xs
-                                           font-semibold
-                                           {{ $classes }}"
+                                    class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {{ $classes }}"
                                 >
-
-                                    <span
-                                        class="h-1.5 w-1.5 rounded-full
-                                        @switch($statut)
-                                            @case('brouillon')
-                                                bg-gray-400
-                                                @break
-
-                                            @case('soumise')
-                                                bg-yellow-500
-                                                @break
-
-                                            @case('validee')
-                                                bg-green-500
-                                                @break
-
-                                            @case('rejetee')
-                                                bg-red-500
-                                                @break
-
-                                            @default
-                                                bg-gray-400
-                                        @endswitch
-                                        "
-                                    ></span>
-
-                                    {{ ucfirst($statut ?? 'inconnu') }}
-
+                                    {{ ucfirst(str_replace('_', ' ', $statut ?? 'Non défini')) }}
                                 </span>
 
                             </td>
 
 
-                            {{-- =================================================
-                                 ACTIONS
-                            ================================================== --}}
+                            {{-- ACTIONS --}}
+                            <td class="whitespace-nowrap px-6 py-4 text-right">
 
-                            <td class="px-6 py-4">
-
-                                <div class="flex
-                                            items-center
-                                            justify-end
-                                            gap-2">
-
-
-                                    {{-- =====================================
-                                         VOIR
-                                    ====================================== --}}
+                                <div class="flex items-center justify-end gap-2">
 
                                     <a
-                                        href="{{ route(
-                                            'dpa.planifications-prefectorales.show',
-                                            $planification
-                                        ) }}"
-                                        title="Voir la planification"
-                                        class="inline-flex
-                                               h-9 w-9
-                                               items-center
-                                               justify-center
-                                               rounded-lg
-                                               border
-                                               border-[#e5e7eb]
-                                               bg-white
-                                               text-gray-600
-                                               transition
-                                               hover:border-[#006a4f]
-                                               hover:bg-[#e5f2ee]
-                                               hover:text-[#006a4f]"
+                                        href="{{ route('dpa.planifications-prefectorales.show', $planification->idPlanificationPrefectorale) }}"
+                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                     >
 
                                         <svg
-                                            class="h-4 w-4"
+                                            class="mr-1.5 h-4 w-4"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
                                         >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                            />
 
                                             <path
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
                                                 stroke-width="2"
-                                                d="M2.458 12C3.732 7.943
-                                                   7.523 5 12 5
-                                                   c4.478 0 8.268 2.943
-                                                   9.542 7
-                                                   -1.274 4.057-5.064 7
-                                                   -9.542 7
-                                                   -4.477 0-8.268-2.943
-                                                   -9.542-7z"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                                             />
-
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="3"
-                                            />
-
                                         </svg>
+
+                                        Voir
 
                                     </a>
 
 
-                                    {{-- =====================================
-                                         MODIFIER
-                                    ====================================== --}}
-
                                     <a
-                                        href="{{ route(
-                                            'dpa.planifications-prefectorales.edit',
-                                            $planification
-                                        ) }}"
-                                        title="Modifier la planification"
-                                        class="inline-flex
-                                               h-9 w-9
-                                               items-center
-                                               justify-center
-                                               rounded-lg
-                                               border
-                                               border-[#e5e7eb]
-                                               bg-white
-                                               text-gray-600
-                                               transition
-                                               hover:border-blue-500
-                                               hover:bg-blue-50
-                                               hover:text-blue-600"
+                                        href="{{ route('dpa.planifications-prefectorales.edit', $planification->idPlanificationPrefectorale) }}"
+                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                     >
 
                                         <svg
-                                            class="h-4 w-4"
+                                            class="mr-1.5 h-4 w-4"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
                                         >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"
+                                            />
 
                                             <path
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
                                                 stroke-width="2"
-                                                d="M11 4H6
-                                                   a2 2 0 00-2 2v12
-                                                   a2 2 0 002 2h12
-                                                   a2 2 0 002-2v-5
-                                                   M16.5 3.5
-                                                   a2.121 2.121 0 013 3L12 14
-                                                   l-4 1 1-4 7.5-7.5z"
+                                                d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
                                             />
-
                                         </svg>
+
+                                        Modifier
 
                                     </a>
 
@@ -584,64 +374,41 @@
 
                         </tr>
 
-
                     @empty
-
-                        {{-- =================================================
-                             AUCUNE PLANIFICATION
-                        ================================================== --}}
 
                         <tr>
 
                             <td
-                                colspan="7"
-                                class="px-6 py-16 text-center"
+                                colspan="6"
+                                class="px-6 py-12 text-center"
                             >
 
                                 <div class="flex flex-col items-center">
 
-                                    <div
-                                        class="mb-4
-                                               flex h-14 w-14
-                                               items-center
-                                               justify-center
-                                               rounded-full
-                                               bg-[#e5f2ee]
-                                               text-[#006a4f]"
-                                    >
+                                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
 
                                         <svg
-                                            class="h-7 w-7"
+                                            class="h-6 w-6 text-slate-400"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
                                         >
-
                                             <path
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
-                                                stroke-width="1.7"
-                                                d="M8 3v4
-                                                   M16 3v4
-                                                   M4 9h16
-                                                   M6 5h12a2 2 0 012 2v12
-                                                   a2 2 0 01-2 2H6
-                                                   a2 2 0 01-2-2V7
-                                                   a2 2 0 012-2z"
+                                                stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                             />
-
                                         </svg>
 
                                     </div>
 
-
-                                    <p class="font-semibold text-[#212529]">
+                                    <p class="mt-3 font-medium text-slate-900">
                                         Aucune planification préfectorale
                                     </p>
 
-                                    <p class="mt-1 text-sm text-gray-500">
-                                        Les planifications créées pour votre
-                                        préfecture apparaîtront ici.
+                                    <p class="mt-1 text-sm text-slate-500">
+                                        Aucune planification n'a encore été créée.
                                     </p>
 
                                 </div>
@@ -659,13 +426,10 @@
         </div>
 
 
-        {{-- =========================================================
-             PAGINATION
-        ========================================================== --}}
-
+        {{-- PAGINATION --}}
         @if($planifications->hasPages())
 
-            <div class="flex justify-center border-t border-[#e5e7eb] px-6 py-4">
+            <div class="border-t border-slate-200 px-6 py-4">
 
                 {{ $planifications->links() }}
 

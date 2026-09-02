@@ -145,7 +145,7 @@
                 <button
                     type="button"
                     @click="ajouterActivite()"
-                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                    class="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                 >
                     + Ajouter une activité
                 </button>

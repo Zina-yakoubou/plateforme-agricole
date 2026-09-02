@@ -2,17 +2,28 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Canton;
+use App\Models\Commune;
+use App\Models\Prefecture;
+use App\Models\Region;
+use App\Models\Village;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class StoreCampagneRecensementRequest extends FormRequest
 {
+    /**
+     * Autorisation.
+     */
     public function authorize(): bool
     {
         return Auth::check();
     }
 
+    /**
+     * Règles de validation.
+     */
     public function rules(): array
     {
         return [
@@ -33,7 +44,6 @@ class StoreCampagneRecensementRequest extends FormRequest
                 'nullable',
                 'string',
             ],
-
 
             /*
             |--------------------------------------------------------------------------
@@ -60,11 +70,6 @@ class StoreCampagneRecensementRequest extends FormRequest
                 'nullable',
                 'string',
             ],
-             'zoneConserner' => [
-                'nullable',
-                'string',
-            ],
-
 
             /*
             |--------------------------------------------------------------------------
@@ -80,7 +85,6 @@ class StoreCampagneRecensementRequest extends FormRequest
                     'prefectorale',
                 ]),
             ],
-
 
             /*
             |--------------------------------------------------------------------------
@@ -100,7 +104,6 @@ class StoreCampagneRecensementRequest extends FormRequest
                 'after_or_equal:dateDebut',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
             | QUESTIONNAIRES
@@ -118,13 +121,14 @@ class StoreCampagneRecensementRequest extends FormRequest
                 'exists:questionnaires,idQuestionnaire',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
-            | RÉGIONS
+            | ZONES BÉNÉFICIAIRES
             |--------------------------------------------------------------------------
             |
-            | Utilisé uniquement pour une campagne régionale.
+            | Les tableaux sont facultatifs individuellement.
+            |
+            | La cohérence est contrôlée plus bas selon la portée.
             |
             */
 
@@ -139,16 +143,6 @@ class StoreCampagneRecensementRequest extends FormRequest
                 'exists:regions,idRegion',
             ],
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | PRÉFECTURES
-            |--------------------------------------------------------------------------
-            |
-            | Utilisé uniquement pour une campagne préfectorale.
-            |
-            */
-
             'prefecture_ids' => [
                 'nullable',
                 'array',
@@ -159,25 +153,76 @@ class StoreCampagneRecensementRequest extends FormRequest
                 'distinct',
                 'exists:prefectures,idPrefecture',
             ],
+
+            'commune_ids' => [
+                'nullable',
+                'array',
+            ],
+
+            'commune_ids.*' => [
+                'integer',
+                'distinct',
+                'exists:communes,idCommune',
+            ],
+
+            'canton_ids' => [
+                'nullable',
+                'array',
+            ],
+
+            'canton_ids.*' => [
+                'integer',
+                'distinct',
+                'exists:cantons,idCanton',
+            ],
+
+            'village_ids' => [
+                'nullable',
+                'array',
+            ],
+
+            'village_ids.*' => [
+                'integer',
+                'distinct',
+                'exists:villages,idVillage',
+            ],
         ];
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDATION MÉTIER
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Validation métier du périmètre géographique.
+     */
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
 
             $portee = $this->input('portee');
 
-            $regionIds = $this->input('region_ids', []);
+            $regionIds = collect($this->input('region_ids', []))
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
 
-            $prefectureIds = $this->input('prefecture_ids', []);
+            $prefectureIds = collect($this->input('prefecture_ids', []))
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+
+            $communeIds = collect($this->input('commune_ids', []))
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+
+            $cantonIds = collect($this->input('canton_ids', []))
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+
+            $villageIds = collect($this->input('village_ids', []))
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
 
 
             /*
@@ -185,25 +230,25 @@ class StoreCampagneRecensementRequest extends FormRequest
             | CAMPAGNE NATIONALE
             |--------------------------------------------------------------------------
             |
-            | Aucun territoire spécifique ne doit être sélectionné.
+            | Toute la couverture nationale est concernée.
+            |
+            | Il ne faut donc pas définir de zone particulière.
             |
             */
 
             if ($portee === 'nationale') {
 
-                if (!empty($regionIds)) {
+                if (
+                    $regionIds->isNotEmpty() ||
+                    $prefectureIds->isNotEmpty() ||
+                    $communeIds->isNotEmpty() ||
+                    $cantonIds->isNotEmpty() ||
+                    $villageIds->isNotEmpty()
+                ) {
 
                     $validator->errors()->add(
-                        'region_ids',
-                        'Une campagne nationale ne doit pas contenir de région spécifique.'
-                    );
-                }
-
-                if (!empty($prefectureIds)) {
-
-                    $validator->errors()->add(
-                        'prefecture_ids',
-                        'Une campagne nationale ne doit pas contenir de préfecture spécifique.'
+                        'portee',
+                        'Une campagne nationale couvre automatiquement tout le territoire. Aucune zone spécifique ne doit être sélectionnée.'
                     );
                 }
 
@@ -215,31 +260,132 @@ class StoreCampagneRecensementRequest extends FormRequest
             |--------------------------------------------------------------------------
             | CAMPAGNE RÉGIONALE
             |--------------------------------------------------------------------------
+            |
+            | Une campagne régionale doit commencer par au moins une région.
+            |
+            | Ensuite, l'utilisateur peut préciser des préfectures,
+            | communes, cantons ou villages appartenant à ces régions.
+            |
+            | Les contrôles de cohérence (appartenance à une région
+            | sélectionnée) restent pertinents ici, car la région EST
+            | le point de départ obligatoire de cette portée.
+            |
             */
 
             if ($portee === 'regionale') {
 
-                if (empty($regionIds)) {
+                if ($regionIds->isEmpty()) {
 
                     $validator->errors()->add(
                         'region_ids',
-                        'Veuillez sélectionner au moins une région.'
+                        'Veuillez sélectionner au moins une région concernée par la campagne.'
                     );
 
                     return;
                 }
 
+
                 /*
-                | Une campagne régionale ne doit pas recevoir
-                | directement des préfectures.
+                |--------------------------------------------------------------------------
+                | PRÉFECTURES
+                |--------------------------------------------------------------------------
                 */
 
-                if (!empty($prefectureIds)) {
+                if ($prefectureIds->isNotEmpty()) {
 
-                    $validator->errors()->add(
-                        'prefecture_ids',
-                        'Pour une campagne régionale, sélectionnez les régions et non les préfectures.'
-                    );
+                    $prefecturesInvalides = Prefecture::query()
+                        ->whereIn('idPrefecture', $prefectureIds)
+                        ->whereNotIn('region_id', $regionIds)
+                        ->exists();
+
+                    if ($prefecturesInvalides) {
+
+                        $validator->errors()->add(
+                            'prefecture_ids',
+                            'Une ou plusieurs préfectures sélectionnées n’appartiennent pas aux régions choisies.'
+                        );
+                    }
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | COMMUNES
+                |--------------------------------------------------------------------------
+                */
+
+                if ($communeIds->isNotEmpty()) {
+
+                    $communesInvalides = Commune::query()
+                        ->whereIn('idCommune', $communeIds)
+                        ->whereDoesntHave('prefecture', function ($query) use ($regionIds) {
+
+                            $query->whereIn('region_id', $regionIds);
+
+                        })
+                        ->exists();
+
+                    if ($communesInvalides) {
+
+                        $validator->errors()->add(
+                            'commune_ids',
+                            'Une ou plusieurs communes sélectionnées ne se trouvent pas dans une région concernée.'
+                        );
+                    }
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | CANTONS
+                |--------------------------------------------------------------------------
+                */
+
+                if ($cantonIds->isNotEmpty()) {
+
+                    $cantonsInvalides = Canton::query()
+                        ->whereIn('idCanton', $cantonIds)
+                        ->whereDoesntHave('commune.prefecture', function ($query) use ($regionIds) {
+
+                            $query->whereIn('region_id', $regionIds);
+
+                        })
+                        ->exists();
+
+                    if ($cantonsInvalides) {
+
+                        $validator->errors()->add(
+                            'canton_ids',
+                            'Un ou plusieurs cantons sélectionnés ne se trouvent pas dans une région concernée.'
+                        );
+                    }
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | VILLAGES
+                |--------------------------------------------------------------------------
+                */
+
+                if ($villageIds->isNotEmpty()) {
+
+                    $villagesInvalides = Village::query()
+                        ->whereIn('idVillage', $villageIds)
+                        ->whereDoesntHave('canton.commune.prefecture', function ($query) use ($regionIds) {
+
+                            $query->whereIn('region_id', $regionIds);
+
+                        })
+                        ->exists();
+
+                    if ($villagesInvalides) {
+
+                        $validator->errors()->add(
+                            'village_ids',
+                            'Un ou plusieurs villages sélectionnés ne se trouvent pas dans une région concernée.'
+                        );
+                    }
                 }
 
                 return;
@@ -250,33 +396,46 @@ class StoreCampagneRecensementRequest extends FormRequest
             |--------------------------------------------------------------------------
             | CAMPAGNE PRÉFECTORALE
             |--------------------------------------------------------------------------
+            |
+            | L'utilisateur peut sélectionner, via l'accordéon, n'importe
+            | quel niveau (préfecture entière, commune, canton ou
+            | village) indépendamment des autres. Il n'y a donc PAS de
+            | contrôle de cohérence entre prefecture_ids et les niveaux
+            | inférieurs : chaque identifiant est déjà validé comme
+            | existant réellement en base via la règle "exists:...".
+            |
             */
 
             if ($portee === 'prefectorale') {
 
-                if (empty($prefectureIds)) {
+                if (
+                    $prefectureIds->isEmpty() &&
+                    $communeIds->isEmpty() &&
+                    $cantonIds->isEmpty() &&
+                    $villageIds->isEmpty()
+                ) {
 
                     $validator->errors()->add(
                         'prefecture_ids',
-                        'Veuillez sélectionner au moins une préfecture.'
+                        'Veuillez sélectionner au moins une préfecture, une commune, un canton ou un village concerné par la campagne.'
                     );
 
                     return;
                 }
 
+
                 /*
-                | Une campagne préfectorale sélectionne directement
-                | les préfectures.
-                |
-                | Leur région est automatiquement connue par la relation
-                | administrative Préfecture → Région.
+                |--------------------------------------------------------------------------
+                | Une campagne préfectorale ne sélectionne pas directement
+                | une région.
+                |--------------------------------------------------------------------------
                 */
 
-                if (!empty($regionIds)) {
+                if ($regionIds->isNotEmpty()) {
 
                     $validator->errors()->add(
                         'region_ids',
-                        'Pour une campagne préfectorale, sélectionnez directement les préfectures.'
+                        'Pour une campagne préfectorale, sélectionnez directement les préfectures concernées.'
                     );
                 }
             }
@@ -284,18 +443,17 @@ class StoreCampagneRecensementRequest extends FormRequest
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | MESSAGES
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Messages personnalisés.
+     */
     public function messages(): array
     {
         return [
 
             /*
-            | Identification
+            |--------------------------------------------------------------------------
+            | CAMPAGNE
+            |--------------------------------------------------------------------------
             */
 
             'libelle.required' =>
@@ -304,17 +462,14 @@ class StoreCampagneRecensementRequest extends FormRequest
             'libelle.max' =>
                 'Le libellé de la campagne ne peut pas dépasser 255 caractères.',
 
-
-            /*
-            | Cadre
-            */
-
             'objectifs.required' =>
                 'Les objectifs de la campagne sont obligatoires.',
 
 
             /*
-            | Portée
+            |--------------------------------------------------------------------------
+            | PORTÉE
+            |--------------------------------------------------------------------------
             */
 
             'portee.required' =>
@@ -325,7 +480,9 @@ class StoreCampagneRecensementRequest extends FormRequest
 
 
             /*
-            | Dates
+            |--------------------------------------------------------------------------
+            | DATES
+            |--------------------------------------------------------------------------
             */
 
             'dateDebut.required' =>
@@ -339,7 +496,9 @@ class StoreCampagneRecensementRequest extends FormRequest
 
 
             /*
-            | Questionnaires
+            |--------------------------------------------------------------------------
+            | QUESTIONNAIRES
+            |--------------------------------------------------------------------------
             */
 
             'questionnaire_ids.array' =>
@@ -353,7 +512,9 @@ class StoreCampagneRecensementRequest extends FormRequest
 
 
             /*
-            | Régions
+            |--------------------------------------------------------------------------
+            | RÉGIONS
+            |--------------------------------------------------------------------------
             */
 
             'region_ids.array' =>
@@ -367,7 +528,9 @@ class StoreCampagneRecensementRequest extends FormRequest
 
 
             /*
-            | Préfectures
+            |--------------------------------------------------------------------------
+            | PRÉFECTURES
+            |--------------------------------------------------------------------------
             */
 
             'prefecture_ids.array' =>
@@ -378,6 +541,54 @@ class StoreCampagneRecensementRequest extends FormRequest
 
             'prefecture_ids.*.distinct' =>
                 'Une même préfecture ne peut pas être sélectionnée plusieurs fois.',
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | COMMUNES
+            |--------------------------------------------------------------------------
+            */
+
+            'commune_ids.array' =>
+                'La liste des communes est invalide.',
+
+            'commune_ids.*.exists' =>
+                'La commune sélectionnée n’existe pas.',
+
+            'commune_ids.*.distinct' =>
+                'Une même commune ne peut pas être sélectionnée plusieurs fois.',
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CANTONS
+            |--------------------------------------------------------------------------
+            */
+
+            'canton_ids.array' =>
+                'La liste des cantons est invalide.',
+
+            'canton_ids.*.exists' =>
+                'Le canton sélectionné n’existe pas.',
+
+            'canton_ids.*.distinct' =>
+                'Un même canton ne peut pas être sélectionné plusieurs fois.',
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | VILLAGES
+            |--------------------------------------------------------------------------
+            */
+
+            'village_ids.array' =>
+                'La liste des villages est invalide.',
+
+            'village_ids.*.exists' =>
+                'Le village sélectionné n’existe pas.',
+
+            'village_ids.*.distinct' =>
+                'Un même village ne peut pas être sélectionné plusieurs fois.',
         ];
     }
 }

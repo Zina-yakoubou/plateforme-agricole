@@ -6,22 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePlanificationPrefectoraleRequest;
 use App\Models\CampagneDeploiement;
 use App\Models\PlanificationPrefectorale;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\PlanificationTerritoire;
 use Illuminate\Support\Facades\DB;
-use App\Models\Commune;
-use App\Models\Canton;
-use App\Models\Village;
 
 class PlanificationPrefectoraleController extends Controller
 {
-
     /**
-     * Afficher le formulaire de planification préfectorale.
+     * Liste des planifications préfectorales.
      */
-
-        public function index()
+    public function index()
     {
         $user = Auth::user();
 
@@ -34,7 +27,6 @@ class PlanificationPrefectoraleController extends Controller
         $planifications = PlanificationPrefectorale::with([
                 'deploiement.campagne',
                 'deploiement.prefecture',
-                'territoires',
                 'besoins',
             ])
             ->latest()
@@ -47,43 +39,28 @@ class PlanificationPrefectoraleController extends Controller
     }
 
 
-       
+    /**
+     * Formulaire de création d'une planification préfectorale.
+     */
     public function create(CampagneDeploiement $deploiement)
     {
         $user = Auth::user();
-
-        /*
-        |--------------------------------------------------------------------------
-        | AUTORISATION
-        |--------------------------------------------------------------------------
-        */
 
         if (
             !is_callable([$user, 'isDpa']) ||
             !call_user_func([$user, 'isDpa']) ||
             !$user->prefectureActuelle ||
-            $deploiement->prefecture_id !== $user->prefectureActuelle->idPrefecture
+            (int) $deploiement->prefecture_id !==
+                (int) $user->prefectureActuelle->idPrefecture
         ) {
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | CHARGEMENT DU DÉPLOIEMENT
-        |--------------------------------------------------------------------------
-        */
-
         $deploiement->load([
             'campagne',
-            'prefecture.communes.cantons.villages',
+            'prefecture',
             'planificationPrefectorale',
         ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | PRÉFECTURE
-        |--------------------------------------------------------------------------
-        */
 
         $prefecture = $deploiement->prefecture;
 
@@ -91,562 +68,116 @@ class PlanificationPrefectoraleController extends Controller
             abort(404, 'La préfecture du déploiement est introuvable.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | TERRITOIRES
-        |--------------------------------------------------------------------------
-        |
-        | On reste strictement dans la préfecture du déploiement.
-        |
-        */
-
-        $communes = $prefecture->communes;
-
-        $cantons = $communes
-            ->flatMap(function ($commune) {
-                return $commune->cantons;
-            })
-            ->values();
-
-        $villages = $cantons
-            ->flatMap(function ($canton) {
-                return $canton->villages;
-            })
-            ->values();
-
-        /*
-        |--------------------------------------------------------------------------
-        | PLANIFICATION EXISTANTE
-        |--------------------------------------------------------------------------
-        */
-
         $planification = $deploiement->planificationPrefectorale;
 
         if ($planification) {
             $planification->load([
-                'adaptationsActivites',
-                'territoires',
                 'besoins',
+                'adaptationsActivites',
             ]);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | AFFICHAGE
-        |--------------------------------------------------------------------------
-        */
 
         return view(
             'dpa.planifications_prefectorales.create',
             [
                 'deploiement' => $deploiement,
                 'planification' => $planification,
-                'communes' => $communes,
-                'cantons' => $cantons,
-                'villages' => $villages,
                 'besoins' => $planification?->besoins ?? collect(),
             ]
         );
     }
 
+
     /**
      * Enregistrer la planification préfectorale.
      */
-   
-
-public function store(
-    StorePlanificationPrefectoraleRequest $request,
-    CampagneDeploiement $deploiement
-) {
-    $user = Auth::user();
-
-    /*
-    |--------------------------------------------------------------------------
-    | AUTORISATION
-    |--------------------------------------------------------------------------
-    */
-
-    $prefecture = $user->prefectureActuelle;
-
-    if (
-        !is_callable([$user, 'isDpa']) ||
-        !call_user_func([$user, 'isDpa']) ||
-        !$prefecture ||
-        (int) $deploiement->prefecture_id !==
-            (int) $prefecture->idPrefecture
+    public function store(
+        StorePlanificationPrefectoraleRequest $request,
+        CampagneDeploiement $deploiement
     ) {
-        abort(403);
-    }
+        $user = Auth::user();
 
-    /*
-    |--------------------------------------------------------------------------
-    | EMPÊCHER UNE DEUXIÈME PLANIFICATION
-    |--------------------------------------------------------------------------
-    */
+        if (
+            !is_callable([$user, 'isDpa']) ||
+            !call_user_func([$user, 'isDpa']) ||
+            !$user->prefectureActuelle ||
+            (int) $deploiement->prefecture_id !==
+                (int) $user->prefectureActuelle->idPrefecture
+        ) {
+            abort(403);
+        }
 
-    if ($deploiement->planificationPrefectorale) {
+        if ($deploiement->planificationPrefectorale) {
+
+            return redirect()
+                ->route(
+                    'dpa.planifications-prefectorales.show',
+                    $deploiement->planificationPrefectorale
+                )
+                ->with('info', 'Cette planification existe déjà.');
+        }
+
+        $validated = $request->validated();
+
+        $planification = DB::transaction(function () use (
+            $validated,
+            $deploiement,
+            $user
+        ) {
+
+            $planification = PlanificationPrefectorale::create([
+                'deploiement_id' => $deploiement->idDeploiement,
+                'planifie_par' => $user->id,
+                'planTravail' => $validated['planTravail'] ?? null,
+                'observations' => $validated['observations'] ?? null,
+                'statut' => 'planifier',
+            ]);
+
+            $this->enregistrerBesoins(
+                $planification,
+                $validated['besoins'] ?? []
+            );
+
+            return $planification;
+        });
 
         return redirect()
             ->route(
-                'dpa.planifications-prefectorales.show',
-                $deploiement->planificationPrefectorale
+                'dpa.planifications-prefectorales.index'
             )
-            ->with(
-                'info',
-                'Cette planification existe déjà.'
-            );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | DONNÉES VALIDÉES
-    |--------------------------------------------------------------------------
-    */
-
-    $validated = $request->validated();
-
-    $communeIds = $validated['commune_ids'] ?? [];
-    $cantonIds = $validated['canton_ids'] ?? [];
-    $villageIds = $validated['village_ids'] ?? [];
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | COMMUNES DE LA PRÉFECTURE
-    |--------------------------------------------------------------------------
-    */
-
-    $communes = Commune::query()
-        ->whereIn('idCommune', $communeIds)
-        ->where(
-            'prefecture_id',
-            $prefecture->idPrefecture
-        )
-        ->get();
-
-
-    if ($communes->count() !== count($communeIds)) {
-
-        return back()
-            ->withInput()
-            ->withErrors([
-                'commune_ids' =>
-                    'Une ou plusieurs communes sélectionnées n’appartiennent pas à votre préfecture.',
-            ]);
+            ->with('success', 'La planification préfectorale a été créée avec succès.');
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CANTONS DE LA PRÉFECTURE
-    |--------------------------------------------------------------------------
-    */
-
-    $cantons = Canton::query()
-        ->with('commune')
-        ->whereIn('idCanton', $cantonIds)
-        ->whereHas('commune', function ($query) use ($prefecture) {
-
-            $query->where(
-                'prefecture_id',
-                $prefecture->idPrefecture
-            );
-
-        })
-        ->get();
-
-
-    if ($cantons->count() !== count($cantonIds)) {
-
-        return back()
-            ->withInput()
-            ->withErrors([
-                'canton_ids' =>
-                    'Un ou plusieurs cantons sélectionnés n’appartiennent pas à votre préfecture.',
-            ]);
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGES DE LA PRÉFECTURE
-    |--------------------------------------------------------------------------
-    */
-
-    $villages = Village::query()
-        ->with('canton.commune')
-        ->whereIn('idVillage', $villageIds)
-        ->whereHas(
-            'canton.commune',
-            function ($query) use ($prefecture) {
-
-                $query->where(
-                    'prefecture_id',
-                    $prefecture->idPrefecture
-                );
-
-            }
-        )
-        ->get();
-
-
-    if ($villages->count() !== count($villageIds)) {
-
-        return back()
-            ->withInput()
-            ->withErrors([
-                'village_ids' =>
-                    'Un ou plusieurs villages sélectionnés n’appartiennent pas à votre préfecture.',
-            ]);
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | COMMUNES ENTIÈRES
-    |--------------------------------------------------------------------------
-    */
-
-    $communeIds = collect($communeIds)
-        ->map(fn ($id) => (int) $id)
-        ->unique()
-        ->values();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CANTONS ENTIERS
-    |--------------------------------------------------------------------------
-    |
-    | Si la commune entière est sélectionnée,
-    | les cantons de cette commune deviennent inutiles.
-    |
-    */
-
-    $cantonsAEnregistrer = $cantons
-        ->filter(function ($canton) use ($communeIds) {
-
-            return !$communeIds->contains(
-                (int) $canton->commune_id
-            );
-
-        })
-        ->values();
-
-
-    $cantonIdsAEnregistrer = $cantonsAEnregistrer
-        ->pluck('idCanton')
-        ->map(fn ($id) => (int) $id)
-        ->unique();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGES
-    |--------------------------------------------------------------------------
-    |
-    | Un village n'est enregistré que si :
-    |
-    | - sa commune n'est pas entière ;
-    | - son canton n'est pas entier.
-    |
-    */
-
-    $villagesAEnregistrer = $villages
-        ->filter(function ($village) use (
-            $communeIds,
-            $cantonIdsAEnregistrer
-        ) {
-
-            $communeId =
-                optional($village->canton)->commune_id;
-
-            $cantonId =
-                $village->canton_id;
-
-
-            /*
-            | Commune entière déjà sélectionnée
-            */
-
-            if (
-                $communeId !== null &&
-                $communeIds->contains(
-                    (int) $communeId
-                )
-            ) {
-                return false;
-            }
-
-
-            /*
-            | Canton entier déjà sélectionné
-            */
-
-            if (
-                $cantonId !== null &&
-                $cantonIdsAEnregistrer->contains(
-                    (int) $cantonId
-                )
-            ) {
-                return false;
-            }
-
-
-            return true;
-
-        })
-        ->values();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | AU MOINS UN TERRITOIRE
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $communes->isEmpty() &&
-        $cantonsAEnregistrer->isEmpty() &&
-        $villagesAEnregistrer->isEmpty()
-    ) {
-
-        return back()
-            ->withInput()
-            ->withErrors([
-                'commune_ids' =>
-                    'Vous devez sélectionner au moins un territoire.',
-            ]);
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ENREGISTREMENT TRANSACTIONNEL
-    |--------------------------------------------------------------------------
-    */
-
-    $planification = DB::transaction(function () use (
-        $validated,
-        $deploiement,
-        $user,
-        $communes,
-        $cantonsAEnregistrer,
-        $villagesAEnregistrer
-    ) {
-
-        /*
-        |--------------------------------------------------------------------------
-        | PLANIFICATION
-        |--------------------------------------------------------------------------
-        */
-
-        $planification = PlanificationPrefectorale::create([
-
-            'deploiement_id' =>
-                $deploiement->idDeploiement,
-
-            'planifie_par' =>
-                $user->id,
-
-            'planTravail' =>
-                $validated['planTravail'] ?? null,
-
-            'observations' =>
-                $validated['observations'] ?? null,
-
-            'statut' =>
-                'planifier',
-        ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | COMMUNES ENTIÈRES
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($communes as $commune) {
-
-            PlanificationTerritoire::create([
-
-                'planification_prefectorale_id' =>
-                    $planification
-                        ->idPlanificationPrefectorale,
-
-                'commune_id' =>
-                    $commune->idCommune,
-
-                'canton_id' =>
-                    null,
-
-                'village_id' =>
-                    null,
-            ]);
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CANTONS ENTIERS
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($cantonsAEnregistrer as $canton) {
-
-            PlanificationTerritoire::create([
-
-                'planification_prefectorale_id' =>
-                    $planification
-                        ->idPlanificationPrefectorale,
-
-                'commune_id' =>
-                    $canton->commune_id,
-
-                'canton_id' =>
-                    $canton->idCanton,
-
-                'village_id' =>
-                    null,
-            ]);
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | VILLAGES
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($villagesAEnregistrer as $village) {
-
-            PlanificationTerritoire::create([
-
-                'planification_prefectorale_id' =>
-                    $planification
-                        ->idPlanificationPrefectorale,
-
-                'commune_id' =>
-                    optional(
-                        $village->canton
-                    )->commune_id,
-
-                'canton_id' =>
-                    $village->canton_id,
-
-                'village_id' =>
-                    $village->idVillage,
-            ]);
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | BESOINS
-        |--------------------------------------------------------------------------
-        */
-
-        foreach (
-            $validated['besoins'] ?? []
-            as $besoin
-        ) {
-
-            $planification
-                ->besoins()
-                ->create([
-
-                    'categorie' =>
-                        $besoin['categorie'],
-
-                    'designation' =>
-                        $besoin['designation'],
-
-                    'quantite' =>
-                        $besoin['quantite'],
-
-                    'unite' =>
-                        $besoin['unite'] ?? null,
-
-                    'observations' =>
-                        $besoin['observations'] ?? null,
-                ]);
-        }
-
-
-        return $planification;
-    });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | REDIRECTION
-    |--------------------------------------------------------------------------
-    */
-
-    return redirect()
-        ->route(
-            'dpa.planifications-prefectorales.show',
-            $planification
-        )
-        ->with(
-            'success',
-            'La planification préfectorale a été créée avec succès.'
-        );
-}
-
-
-
+    /**
+     * Afficher une planification préfectorale.
+     */
     public function show(
         PlanificationPrefectorale $planificationPrefectorale
     ) {
         $user = Auth::user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Autorisation
-        |--------------------------------------------------------------------------
-        */
-
         if (
-            ! is_callable([$user, 'isDpa']) ||
-            ! call_user_func([$user, 'isDpa']) ||
-            ! $user->prefectureActuelle
+            !is_callable([$user, 'isDpa']) ||
+            !call_user_func([$user, 'isDpa']) ||
+            !$user->prefectureActuelle
         ) {
             abort(403);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Charger les données
-        |--------------------------------------------------------------------------
-        */
 
         $planificationPrefectorale->load([
             'deploiement.campagne',
             'deploiement.prefecture',
-            'territoires',
             'besoins',
             'adaptationsActivites',
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Vérifier que la planification appartient à la préfecture du DPA
-        |--------------------------------------------------------------------------
-        */
-
         if (
-            $planificationPrefectorale->deploiement->prefecture_id
-            !== $user->prefectureActuelle->idPrefecture
+            (int) $planificationPrefectorale->deploiement->prefecture_id !==
+                (int) $user->prefectureActuelle->idPrefecture
         ) {
             abort(403);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Affichage
-        |--------------------------------------------------------------------------
-        */
 
         return view(
             'dpa.planifications_prefectorales.show',
@@ -655,293 +186,140 @@ public function store(
     }
 
 
-    
     /**
-     * Afficher le formulaire de modification de la planification préfectorale.
+     * Formulaire de modification.
      */
-        public function edit(PlanificationPrefectorale $planificationPrefectorale)
-    {
+    public function edit(
+        PlanificationPrefectorale $planificationPrefectorale
+    ) {
         $user = Auth::user();
 
         $deploiement = $planificationPrefectorale->deploiement;
-
-        /*
-        |--------------------------------------------------------------------------
-        | Vérifier que le déploiement appartient à la préfecture du DPA
-        |--------------------------------------------------------------------------
-        */
 
         if (
             !is_callable([$user, 'isDpa']) ||
             !call_user_func([$user, 'isDpa']) ||
             !$user->prefectureActuelle ||
             !$deploiement ||
-            $deploiement->prefecture_id !== $user->prefectureActuelle->idPrefecture
+            (int) $deploiement->prefecture_id !==
+                (int) $user->prefectureActuelle->idPrefecture
         ) {
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Charger le déploiement
-        |--------------------------------------------------------------------------
-        */
-
         $deploiement->load([
-            'campagne.planification.activites',
-            'prefecture.communes.cantons.villages',
+            'campagne',
+            'prefecture',
         ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Préfecture
-        |--------------------------------------------------------------------------
-        */
-
-        $prefecture = $deploiement->prefecture;
-
-        if (!$prefecture) {
-            abort(404, 'La préfecture du déploiement est introuvable.');
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Territoires disponibles
-        |--------------------------------------------------------------------------
-        */
-
-        $communes = $prefecture->communes;
-
-        $cantons = $communes
-            ->flatMap(function ($commune) {
-                return $commune->cantons;
-            })
-            ->values();
-
-        $villages = $cantons
-            ->flatMap(function ($canton) {
-                return $canton->villages;
-            })
-            ->values();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Territoires déjà sélectionnés
-        |--------------------------------------------------------------------------
-        */
 
         $planificationPrefectorale->load([
-            'territoires.canton',
-            'territoires.village',
             'besoins',
+            'adaptationsActivites',
         ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Affichage
-        |--------------------------------------------------------------------------
-        */
 
         return view(
             'dpa.planifications_prefectorales.edit',
-            compact(
-                'deploiement',
-                'planificationPrefectorale',
-                'prefecture',
-                'communes',
-                'cantons',
-                'villages'
-            )
+            [
+                'planification' => $planificationPrefectorale,
+                'planificationPrefectorale' => $planificationPrefectorale,
+                'deploiement' => $deploiement,
+                'besoins' => $planificationPrefectorale->besoins,
+            ]
         );
     }
 
-    
-   public function update(
-    Request $request,
-    PlanificationPrefectorale $planificationPrefectorale
-) {
-    $user = Auth::user();
 
-    $deploiement = $planificationPrefectorale->deploiement;
-
-    /*
-    |--------------------------------------------------------------------------
-    | AUTORISATION
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        !is_callable([$user, 'isDpa']) ||
-        !call_user_func([$user, 'isDpa']) ||
-        !$user->prefectureActuelle ||
-        !$deploiement ||
-        $deploiement->prefecture_id !== $user->prefectureActuelle->idPrefecture
+    /**
+     * Mettre à jour une planification.
+     */
+    public function update(
+        StorePlanificationPrefectoraleRequest $request,
+        PlanificationPrefectorale $planificationPrefectorale
     ) {
-        abort(403);
-    }
+        $user = Auth::user();
 
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDATION
-    |--------------------------------------------------------------------------
-    */
-
-    $validated = $request->validate([
-        'planTravail' => [
-            'nullable',
-            'string',
-        ],
-
-        'observations' => [
-            'nullable',
-            'string',
-        ],
-
-        'canton_ids' => [
-            'nullable',
-            'array',
-        ],
-
-        'canton_ids.*' => [
-            'integer',
-            'exists:cantons,idCanton',
-        ],
-
-        'village_ids' => [
-            'nullable',
-            'array',
-        ],
-
-        'village_ids.*' => [
-            'integer',
-            'exists:villages,idVillage',
-        ],
-
-        'besoins' => [
-            'nullable',
-            'array',
-        ],
-
-        'besoins.*.categorie' => [
-            'required',
-            'string',
-            'max:100',
-        ],
-
-        'besoins.*.designation' => [
-            'required',
-            'string',
-            'max:255',
-        ],
-
-        'besoins.*.quantite' => [
-            'required',
-            'numeric',
-            'min:0',
-        ],
-
-        'besoins.*.unite' => [
-            'nullable',
-            'string',
-            'max:50',
-        ],
-
-        'besoins.*.observations' => [
-            'nullable',
-            'string',
-            'max:1000',
-        ],
-    ]);
-
-    /*
-    |--------------------------------------------------------------------------
-    | MISE À JOUR
-    |--------------------------------------------------------------------------
-    */
-
-    DB::transaction(function () use (
-        $validated,
-        $planificationPrefectorale
-    ) {
-
-        /*
-        |--------------------------------------------------------------------------
-        | INFORMATIONS GÉNÉRALES
-        |--------------------------------------------------------------------------
-        */
-
-        $planificationPrefectorale->update([
-            'planTravail' => $validated['planTravail'] ?? null,
-            'observations' => $validated['observations'] ?? null,
+        $planificationPrefectorale->load([
+            'deploiement',
+            'besoins',
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | SUPPRESSION DES ANCIENS TERRITOIRES
-        |--------------------------------------------------------------------------
-        */
+        $prefecture = $user->prefectureActuelle;
 
-        $planificationPrefectorale
-            ->territoires()
-            ->delete();
-
-        /*
-        |--------------------------------------------------------------------------
-        | NOUVEAUX CANTONS
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($validated['canton_ids'] ?? [] as $cantonId) {
-
-            PlanificationTerritoire::create([
-                'planification_prefectorale_id'
-                    => $planificationPrefectorale
-                        ->idPlanificationPrefectorale,
-
-                'canton_id' => $cantonId,
-
-                'village_id' => null,
-            ]);
+        if (
+            !$prefecture ||
+            (int) $planificationPrefectorale->deploiement->prefecture_id !==
+                (int) $prefecture->idPrefecture
+        ) {
+            abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | NOUVEAUX VILLAGES
-        |--------------------------------------------------------------------------
-        */
+        $validated = $request->validated();
 
-        foreach ($validated['village_ids'] ?? [] as $villageId) {
+        DB::transaction(function () use (
+            $validated,
+            $planificationPrefectorale
+        ) {
 
-            PlanificationTerritoire::create([
-                'planification_prefectorale_id'
-                    => $planificationPrefectorale
-                        ->idPlanificationPrefectorale,
-
-                'canton_id' => null,
-
-                'village_id' => $villageId,
+            $planificationPrefectorale->update([
+                'planTravail' => $validated['planTravail'] ?? null,
+                'observations' => $validated['observations'] ?? null,
             ]);
+
+            $planificationPrefectorale->besoins()->delete();
+
+            $this->enregistrerBesoins(
+                $planificationPrefectorale,
+                $validated['besoins'] ?? []
+            );
+        });
+
+        return redirect()
+            ->route(
+                'dpa.planifications-prefectorales.index',
+                $planificationPrefectorale
+            )
+            ->with('success', 'La planification préfectorale a été mise à jour avec succès.');
+    }
+
+
+    /**
+     * Supprimer une planification.
+     */
+    public function destroy(
+        PlanificationPrefectorale $planificationPrefectorale
+    ) {
+        $user = Auth::user();
+
+        $planificationPrefectorale->load('deploiement');
+
+        $prefecture = $user->prefectureActuelle;
+
+        if (
+            !$prefecture ||
+            (int) $planificationPrefectorale->deploiement->prefecture_id !==
+                (int) $prefecture->idPrefecture
+        ) {
+            abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | SUPPRESSION DES ANCIENS BESOINS
-        |--------------------------------------------------------------------------
-        */
+        $planificationPrefectorale->delete();
 
-        $planificationPrefectorale
-            ->besoins()
-            ->delete();
+        return redirect()
+            ->route('dpa.planifications-prefectorales.index')
+            ->with('success', 'La planification préfectorale a été supprimée avec succès.');
+    }
 
-        /*
-        |--------------------------------------------------------------------------
-        | NOUVEAUX BESOINS
-        |--------------------------------------------------------------------------
-        */
 
-        foreach ($validated['besoins'] ?? [] as $besoin) {
+    /**
+     * Crée les lignes de besoins pour une planification.
+     */
+    private function enregistrerBesoins(
+        PlanificationPrefectorale $planification,
+        array $besoins
+    ): void {
 
-            $planificationPrefectorale->besoins()->create([
+        foreach ($besoins as $besoin) {
+            $planification->besoins()->create([
                 'categorie' => $besoin['categorie'],
                 'designation' => $besoin['designation'],
                 'quantite' => $besoin['quantite'],
@@ -949,22 +327,5 @@ public function store(
                 'observations' => $besoin['observations'] ?? null,
             ]);
         }
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | REDIRECTION
-    |--------------------------------------------------------------------------
-    */
-
-    return redirect()
-        ->route(
-            'dpa.planifications-prefectorales.index',
-            $planificationPrefectorale
-        )
-        ->with(
-            'success',
-            'La planification préfectorale a été mise à jour avec succès.'
-        );
-}
+    }
 }

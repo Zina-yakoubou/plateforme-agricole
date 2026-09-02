@@ -31,7 +31,6 @@ class CampagneZone extends Model
         'dateFin'   => 'datetime',
     ];
 
-
     /*
     |--------------------------------------------------------------------------
     | CAMPAGNE
@@ -46,7 +45,6 @@ class CampagneZone extends Model
             'idCampagne'
         );
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -63,7 +61,6 @@ class CampagneZone extends Model
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | PRÉFECTURE
@@ -78,7 +75,6 @@ class CampagneZone extends Model
             'idPrefecture'
         );
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -95,7 +91,6 @@ class CampagneZone extends Model
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | CANTON
@@ -110,7 +105,6 @@ class CampagneZone extends Model
             'idCanton'
         );
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -127,11 +121,13 @@ class CampagneZone extends Model
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | NOM DE LA ZONE
     |--------------------------------------------------------------------------
+    |
+    | Retourne le niveau le plus précis défini pour cette zone.
+    |
     */
 
     public function getNomZoneAttribute(): ?string
@@ -154,6 +150,75 @@ class CampagneZone extends Model
 
         if ($this->region) {
             return $this->region->nom;
+        }
+
+        return null;
+    }
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | TYPE DE ZONE
+    |--------------------------------------------------------------------------
+    |
+    | Retourne le niveau le plus précis défini pour cette zone :
+    | region, prefecture, commune, canton ou village.
+    |
+    */
+
+    public function getZoneTypeAttribute(): ?string
+    {
+        if ($this->village_id) {
+            return 'village';
+        }
+
+        if ($this->canton_id) {
+            return 'canton';
+        }
+
+        if ($this->commune_id) {
+            return 'commune';
+        }
+
+        if ($this->prefecture_id) {
+            return 'prefecture';
+        }
+
+        if ($this->region_id) {
+            return 'region';
+        }
+
+        return null;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PRÉFECTURE RATTACHÉE (remonte la hiérarchie si besoin)
+    |--------------------------------------------------------------------------
+    |
+    | Retourne la préfecture concernée par cette zone, même si la zone
+    | a été enregistrée à un niveau inférieur (commune, canton, village).
+    |
+    */
+
+    public function getPrefectureRattacheeAttribute(): ?Prefecture
+    {
+        if ($this->prefecture) {
+            return $this->prefecture;
+        }
+
+        if ($this->commune) {
+            return $this->commune->prefecture;
+        }
+
+        if ($this->canton) {
+            return $this->canton->commune?->prefecture;
+        }
+
+        if ($this->village) {
+            return $this->village->canton?->commune?->prefecture;
         }
 
         return null;

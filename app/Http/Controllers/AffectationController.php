@@ -10,8 +10,6 @@ use App\Models\Canton;
 use App\Models\Equipe;
 use App\Models\Village;
 use App\Models\RattachementPrefecture;
-use App\Models\PlanificationPrefectorale;
-use App\Models\PlanificationTerritoire;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,13 +19,170 @@ use Illuminate\View\View;
 
 class AffectationController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | INDEX
-    |--------------------------------------------------------------------------
-    */
+    /**
+     * Liste des affectations de la préfecture du DPA.
+     */
+    // public function index(Request $request): View
+    // {
+    //     $user = Auth::user();
+    //     $prefectureId = $this->prefectureIdUtilisateur($user);
 
-    public function index(Request $request): View
+    //     if (!$prefectureId) {
+    //         abort(
+    //             403,
+    //             'Aucune préfecture active n’est associée à votre compte.'
+    //         );
+    //     }
+
+    //     $affectations = Affectation::query()
+    //         ->with([
+    //             'campagne',
+    //             'equipe',
+    //             'village.canton.commune',
+    //         ])
+    //         ->whereHas('equipe', function ($query) use ($prefectureId) {
+    //             $query->whereHas('superviseur', function ($q) use ($prefectureId) {
+    //                 $q->whereHas('rattachementPrefecture', function ($r) use ($prefectureId) {
+    //                     $r->where('prefecture_id', $prefectureId)
+    //                         ->where('statut', 'actif')
+    //                         ->whereNull('dateFin');
+    //                 });
+    //             });
+    //         })
+    //         ->when(
+    //             $request->filled('campagne_id'),
+    //             fn ($query) =>
+    //                 $query->where(
+    //                     'campagne_id',
+    //                     $request->campagne_id
+    //                 )
+    //         )
+    //         ->when(
+    //             $request->filled('statut'),
+    //             fn ($query) =>
+    //                 $query->where(
+    //                     'statut',
+    //                     $request->statut
+    //                 )
+    //         )
+    //         ->latest('idAffectation')
+    //         ->paginate(15)
+    //         ->withQueryString();
+
+    //     return view(
+    //         'dpa.affectations.index',
+    //         compact('affectations')
+    //     );
+    // }
+
+
+
+
+    /**
+ * Liste des affectations de la préfecture du DPA.
+ */
+public function index(Request $request): View
+{
+    $user = Auth::user();
+
+    $prefectureId = $this->prefectureIdUtilisateur($user);
+
+    if (!$prefectureId) {
+        abort(
+            403,
+            'Aucune préfecture active n’est associée à votre compte.'
+        );
+    }
+
+    $affectations = Affectation::query()
+        ->with([
+            'campagne',
+            'equipe.superviseur',
+            'equipe.membres',
+            'village.canton.commune',
+        ])
+
+        /**
+         * Les affectations sont filtrées par les équipes
+         * appartenant à la préfecture du DPA.
+         */
+        ->whereHas('equipe', function ($query) use ($prefectureId) {
+
+            $query->where(function ($q) use ($prefectureId) {
+
+                /**
+                 * Cas où l'équipe possède directement
+                 * prefecture_id.
+                 */
+                $q->where(
+                    'prefecture_id',
+                    $prefectureId
+                )
+
+                /**
+                 * Si prefecture_id n'est pas renseigné,
+                 * on passe par le superviseur.
+                 */
+                ->orWhereHas(
+                    'superviseur',
+                    function ($superviseur) use ($prefectureId) {
+
+                        $superviseur->where(
+                            'prefecture_id',
+                            $prefectureId
+                        );
+                    }
+                );
+            });
+        })
+
+        /**
+         * Filtre campagne.
+         */
+        ->when(
+            $request->filled('campagne_id'),
+            function ($query) use ($request) {
+
+                $query->where(
+                    'campagne_id',
+                    $request->campagne_id
+                );
+            }
+        )
+
+        /**
+         * Filtre statut.
+         */
+        ->when(
+            $request->filled('statut'),
+            function ($query) use ($request) {
+
+                $query->where(
+                    'statut',
+                    $request->statut
+                );
+            }
+        )
+
+        ->latest('idAffectation')
+
+        ->paginate(15)
+
+        ->withQueryString();
+
+    return view(
+        'dpa.affectations.index',
+        compact('affectations')
+    );
+}
+
+    /**
+     * Formulaire de création d'une affectation.
+     *
+     * Les villages disponibles sont désormais déterminés
+     * par les zones définies dans la campagne.
+     */
+    public function create(Equipe $equipe): View
     {
         $user = Auth::user();
 
@@ -40,640 +195,399 @@ class AffectationController extends Controller
             );
         }
 
-        $affectations = Affectation::query()
-            ->with([
-                'campagne',
-                'equipe',
-                'village.canton.commune',
+        $this->verifierEquipePrefecture(
+            $equipe,
+            $prefectureId
+        );
+
+        /**
+         * Campagnes disponibles dans la préfecture du DPA.
+         *
+         * Une campagne doit être :
+         * - planifiée ou active
+         * - déployée dans la préfecture
+         */
+        $campagnes = CampagneRecensement::query()
+            ->whereIn('statut', [
+                'planifiee',
+                'active',
             ])
-
-            ->whereHas('equipe', function ($query) use ($prefectureId) {
-
-                $query->whereHas(
-                    'superviseur',
-                    function ($q) use ($prefectureId) {
-
-                        $q->whereHas(
-                            'rattachementPrefecture',
-                            function ($r) use ($prefectureId) {
-
-                                $r->where(
-                                    'prefecture_id',
-                                    $prefectureId
-                                )
-                                ->where(
-                                    'statut',
-                                    'actif'
-                                )
-                                ->whereNull(
-                                    'dateFin'
-                                );
-                            }
-                        );
-                    }
+            ->whereHas('deploiements', function ($query) use ($prefectureId) {
+                $query->where(
+                    'prefecture_id',
+                    $prefectureId
                 );
             })
-
-            ->when(
-                $request->filled('campagne_id'),
-                fn ($query) =>
+            ->with([
+                'deploiements' => function ($query) use ($prefectureId) {
                     $query->where(
-                        'campagne_id',
-                        $request->campagne_id
-                    )
-            )
+                        'prefecture_id',
+                        $prefectureId
+                    );
+                },
 
-            ->when(
-                $request->filled('statut'),
-                fn ($query) =>
-                    $query->where(
-                        'statut',
-                        $request->statut
-                    )
-            )
+                /**
+                 * Les zones de la campagne sont maintenant
+                 * la source de vérité territoriale.
+                 */
+                'zones.region',
+                'zones.prefecture',
+                'zones.commune',
+                'zones.canton',
+                'zones.village',
+            ])
+            ->orderByDesc('dateDebut')
+            ->get();
 
-            ->latest('idAffectation')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view(
-            'dpa.affectations.index',
-            compact('affectations')
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CREATE
-    |--------------------------------------------------------------------------
-    */
-
-    public function create(Equipe $equipe): View
-{
-    $user = Auth::user();
-
-    /*
-    |--------------------------------------------------------------------------
-    | PRÉFECTURE DU DPA
-    |--------------------------------------------------------------------------
-    */
-
-    $prefectureId = $this->prefectureIdUtilisateur($user);
-
-    if (!$prefectureId) {
-        abort(
-            403,
-            'Aucune préfecture active n’est associée à votre compte.'
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | VÉRIFIER L'ÉQUIPE
-    |--------------------------------------------------------------------------
-    */
-
-    $this->verifierEquipePrefecture(
-        $equipe,
-        $prefectureId
-    );
-
-    /*
-    |--------------------------------------------------------------------------
-    | CAMPAGNES DÉPLOYÉES DANS LA PRÉFECTURE
-    |--------------------------------------------------------------------------
-    */
-
-    $campagnes = CampagneRecensement::query()
-        ->whereIn('statut', [
-            'planifiee',
-            'active',
-        ])
-        ->whereHas('deploiements', function ($query) use ($prefectureId) {
-            $query->where('prefecture_id', $prefectureId);
-        })
-        ->with([
-            'deploiements' => function ($query) use ($prefectureId) {
-                $query->where('prefecture_id', $prefectureId);
-            },
-        ])
-        ->orderByDesc('dateDebut')
-        ->get();
-
-    /*
-    |--------------------------------------------------------------------------
-    | CANTONS DE LA PRÉFECTURE
-    |--------------------------------------------------------------------------
-    */
-
-    $cantons = Canton::query()
-        ->whereHas('commune', function ($query) use ($prefectureId) {
-            $query->where('prefecture_id', $prefectureId);
-        })
-        ->with('commune')
-        ->orderBy('nom')
-        ->get();
-
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGES PLANIFIÉS
-    |--------------------------------------------------------------------------
-    |
-    | On récupère directement toutes les planifications
-    | de la préfecture.
-    |
-    | Aucun fetch().
-    | Aucun appel API.
-    |
-    */
-
-    $villagesPlanifies = PlanificationTerritoire::query()
-        ->whereHas(
-            'planificationPrefectorale',
-            function ($query) use ($prefectureId) {
-
-                $query->whereHas(
-                    'deploiement',
-                    function ($q) use ($prefectureId) {
-
-                        $q->where(
-                            'prefecture_id',
-                            $prefectureId
-                        );
-                    }
+        /**
+         * Cantons de la préfecture du DPA.
+         *
+         * On conserve cette liste pour le formulaire.
+         */
+        $cantons = Canton::query()
+            ->whereHas('commune', function ($query) use ($prefectureId) {
+                $query->where(
+                    'prefecture_id',
+                    $prefectureId
                 );
-            }
-        )
-        ->whereNotNull('village_id')
-        ->with([
-            'village.canton.commune',
-            'planificationPrefectorale.deploiement',
-        ])
-        ->get();
+            })
+            ->with('commune')
+            ->orderBy('nom')
+            ->get();
 
-    /*
-    |--------------------------------------------------------------------------
-    | FORMAT POUR JAVASCRIPT
-    |--------------------------------------------------------------------------
-    */
+        /**
+         * Préparation des campagnes pour AlpineJS.
+         */
+       $campagnesJs = $campagnes
+            ->map(function ($campagne) {
 
-    $campagnesJs = $campagnes
-        ->map(function ($campagne) {
+                return [
+                    'idCampagne'   => $campagne->idCampagne,
+                    'codeCampagne' => $campagne->codeCampagne,
+                    'libelle'      => $campagne->libelle,
+                    'statut'       => $campagne->statut,
+                    'portee'       => $campagne->portee,
+                ];
+            })
+            ->values()
+            ->all();
 
-            return [
-                'id' => $campagne->idCampagne,
-                'code' => $campagne->codeCampagne,
-                'libelle' => $campagne->libelle,
-                'statut' => $campagne->statut,
-            ];
-
-        })
-        ->values()
-        ->all();
-
-    $cantonsJs = $cantons
+        /**
+         * Préparation des cantons pour AlpineJS.
+         */
+       $cantonsJs = $cantons
         ->map(function ($canton) {
 
             return [
-                'id' => $canton->idCanton,
+                'idCanton' => $canton->idCanton,
                 'nom' => $canton->nom,
-                'commune_id' => $canton->commune_id ?? null,
-                'commune_nom' => optional($canton->commune)->nom,
-            ];
 
+                'commune_id' =>
+                    $canton->commune_id ?? null,
+
+                'commune_nom' =>
+                    optional($canton->commune)->nom,
+            ];
         })
         ->values()
         ->all();
 
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGES PLANIFIÉS POUR JS
-    |--------------------------------------------------------------------------
-    |
-    | Structure :
-    |
-    | campagne_id
-    | canton_id
-    | village
-    |
-    */
-
-    $villagesPlanifiesJs = $villagesPlanifies
-        ->filter(function ($territoire) {
-
-            return $territoire->village !== null;
-        })
-        ->map(function ($territoire) {
-
-            $village = $territoire->village;
-
-            /*
-            | On récupère la campagne via le déploiement.
-            */
-
-            $campagneId = optional(
-                optional(
-                    $territoire->planificationPrefectorale
-                )->deploiement
-            )->campagne_id;
-
-            return [
-                'campagne_id' => $campagneId,
-                'canton_id' => $village->canton_id,
-                'idVillage' => $village->idVillage,
-                'nom' => $village->nom,
-                'code' => $village->code,
-            ];
-
-        })
-        ->filter(function ($village) {
-
-            return $village['campagne_id'] !== null
-                && $village['canton_id'] !== null;
-        })
-        ->unique(function ($village) {
-
-            return
-                $village['campagne_id'] . '-' .
-                $village['canton_id'] . '-' .
-                $village['idVillage'];
-
-        })
-        ->sortBy('nom')
-        ->values()
-        ->all();
-
-    /*
-    |--------------------------------------------------------------------------
-    | VUE
-    |--------------------------------------------------------------------------
-    */
-
-    return view(
-        'dpa.affectations.create',
-        [
-            'equipe' => $equipe,
-
-            'campagnes' => $campagnes,
-
-            'cantons' => $cantons,
-
-            'campagnesJs' => $campagnesJs,
-
-            'cantonsJs' => $cantonsJs,
-
-            'villagesPlanifiesJs' => $villagesPlanifiesJs,
-
-            'prefectureId' => $prefectureId,
-
-            'affectation' => new Affectation(),
-        ]
-    );
-}
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | STORE
-    |--------------------------------------------------------------------------
-    */
-
-    // public function store(
-    //     StoreAffectationRequest $request,
-    //     Equipe $equipe
-    //     ): RedirectResponse {
-
-    //         $user = Auth::user();
-
-    //         $prefectureId =
-    //             $this->prefectureIdUtilisateur($user);
-
-    //         if (!$prefectureId) {
-    //             abort(
-    //                 403,
-    //                 'Aucune préfecture active n’est associée à votre compte.'
-    //             );
-    //         }
-
-
-            
-    //         $this->verifierEquipePrefecture(
-    //             $equipe,
-    //             $prefectureId
-    //         );
-
-
-    //         $validated =
-    //             $request->validated();
-
-
-        
-
-    //         $campagne = CampagneRecensement::query()
-    //             ->whereKey(
-    //                 $validated['campagne_id']
-    //             )
-    //             ->whereIn(
-    //                 'statut',
-    //                 [
-    //                     'planifiee',
-    //                     'active',
-    //                 ]
-    //             )
-    //             ->whereHas(
-    //                 'deploiements',
-    //                 function ($query) use ($prefectureId) {
-
-    //                     $query->where(
-    //                         'prefecture_id',
-    //                         $prefectureId
-    //                     );
-    //                 }
-    //             )
-    //             ->first();
-
-
-    //         if (!$campagne) {
-
-    //             return back()
-    //                 ->withInput()
-    //                 ->withErrors([
-    //                     'campagne_id' =>
-    //                         'La campagne sélectionnée n’est pas déployée dans votre préfecture.',
-    //                 ]);
-    //         }
-
-
-        
-
-    //         $canton = Canton::query()
-    //             ->whereKey(
-    //                 $validated['canton_id']
-    //             )
-    //             ->whereHas(
-    //                 'commune',
-    //                 function ($query) use ($prefectureId) {
-
-    //                     $query->where(
-    //                         'prefecture_id',
-    //                         $prefectureId
-    //                     );
-    //                 }
-    //             )
-    //             ->first();
-
-
-    //         if (!$canton) {
-
-    //             return back()
-    //                 ->withInput()
-    //                 ->withErrors([
-    //                     'canton_id' =>
-    //                         'Le canton sélectionné n’appartient pas à votre préfecture.',
-    //                 ]);
-    //         }
-
-
-        
-
-    //         $villageIds = array_values(
-    //             array_unique(
-    //                 $validated['village_ids']
-    //             )
-    //         );
-
-
-        
-
-    //         $villages = Village::query()
-    //             ->whereIn(
-    //                 'idVillage',
-    //                 $villageIds
-    //             )
-    //             ->where(
-    //                 'canton_id',
-    //                 $canton->idCanton
-    //             )
-    //             ->get();
-
-
-    //         if (
-    //             $villages->count() !==
-    //             count($villageIds)
-    //         ) {
-
-    //             return back()
-    //                 ->withInput()
-    //                 ->withErrors([
-    //                     'village_ids' =>
-    //                         'Un ou plusieurs villages ne correspondent pas au canton sélectionné.',
-    //                 ]);
-    //         }
-
-
-            
-
-    //         $deploiement = CampagneDeploiement::query()
-    //             ->where(
-    //                 'campagne_id',
-    //                 $campagne->idCampagne
-    //             )
-    //             ->where(
-    //                 'prefecture_id',
-    //                 $prefectureId
-    //             )
-    //             ->first();
-
-
-    //         if (!$deploiement) {
-
-    //             return back()
-    //                 ->withInput()
-    //                 ->withErrors([
-    //                     'campagne_id' =>
-    //                         'La campagne n’est pas déployée dans votre préfecture.',
-    //                 ]);
-    //         }
-
-
-    //         $planification =
-    //             PlanificationPrefectorale::query()
-    //                 ->where(
-    //                     'deploiement_id',
-    //                     $deploiement->idDeploiement
-    //                 )
-    //                 ->first();
-
-
-    //         if (!$planification) {
-
-    //             return back()
-    //                 ->withInput()
-    //                 ->withErrors([
-    //                     'village_ids' =>
-    //                         'Aucune planification préfectorale n’est disponible pour cette campagne.',
-    //                 ]);
-    //         }
-
-
-    //     $villagesPlanifiesIds =
-    //     PlanificationTerritoire::query()
-    //     ->where(
-    //         'planification_prefectorale_id',
-    //         $planification->idPlanificationPrefectorale
-    //     )
-    //     ->whereNotNull('village_id')
-    //     ->whereHas('village', function ($query) use ($canton) {
-
-    //         $query->where(
-    //             'canton_id',
-    //             $canton->idCanton
-    //         );
-
-    //     })
-    //     ->pluck('village_id')
-    //     ->map(fn ($id) => (int) $id)
-    //     ->unique()
-    //     ->values()
-    //     ->all();
-
-
-    //     $villagesNonPlanifies =
-    //         array_diff(
-    //             $villageIds,
-    //             $villagesPlanifiesIds
-    //         );
-
-
-    //     if (!empty($villagesNonPlanifies)) {
-
-    //         return back()
-    //             ->withInput()
-    //             ->withErrors([
-    //                 'village_ids' =>
-    //                     'Un ou plusieurs villages sélectionnés ne sont pas prévus dans la planification préfectorale.',
-    //             ]);
-    //     }
-
-
-       
-
-    //     DB::transaction(function () use (
-    //         $validated,
-    //         $villages,
-    //         $equipe
-    //     ) {
-
-    //         foreach ($villages as $village) {
-
-    //             $dejaAffectee =
-    //                 Affectation::query()
-    //                     ->where(
-    //                         'campagne_id',
-    //                         $validated['campagne_id']
-    //                     )
-    //                     ->where(
-    //                         'equipe_id',
-    //                         $equipe->idEquipe
-    //                     )
-    //                     ->where(
-    //                         'village_id',
-    //                         $village->idVillage
-    //                     )
-    //                     ->where(
-    //                         'statut',
-    //                         'active'
-    //                     )
-    //                     ->exists();
-
-
-    //             if ($dejaAffectee) {
-    //                 continue;
-    //             }
-
-
-    //             Affectation::create([
-
-    //                 'reference' =>
-    //                     $this->genererReference(),
-
-    //                 'campagne_id' =>
-    //                     $validated['campagne_id'],
-
-    //                 'equipe_id' =>
-    //                     $equipe->idEquipe,
-
-    //                 'village_id' =>
-    //                     $village->idVillage,
-
-    //                 'dateDebut' =>
-    //                     $validated['dateDebut'] ?? null,
-
-    //                 'dateFin' =>
-    //                     $validated['dateFin'] ?? null,
-
-    //                 'statut' =>
-    //                     $validated['statut'] ?? 'active',
-
-    //                 'observations' =>
-    //                     $validated['observations'] ?? null,
-    //             ]);
-    //         }
-    //     });
-
-
-    //     return redirect()
-    //         ->route(
-    //             'dpa.equipes.show',
-    //             $equipe
-    //         )
-    //         ->with(
-    //             'success',
-    //             'Les villages ont été affectés à l’équipe avec succès.'
-    //         );
-    // }
-
-
-
+        /**
+         * Préparation des villages couverts par les campagnes.
+         *
+         * IMPORTANT :
+         *
+         * On ne récupère plus les villages depuis
+         * PlanificationTerritoire.
+         *
+         * Les zones de la campagne sont désormais utilisées :
+         *
+         * - région       => tous les villages de la région
+         * - préfecture   => tous les villages de la préfecture
+         * - commune      => tous les villages de la commune
+         * - canton       => tous les villages du canton
+         * - village      => uniquement ce village
+         *
+         * Une campagne nationale couvre tous les villages.
+         */
+        $villagesCampagneJs = [];
+
+        foreach ($campagnes as $campagne) {
+
+            /**
+             * Campagne nationale :
+             * tous les villages de la préfecture sont disponibles.
+             */
+            if ($campagne->portee === 'nationale') {
+
+                $villages = Village::query()
+                    ->whereHas('canton.commune', function ($query) use ($prefectureId) {
+                        $query->where(
+                            'prefecture_id',
+                            $prefectureId
+                        );
+                    })
+                    ->with([
+                        'canton.commune',
+                    ])
+                    ->orderBy('nom')
+                    ->get();
+
+                foreach ($villages as $village) {
+
+                    $villagesCampagneJs[] = [
+                        'campagne_id' => $campagne->idCampagne,
+                        'canton_id' => $village->canton_id,
+                        'idVillage' => $village->idVillage,
+                        'nom' => $village->nom,
+                        'code' => $village->code,
+                    ];
+                }
+
+                continue;
+            }
+
+            /**
+             * Pour les campagnes régionale et préfectorale,
+             * on récupère les villages de la préfecture du DPA.
+             */
+            $villages = Village::query()
+                ->whereHas('canton.commune', function ($query) use ($prefectureId) {
+                    $query->where(
+                        'prefecture_id',
+                        $prefectureId
+                    );
+                })
+                ->with([
+                    'canton.commune.prefecture',
+                ])
+                ->orderBy('nom')
+                ->get();
+
+            /**
+             * Zones de la campagne.
+             */
+            $zones = $campagne->zones;
+
+            foreach ($villages as $village) {
+
+                $commune = optional(
+                    $village->canton
+                )->commune;
+
+                $prefecture = optional(
+                    $commune
+                )->prefecture;
+
+                /**
+                 * Sécurité :
+                 * le village doit appartenir à la préfecture
+                 * du DPA.
+                 */
+                if (!$prefecture) {
+                    continue;
+                }
+
+                if (
+                    (int) $prefecture->idPrefecture !==
+                    (int) $prefectureId
+                ) {
+                    continue;
+                }
+
+                $couvertParCampagne = false;
+
+                foreach ($zones as $zone) {
+
+                    /**
+                     * Zone régionale.
+                     *
+                     * Si la région de la campagne correspond
+                     * à la région de la préfecture du village,
+                     * le village est couvert.
+                     */
+                    if (
+                        !empty($zone->region_id) &&
+                        !empty($prefecture->region_id) &&
+                        (int) $zone->region_id ===
+                        (int) $prefecture->region_id
+                    ) {
+                        $couvertParCampagne = true;
+                        break;
+                    }
+
+                    /**
+                     * Zone préfecture.
+                     */
+                    if (
+                        !empty($zone->prefecture_id) &&
+                        (int) $zone->prefecture_id ===
+                        (int) $prefecture->idPrefecture
+                    ) {
+                        $couvertParCampagne = true;
+                        break;
+                    }
+
+                    /**
+                     * Zone commune.
+                     */
+                    if (
+                        !empty($zone->commune_id) &&
+                        $commune &&
+                        (int) $zone->commune_id ===
+                        (int) $commune->idCommune
+                    ) {
+                        $couvertParCampagne = true;
+                        break;
+                    }
+
+                    /**
+                     * Zone canton.
+                     */
+                    if (
+                        !empty($zone->canton_id) &&
+                        (int) $zone->canton_id ===
+                        (int) $village->canton_id
+                    ) {
+                        $couvertParCampagne = true;
+                        break;
+                    }
+
+                    /**
+                     * Zone village.
+                     */
+                    if (
+                        !empty($zone->village_id) &&
+                        (int) $zone->village_id ===
+                        (int) $village->idVillage
+                    ) {
+                        $couvertParCampagne = true;
+                        break;
+                    }
+                }
+
+                /**
+                 * On ne transmet au formulaire que les villages
+                 * réellement couverts par la campagne.
+                 */
+                if ($couvertParCampagne) {
+
+                    $villagesCampagneJs[] = [
+                        'campagne_id' => $campagne->idCampagne,
+                        'canton_id' => $village->canton_id,
+                        'idVillage' => $village->idVillage,
+                        'nom' => $village->nom,
+                        'code' => $village->code,
+                    ];
+                }
+            }
+        }
+
+        /**
+         * Suppression des doublons éventuels.
+         */
+        $villagesCampagneJs = collect($villagesCampagneJs)
+            ->unique(function ($village) {
+                return
+                    $village['campagne_id'] .
+                    '-' .
+                    $village['canton_id'] .
+                    '-' .
+                    $village['idVillage'];
+            })
+            ->sortBy('nom')
+            ->values()
+            ->all();
+
+        return view(
+            'dpa.affectations.create',
+            [
+                'equipe' => $equipe,
+
+                'campagnes' => $campagnes,
+
+                'cantons' => $cantons,
+
+                'campagnesJs' => $campagnesJs,
+
+                'cantonsJs' => $cantonsJs,
+
+                /**
+                 * Nouveau nom correspondant à la logique :
+                 * villages couverts par la campagne.
+                 */
+                'villagesCampagneJs' => $villagesCampagneJs,
+
+                /**
+                 * Conservé également pour éviter de casser
+                 * immédiatement une vue qui utilise encore
+                 * l'ancien nom.
+                 */
+                'villagesPlanifiesJs' => $villagesCampagneJs,
+
+                'prefectureId' => $prefectureId,
+
+                'affectation' => new Affectation(),
+            ]
+        );
+    }
+
+    /**
+     * Enregistre une affectation.
+     */
     public function store(
         StoreAffectationRequest $request,
         Equipe $equipe
-        ): RedirectResponse {
+    ): RedirectResponse {
 
         $user = Auth::user();
 
         $prefectureId = $this->prefectureIdUtilisateur($user);
 
         if (!$prefectureId) {
-            abort(403, 'Aucune préfecture active n’est associée à votre compte.');
+            abort(
+                403,
+                'Aucune préfecture active n’est associée à votre compte.'
+            );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | VÉRIFIER L'ÉQUIPE
-        |--------------------------------------------------------------------------
-        */
-
-        $this->verifierEquipePrefecture($equipe, $prefectureId);
+        /**
+         * Vérification de l'équipe.
+         */
+        $this->verifierEquipePrefecture(
+            $equipe,
+            $prefectureId
+        );
 
         $validated = $request->validated();
 
-        /*
-        |--------------------------------------------------------------------------
-        | CAMPAGNE
-        |--------------------------------------------------------------------------
-        */
-
+        /**
+         * Récupération de la campagne.
+         *
+         * La campagne doit :
+         * - exister
+         * - être planifiée ou active
+         * - être déployée dans la préfecture
+         */
         $campagne = CampagneRecensement::query()
             ->whereKey($validated['campagne_id'])
-            ->whereIn('statut', ['planifiee', 'active'])
+            ->whereIn('statut', [
+                'planifiee',
+                'active',
+            ])
             ->whereHas('deploiements', function ($query) use ($prefectureId) {
-                $query->where('prefecture_id', $prefectureId);
+                $query->where(
+                    'prefecture_id',
+                    $prefectureId
+                );
             })
+            ->with([
+                'zones',
+            ])
             ->first();
 
         if (!$campagne) {
+
             return back()
                 ->withInput()
                 ->withErrors([
@@ -682,41 +596,51 @@ class AffectationController extends Controller
                 ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | UNE ÉQUIPE NE PEUT AVOIR QU'UNE AFFECTATION ACTIVE SUR CETTE CAMPAGNE
-        |--------------------------------------------------------------------------
-        */
-
+        /**
+         * Une équipe ne peut avoir qu'une affectation active
+         * pour une même campagne.
+         */
         $affectationActive = Affectation::query()
-            ->where('equipe_id', $equipe->idEquipe)
-            ->where('campagne_id', $campagne->idCampagne)
-            ->where('statut', 'active')
+            ->where(
+                'equipe_id',
+                $equipe->idEquipe
+            )
+            ->where(
+                'campagne_id',
+                $campagne->idCampagne
+            )
+            ->where(
+                'statut',
+                'active'
+            )
             ->exists();
 
         if ($affectationActive) {
+
             return back()
                 ->withInput()
                 ->withErrors([
                     'campagne_id' =>
-                        "Cette équipe est déjà affectée à cette campagne. Désactivez son affectation avant de la reconduire.",
+                        'Cette équipe est déjà affectée à cette campagne. Désactivez son affectation avant de la reconduire.',
                 ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | CANTON
-        |--------------------------------------------------------------------------
-        */
-
+        /**
+         * Vérification du canton.
+         */
         $canton = Canton::query()
             ->whereKey($validated['canton_id'])
             ->whereHas('commune', function ($query) use ($prefectureId) {
-                $query->where('prefecture_id', $prefectureId);
+                $query->where(
+                    'prefecture_id',
+                    $prefectureId
+                );
             })
+            ->with('commune.prefecture')
             ->first();
 
         if (!$canton) {
+
             return back()
                 ->withInput()
                 ->withErrors([
@@ -725,24 +649,50 @@ class AffectationController extends Controller
                 ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | VILLAGES SÉLECTIONNÉS
-        |--------------------------------------------------------------------------
-        */
-
-        $villageIds = collect($validated['village_ids'])
+        /**
+         * Villages sélectionnés.
+         */
+        $villageIds = collect(
+            $validated['village_ids']
+        )
             ->map(fn ($id) => (int) $id)
             ->unique()
             ->values()
             ->all();
 
+        if (empty($villageIds)) {
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'village_ids' =>
+                        'Veuillez sélectionner au moins un village.',
+                ]);
+        }
+
+        /**
+         * Vérification :
+         * les villages appartiennent bien au canton choisi.
+         */
         $villages = Village::query()
-            ->whereIn('idVillage', $villageIds)
-            ->where('canton_id', $canton->idCanton)
+            ->whereIn(
+                'idVillage',
+                $villageIds
+            )
+            ->where(
+                'canton_id',
+                $canton->idCanton
+            )
+            ->with([
+                'canton.commune.prefecture',
+            ])
             ->get();
 
-        if ($villages->count() !== count($villageIds)) {
+        if (
+            $villages->count() !==
+            count($villageIds)
+        ) {
+
             return back()
                 ->withInput()
                 ->withErrors([
@@ -751,18 +701,22 @@ class AffectationController extends Controller
                 ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | PLANIFICATION PRÉFECTORALE
-        |--------------------------------------------------------------------------
-        */
-
+        /**
+         * Vérification du déploiement.
+         */
         $deploiement = CampagneDeploiement::query()
-            ->where('campagne_id', $campagne->idCampagne)
-            ->where('prefecture_id', $prefectureId)
+            ->where(
+                'campagne_id',
+                $campagne->idCampagne
+            )
+            ->where(
+                'prefecture_id',
+                $prefectureId
+            )
             ->first();
 
         if (!$deploiement) {
+
             return back()
                 ->withInput()
                 ->withErrors([
@@ -771,68 +725,189 @@ class AffectationController extends Controller
                 ]);
         }
 
-        $planification = PlanificationPrefectorale::query()
-            ->where('deploiement_id', $deploiement->idDeploiement)
-            ->first();
+        /**
+         * ==========================================================
+         * VÉRIFICATION DES ZONES DE LA CAMPAGNE
+         * ==========================================================
+         *
+         * C'est ici que se trouve la correction principale.
+         *
+         * On ne regarde PLUS :
+         *
+         * PlanificationPrefectorale
+         * PlanificationTerritoire
+         *
+         * La campagne est la source de vérité.
+         */
 
-        if (!$planification) {
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'village_ids' =>
-                        'Aucune planification préfectorale n’est disponible pour cette campagne.',
-                ]);
+        $zones = $campagne->zones;
+
+        /**
+         * Campagne nationale :
+         * tous les villages sont autorisés.
+         */
+        if ($campagne->portee !== 'nationale') {
+
+            $villagesNonCouverts = [];
+
+            foreach ($villages as $village) {
+
+                $commune = optional(
+                    $village->canton
+                )->commune;
+
+                $prefecture = optional(
+                    $commune
+                )->prefecture;
+
+                if (!$prefecture) {
+
+                    $villagesNonCouverts[] =
+                        $village->idVillage;
+
+                    continue;
+                }
+
+                /**
+                 * Le village doit appartenir
+                 * à la préfecture du DPA.
+                 */
+                if (
+                    (int) $prefecture->idPrefecture !==
+                    (int) $prefectureId
+                ) {
+
+                    $villagesNonCouverts[] =
+                        $village->idVillage;
+
+                    continue;
+                }
+
+                $couvert = false;
+
+                foreach ($zones as $zone) {
+
+                    /**
+                     * Région.
+                     */
+                    if (
+                        !empty($zone->region_id) &&
+                        !empty($prefecture->region_id) &&
+                        (int) $zone->region_id ===
+                        (int) $prefecture->region_id
+                    ) {
+                        $couvert = true;
+                        break;
+                    }
+
+                    /**
+                     * Préfecture.
+                     */
+                    if (
+                        !empty($zone->prefecture_id) &&
+                        (int) $zone->prefecture_id ===
+                        (int) $prefecture->idPrefecture
+                    ) {
+                        $couvert = true;
+                        break;
+                    }
+
+                    /**
+                     * Commune.
+                     */
+                    if (
+                        !empty($zone->commune_id) &&
+                        $commune &&
+                        (int) $zone->commune_id ===
+                        (int) $commune->idCommune
+                    ) {
+                        $couvert = true;
+                        break;
+                    }
+
+                    /**
+                     * Canton.
+                     */
+                    if (
+                        !empty($zone->canton_id) &&
+                        (int) $zone->canton_id ===
+                        (int) $village->canton_id
+                    ) {
+                        $couvert = true;
+                        break;
+                    }
+
+                    /**
+                     * Village.
+                     */
+                    if (
+                        !empty($zone->village_id) &&
+                        (int) $zone->village_id ===
+                        (int) $village->idVillage
+                    ) {
+                        $couvert = true;
+                        break;
+                    }
+                }
+
+                if (!$couvert) {
+
+                    $villagesNonCouverts[] =
+                        $village->idVillage;
+                }
+            }
+
+            /**
+             * Au moins un village n'est pas dans
+             * les zones de la campagne.
+             */
+            if (!empty($villagesNonCouverts)) {
+
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'village_ids' =>
+                            'Un ou plusieurs villages sélectionnés ne sont pas couverts par les zones définies dans cette campagne.',
+                    ]);
+            }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | VILLAGES AUTORISÉS PAR LA PLANIFICATION
-        |--------------------------------------------------------------------------
-        */
+        /**
+         * ==========================================================
+         * VÉRIFICATION DES AGENTS DE L'ÉQUIPE
+         * ==========================================================
+         */
 
-        $villagesPlanifiesIds = PlanificationTerritoire::query()
-            ->where('planification_prefectorale_id', $planification->idPlanificationPrefectorale)
-            ->whereNotNull('village_id')
-            ->whereHas('village', function ($query) use ($canton) {
-                $query->where('canton_id', $canton->idCanton);
-            })
-            ->pluck('village_id')
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
-
-        $villagesNonPlanifies = array_diff($villageIds, $villagesPlanifiesIds);
-
-        if (!empty($villagesNonPlanifies)) {
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'village_ids' =>
-                        'Un ou plusieurs villages sélectionnés ne sont pas prévus dans la planification préfectorale.',
-                ]);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | LES MEMBRES DE L'ÉQUIPE DOIVENT ÊTRE DISPONIBLES
-        |--------------------------------------------------------------------------
-        */
-
-        $membresEquipe = $equipe->membres()->pluck('users.id');
+        $membresEquipe = $equipe
+            ->membres()
+            ->pluck('users.id');
 
         $agentsOccupes = Affectation::query()
-            ->where('campagne_id', $campagne->idCampagne)
-            ->where('statut', 'active')
-            ->whereHas('equipe.membres', function ($query) use ($membresEquipe) {
-                $query->whereIn('users.id', $membresEquipe);
-            })
+            ->where(
+                'campagne_id',
+                $campagne->idCampagne
+            )
+            ->where(
+                'statut',
+                'active'
+            )
+            ->whereHas(
+                'equipe.membres',
+                function ($query) use ($membresEquipe) {
+
+                    $query->whereIn(
+                        'users.id',
+                        $membresEquipe
+                    );
+                }
+            )
             ->with('equipe')
             ->get();
 
         if ($agentsOccupes->isNotEmpty()) {
 
-            $equipeOccupee = $agentsOccupes->first()->equipe;
+            $equipeOccupee =
+                $agentsOccupes->first()->equipe;
 
             return back()
                 ->withInput()
@@ -842,52 +917,70 @@ class AffectationController extends Controller
                 ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | ENREGISTREMENT DES AFFECTATIONS
-        |--------------------------------------------------------------------------
-        */
-
-        DB::transaction(function () use ($validated, $villages, $equipe) {
+        /**
+         * ==========================================================
+         * CRÉATION DES AFFECTATIONS
+         * ==========================================================
+         *
+         * Une affectation est créée pour chaque village.
+         */
+        DB::transaction(function () use (
+            $validated,
+            $villages,
+            $equipe
+        ) {
 
             foreach ($villages as $village) {
 
                 Affectation::create([
+                    'reference' =>
+                        $this->genererReference(),
 
-                    'reference' => $this->genererReference(),
+                    'campagne_id' =>
+                        $validated['campagne_id'],
 
-                    'campagne_id' => $validated['campagne_id'],
+                    'equipe_id' =>
+                        $equipe->idEquipe,
 
-                    'equipe_id' => $equipe->idEquipe,
+                    'village_id' =>
+                        $village->idVillage,
 
-                    'village_id' => $village->idVillage,
+                    /**
+                     * Les dates restent compatibles
+                     * avec le fait qu'elles peuvent être nullable.
+                     */
+                    'dateDebut' =>
+                        $validated['dateDebut']
+                        ?? now(),
 
-                    'dateDebut' => $validated['dateDebut'] ?? now(),
+                    'dateFin' =>
+                        $validated['dateFin']
+                        ?? null,
 
-                    'dateFin' => $validated['dateFin'] ?? null,
+                    'statut' =>
+                        'active',
 
-                    'statut' => 'active',
-
-                    'observations' => $validated['observations'] ?? null,
+                    'observations' =>
+                        $validated['observations']
+                        ?? null,
                 ]);
             }
         });
 
         return redirect()
-            ->route('dpa.equipes.show', $equipe)
+            ->route(
+                'dpa.equipes.show',
+                $equipe
+            )
             ->with(
                 'success',
                 "L'équipe {$equipe->nom} a été affectée avec succès à la campagne {$campagne->libelle}."
             );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | SHOW
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Affichage d'une affectation.
+     */
     public function show(
         Affectation $affectation
     ): View {
@@ -898,35 +991,33 @@ class AffectationController extends Controller
             'village.canton.commune',
         ]);
 
-
         $prefectureId =
             $this->prefectureIdUtilisateur(
                 Auth::user()
             );
 
-
         if (!$prefectureId) {
             abort(403);
         }
 
-
         $villagePrefecture = optional(
-            $affectation->village
+            $affectation
+                ->village
                 ?->canton
                 ?->commune
         )->prefecture_id;
 
-
         if (
             $villagePrefecture !== null &&
-            (int) $villagePrefecture !== (int) $prefectureId
+            (int) $villagePrefecture !==
+            (int) $prefectureId
         ) {
+
             abort(
                 403,
                 'Cette affectation n’appartient pas à votre préfecture.'
             );
         }
-
 
         return view(
             'dpa.affectations.show',
@@ -934,160 +1025,88 @@ class AffectationController extends Controller
         );
     }
 
+    /**
+     * Désactivation d'une affectation.
+     *
+     * On ne supprime pas l'affectation.
+     */
+    public function destroy(
+        Affectation $affectation
+    ): RedirectResponse {
 
-    /*
-    |--------------------------------------------------------------------------
-    | DESTROY
-    |--------------------------------------------------------------------------
-    */
+        $user = Auth::user();
 
-    // public function destroy(
-    //     Affectation $affectation
-    // ): RedirectResponse {
+        $prefectureId =
+            $this->prefectureIdUtilisateur($user);
 
-    //     $user = Auth::user();
+        if (!$prefectureId) {
+            abort(403);
+        }
 
-    //     $prefectureId =
-    //         $this->prefectureIdUtilisateur($user);
+        $affectation->load([
+            'equipe',
+            'campagne',
+            'village.canton.commune',
+        ]);
 
+        $villagePrefecture = optional(
+            $affectation
+                ->village
+                ?->canton
+                ?->commune
+        )->prefecture_id;
 
-    //     if (!$prefectureId) {
-    //         abort(403);
-    //     }
+        if (
+            $villagePrefecture !== null &&
+            (int) $villagePrefecture !==
+            (int) $prefectureId
+        ) {
 
+            abort(
+                403,
+                "Cette affectation n'appartient pas à votre préfecture."
+            );
+        }
 
-    //     $affectation->load(
-    //         'village.canton.commune'
-    //     );
+        if (
+            $affectation->statut ===
+            'annulee'
+        ) {
 
+            return back()
+                ->with(
+                    'info',
+                    "Cette affectation est déjà désactivée."
+                );
+        }
 
-    //     $villagePrefecture =
-    //         optional(
-    //             $affectation->village
-    //                 ?->canton
-    //                 ?->commune
-    //         )->prefecture_id;
+        $affectation->update([
+            'statut' => 'annulee',
+            'dateFin' => now(),
+        ]);
 
-
-    //     if (
-    //         $villagePrefecture !== null &&
-    //         (int) $villagePrefecture !== (int) $prefectureId
-    //     ) {
-
-    //         abort(
-    //             403,
-    //             'Cette affectation n’appartient pas à votre préfecture.'
-    //         );
-    //     }
-
-
-    //     if ($affectation->statut === 'annulee') {
-
-    //         return back()
-    //             ->with(
-    //                 'info',
-    //                 'Cette affectation est déjà annulée.'
-    //             );
-    //     }
-
-
-    //     $affectation->update([
-    //         'statut' => 'annulee',
-    //     ]);
-
-
-    //     return back()
-    //         ->with(
-    //             'success',
-    //             'L’affectation a été annulée avec succès.'
-    //         );
-    // }
-
-
-
-    public function destroy(Affectation $affectation): RedirectResponse
-{
-    $user = Auth::user();
-
-    $prefectureId = $this->prefectureIdUtilisateur($user);
-
-    if (!$prefectureId) {
-        abort(403);
+        return redirect()
+            ->route(
+                'dpa.equipes.show',
+                $affectation->equipe
+            )
+            ->with(
+                'success',
+                "L'affectation de l'équipe {$affectation->equipe->nom} a été désactivée. L'équipe est maintenant disponible pour une nouvelle affectation."
+            );
     }
 
-    $affectation->load([
-        'equipe',
-        'campagne',
-        'village.canton.commune'
-    ]);
-
-    /*
-    |--------------------------------------------------------------------------
-    | VÉRIFIER QUE L'AFFECTATION APPARTIENT À LA PRÉFECTURE
-    |--------------------------------------------------------------------------
-    */
-
-    $villagePrefecture = optional(
-        $affectation->village?->canton?->commune
-    )->prefecture_id;
-
-    if (
-        $villagePrefecture !== null &&
-        (int) $villagePrefecture !== (int) $prefectureId
-    ) {
-        abort(
-            403,
-            "Cette affectation n'appartient pas à votre préfecture."
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | SI DÉJÀ ANNULÉE
-    |--------------------------------------------------------------------------
-    */
-
-    if ($affectation->statut === 'annulee') {
-        return back()->with(
-            'info',
-            "Cette affectation est déjà désactivée."
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | DÉSACTIVATION (LIBÉRATION DE L'ÉQUIPE)
-    |--------------------------------------------------------------------------
-    */
-
-    $affectation->update([
-        'statut'  => 'annulee',
-        'dateFin' => now(),
-    ]);
-
-    return redirect()
-        ->route('dpa.equipes.show', $affectation->equipe)
-        ->with(
-            'success',
-            "L'affectation de l'équipe {$affectation->equipe->nom} a été désactivée. L'équipe est maintenant disponible pour une nouvelle affectation."
-        );
-}
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | PRÉFECTURE UTILISATEUR
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Récupère la préfecture active de l'utilisateur.
+     */
     private function prefectureIdUtilisateur(
         $user
     ): ?int {
 
         if (!empty($user->prefecture_id)) {
+
             return (int) $user->prefecture_id;
         }
-
 
         $rattachement =
             RattachementPrefecture::query()
@@ -1099,24 +1118,18 @@ class AffectationController extends Controller
                     'statut',
                     'actif'
                 )
-                ->whereNull(
-                    'dateFin'
-                )
+                ->whereNull('dateFin')
                 ->first();
-
 
         return $rattachement
             ? (int) $rattachement->prefecture_id
             : null;
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | VÉRIFIER ÉQUIPE
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Vérifie que l'équipe appartient
+     * à la préfecture du DPA.
+     */
     private function verifierEquipePrefecture(
         Equipe $equipe,
         int $prefectureId
@@ -1141,14 +1154,17 @@ class AffectationController extends Controller
             return;
         }
 
-
-        if (method_exists($equipe, 'superviseur')) {
+        if (
+            method_exists(
+                $equipe,
+                'superviseur'
+            )
+        ) {
 
             $superviseur =
                 $equipe
                     ->load('superviseur')
                     ->superviseur;
-
 
             if ($superviseur) {
 
@@ -1156,7 +1172,6 @@ class AffectationController extends Controller
                     $this->prefectureIdUtilisateur(
                         $superviseur
                     );
-
 
                 if (
                     $prefectureSuperviseur &&
@@ -1173,13 +1188,9 @@ class AffectationController extends Controller
         }
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | RÉFÉRENCE
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Génère une référence unique d'affectation.
+     */
     private function genererReference(): string
     {
         do {
@@ -1198,7 +1209,6 @@ class AffectationController extends Controller
                 $reference
             )->exists()
         );
-
 
         return $reference;
     }

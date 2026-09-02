@@ -1,50 +1,42 @@
 @csrf
 
-<div class="space-y-7">
+<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-    {{-- ========================================================= --}}
-    {{-- ÉQUIPE --}}
-    {{-- ========================================================= --}}
-
-    <div>
-        <label class="mb-2 block text-sm font-semibold text-gray-700">
+    {{-- ================================================================
+        ÉQUIPE
+    ================================================================= --}}
+    <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
             Équipe
         </label>
 
-        <div class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
+        <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 100-8 4 4 0 000 8zm6 0a3 3 0 100-6 3 3 0 000 6zM6 10a3 3 0 100-6 3 3 0 000 6z"/>
+                    </svg>
+                </div>
 
-            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#006a4f]/10 text-[#006a4f]">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-6 w-6"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="1.8"
-                          d="M17 20h5v-2a4 4 0 0 0-4-4h-1
-                             M9 20H4v-2a4 4 0 0 1 4-4h1
-                             M12 12a4 4 0 1 0 0-8
-                             4 4 0 0 0 0 8Z"/>
-                </svg>
-            </div>
+                <div>
+                    <div class="font-semibold text-gray-800">
+                        {{ $equipe->nom }}
+                    </div>
 
-            <div class="min-w-0">
-                <p class="truncate text-sm font-bold text-gray-800">
-                    {{ $equipe->nom }}
-                </p>
-
-                @if($equipe->reference)
-                    <p class="mt-0.5 text-xs text-gray-500">
-                        Référence : {{ $equipe->reference }}
-                    </p>
-                @endif
-            </div>
-
-            <div class="ml-auto">
-                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
-                    Équipe
-                </span>
+                    @if($equipe->superviseur)
+                        <div class="text-xs text-gray-500">
+                            Superviseur :
+                            {{ $equipe->superviseur->name }}
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -54,349 +46,233 @@
     </div>
 
 
-    {{-- ========================================================= --}}
-    {{-- CAMPAGNE --}}
-    {{-- ========================================================= --}}
-
-    <div>
+    {{-- ================================================================
+        CAMPAGNE
+    ================================================================= --}}
+    <div class="md:col-span-2">
 
         <label for="campagne_search"
-               class="mb-2 block text-sm font-semibold text-gray-700">
-            Campagne de recensement
-            <span class="text-red-500">*</span>
+               class="block text-sm font-medium text-gray-700 mb-1">
+            Campagne
         </label>
 
         <div class="relative">
 
-            <input
-                type="text"
-                id="campagne_search"
-                autocomplete="off"
-                placeholder="Sélectionner une campagne..."
-                class="w-full rounded-xl border-gray-300 bg-white px-4 py-3 pr-11 text-sm
-                       shadow-sm transition
-                       focus:border-[#006a4f] focus:ring-[#006a4f]"
-            >
+            <div class="flex gap-2">
 
-            <button
-                type="button"
-                id="campagne_toggle"
-                class="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gray-400 hover:text-gray-600"
-                tabindex="-1"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="m6 9 6 6 6-6"/>
-                </svg>
-            </button>
+                <input type="text"
+                       id="campagne_search"
+                       autocomplete="off"
+                       placeholder="Rechercher une campagne..."
+                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm
+                              focus:border-emerald-500 focus:ring-emerald-500">
 
-            <div
-                id="campagne_results"
-                class="absolute left-0 right-0 z-50 mt-2 hidden max-h-72 overflow-y-auto
-                       rounded-xl border border-gray-200 bg-white shadow-xl"
-            ></div>
+                <button type="button"
+                        id="campagne_toggle"
+                        class="rounded-lg border border-gray-300 bg-white px-3 text-gray-600
+                               hover:bg-gray-50">
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 9l-7 7-7-7"/>
+                    </svg>
+
+                </button>
+
+            </div>
+
+            <input type="hidden"
+                   name="campagne_id"
+                   id="campagne_id"
+                   value="{{ old('campagne_id', $affectation->campagne_id ?? '') }}">
+
+            <div id="campagne_results"
+                 class="absolute z-30 mt-1 hidden w-full overflow-hidden rounded-lg
+                        border border-gray-200 bg-white shadow-lg">
+            </div>
 
         </div>
 
-        <input
-            type="hidden"
-            name="campagne_id"
-            id="campagne_id"
-            value="{{ old('campagne_id') }}"
-        >
-
-        <div
-            id="campagne_selected"
-            class="mt-2 hidden items-center gap-2 rounded-xl border border-[#006a4f]/20
-                   bg-[#006a4f]/5 px-3 py-2.5 text-sm text-[#006a4f]"
-        ></div>
+        <div id="campagne_selected"
+             class="mt-2 hidden rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+        </div>
 
         @error('campagne_id')
-            <p class="mt-1 text-sm text-red-600">
-                {{ $message }}
-            </p>
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
 
     </div>
 
 
-    {{-- ========================================================= --}}
-    {{-- CANTON --}}
-    {{-- ========================================================= --}}
-
+    {{-- ================================================================
+        CANTON
+    ================================================================= --}}
     <div>
 
         <label for="canton_search"
-               class="mb-2 block text-sm font-semibold text-gray-700">
+               class="block text-sm font-medium text-gray-700 mb-1">
             Canton
-            <span class="text-red-500">*</span>
         </label>
 
         <div class="relative">
 
-            <input
-                type="text"
-                id="canton_search"
-                autocomplete="off"
-                disabled
-                placeholder="Sélectionnez d'abord une campagne..."
-                class="w-full rounded-xl border-gray-300 bg-white px-4 py-3 pr-11 text-sm
-                       shadow-sm transition
-                       focus:border-[#006a4f] focus:ring-[#006a4f]
-                       disabled:cursor-not-allowed disabled:bg-gray-100"
-            >
+            <div class="flex gap-2">
 
-            <button
-                type="button"
-                id="canton_toggle"
-                disabled
-                class="absolute inset-y-0 right-0 flex w-11 items-center justify-center
-                       text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
-                tabindex="-1"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="m6 9 6 6 6-6"/>
-                </svg>
-            </button>
+                <input type="text"
+                       id="canton_search"
+                       autocomplete="off"
+                       disabled
+                       placeholder="Sélectionnez d'abord une campagne..."
+                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm
+                              disabled:bg-gray-100 disabled:text-gray-400
+                              focus:border-emerald-500 focus:ring-emerald-500">
 
-            <div
-                id="canton_results"
-                class="absolute left-0 right-0 z-40 mt-2 hidden max-h-72 overflow-y-auto
-                       rounded-xl border border-gray-200 bg-white shadow-xl"
-            ></div>
+                <button type="button"
+                        id="canton_toggle"
+                        disabled
+                        class="rounded-lg border border-gray-300 bg-white px-3 text-gray-600
+                               disabled:bg-gray-100 disabled:text-gray-400">
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 9l-7 7-7-7"/>
+                    </svg>
+
+                </button>
+
+            </div>
+
+            <input type="hidden"
+                   name="canton_id"
+                   id="canton_id"
+                   value="{{ old('canton_id', $affectation->canton_id ?? '') }}">
+
+            <div id="canton_results"
+                 class="absolute z-20 mt-1 hidden w-full overflow-hidden rounded-lg
+                        border border-gray-200 bg-white shadow-lg">
+            </div>
 
         </div>
 
-        <input
-            type="hidden"
-            name="canton_id"
-            id="canton_id"
-            value="{{ old('canton_id') }}"
-        >
-
-        <div
-            id="canton_selected"
-            class="mt-2 hidden rounded-xl border border-gray-200 bg-gray-50
-                   px-3 py-2.5 text-sm font-medium text-gray-700"
-        ></div>
+        <div id="canton_selected"
+             class="mt-2 hidden rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+        </div>
 
         @error('canton_id')
-            <p class="mt-1 text-sm text-red-600">
-                {{ $message }}
-            </p>
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
 
     </div>
 
 
-    {{-- ========================================================= --}}
-    {{-- VILLAGES --}}
-    {{-- ========================================================= --}}
-
+    {{-- ================================================================
+        VILLAGES
+    ================================================================= --}}
     <div>
 
-        <div class="mb-2 flex items-center justify-between">
-
-            <label for="village_search"
-                   class="block text-sm font-semibold text-gray-700">
-                Villages concernés
-                <span class="text-red-500">*</span>
-            </label>
-
-            <span id="village_loading"
-                  class="hidden items-center gap-2 text-xs text-gray-500">
-
-                <svg class="h-4 w-4 animate-spin"
-                     xmlns="http://www.w3.org/2000/svg"
-                     fill="none"
-                     viewBox="0 0 24 24">
-                    <circle class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"/>
-                    <path class="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4Z"/>
-                </svg>
-
-                Chargement...
-            </span>
-
-        </div>
-
+        <label for="village_search"
+               class="block text-sm font-medium text-gray-700 mb-1">
+            Villages concernés
+        </label>
 
         <div class="relative">
 
-            <input
-                type="text"
-                id="village_search"
-                autocomplete="off"
-                disabled
-                placeholder="Sélectionnez d'abord un canton..."
-                class="w-full rounded-xl border-gray-300 bg-white px-4 py-3 pr-11 text-sm
-                       shadow-sm transition
-                       focus:border-[#006a4f] focus:ring-[#006a4f]
-                       disabled:cursor-not-allowed disabled:bg-gray-100"
-            >
+            <div class="flex gap-2">
 
-            <button
-                type="button"
-                id="village_toggle"
-                disabled
-                class="absolute inset-y-0 right-0 flex w-11 items-center justify-center
-                       text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
-                tabindex="-1"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="m6 9 6 6 6-6"/>
-                </svg>
-            </button>
+                <input type="text"
+                       id="village_search"
+                       autocomplete="off"
+                       disabled
+                       placeholder="Sélectionnez d'abord un canton..."
+                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm
+                              disabled:bg-gray-100 disabled:text-gray-400
+                              focus:border-emerald-500 focus:ring-emerald-500">
 
+                <button type="button"
+                        id="village_toggle"
+                        disabled
+                        class="rounded-lg border border-gray-300 bg-white px-3 text-gray-600
+                               disabled:bg-gray-100 disabled:text-gray-400">
 
-            <div
-                id="village_results"
-                class="absolute left-0 right-0 z-30 mt-2 hidden max-h-72 overflow-y-auto
-                       rounded-xl border border-gray-200 bg-white shadow-xl"
-            ></div>
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 9l-7 7-7-7"/>
+                    </svg>
+
+                </button>
+
+            </div>
+
+            <div id="village_results"
+                 class="absolute z-20 mt-1 hidden w-full overflow-hidden rounded-lg
+                        border border-gray-200 bg-white shadow-lg">
+            </div>
 
         </div>
 
+        <div id="village_loading"
+             class="mt-2 hidden text-xs text-gray-500">
+            Recherche des villages concernés...
+        </div>
 
-        <p id="village_help"
-           class="mt-2 text-xs text-gray-500">
-            Sélectionnez d'abord une campagne puis un canton.
-        </p>
+        <div id="village_help"
+             class="mt-2 text-xs text-gray-500">
+            Les villages proposés correspondent aux zones couvertes par la campagne.
+        </div>
 
+        <div id="villages_selected"
+             class="mt-3 flex flex-wrap gap-2">
+        </div>
 
         @error('village_ids')
-            <p class="mt-1 text-sm text-red-600">
-                {{ $message }}
-            </p>
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
 
         @error('village_ids.*')
-            <p class="mt-1 text-sm text-red-600">
-                {{ $message }}
-            </p>
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
 
     </div>
 
 
-    {{-- ========================================================= --}}
-    {{-- VILLAGES SÉLECTIONNÉS --}}
-    {{-- ========================================================= --}}
-
-    <div
-        id="selected_villages_container"
-        class="hidden rounded-2xl border border-[#006a4f]/20 bg-[#006a4f]/5 p-4"
-    >
-
-        <div class="mb-3 flex items-center justify-between">
-
-            <div>
-                <h3 class="text-sm font-bold text-gray-800">
-                    Villages sélectionnés
-                </h3>
-
-                <p id="selected_count"
-                   class="mt-1 text-xs text-gray-500">
-                    0 village
-                </p>
-            </div>
-
-            <span
-                class="flex h-8 w-8 items-center justify-center rounded-lg
-                       bg-white text-[#006a4f] shadow-sm"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-4 w-4"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5 13l4 4L19 7"/>
-                </svg>
-            </span>
-
-        </div>
-
-        <div id="selected_villages"
-             class="flex flex-wrap gap-2">
-        </div>
-
-    </div>
-
-
-    {{-- ========================================================= --}}
-    {{-- STATUT --}}
-    {{-- ========================================================= --}}
-
-    <input type="hidden"
-           name="statut"
-           value="active">
-
-
-    {{-- ========================================================= --}}
-    {{-- OBSERVATIONS --}}
-    {{-- ========================================================= --}}
-
-    <div>
+    {{-- ================================================================
+        OBSERVATIONS
+    ================================================================= --}}
+    <div class="md:col-span-2">
 
         <label for="observations"
-               class="mb-2 block text-sm font-semibold text-gray-700">
+               class="block text-sm font-medium text-gray-700 mb-1">
             Observations
-
-            <span class="text-xs font-normal text-gray-400">
-                (facultatif)
-            </span>
+            <span class="font-normal text-gray-400">(facultatif)</span>
         </label>
 
-        <textarea
-            name="observations"
-            id="observations"
-            rows="4"
-            maxlength="2000"
-            class="w-full resize-none rounded-xl border-gray-300 px-4 py-3 text-sm
-                   shadow-sm transition
-                   focus:border-[#006a4f] focus:ring-[#006a4f]"
-            placeholder="Ajoutez une observation éventuelle..."
-        >{{ old('observations') }}</textarea>
-
-        <div class="mt-1 flex justify-end">
-            <span class="text-xs text-gray-400">
-                2000 caractères maximum
-            </span>
-        </div>
+        <textarea name="observations"
+                  id="observations"
+                  rows="4"
+                  placeholder="Ajouter éventuellement une observation..."
+                  class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm
+                         focus:border-emerald-500 focus:ring-emerald-500">{{ old('observations', $affectation->observations ?? '') }}</textarea>
 
         @error('observations')
-            <p class="mt-1 text-sm text-red-600">
-                {{ $message }}
-            </p>
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
 
     </div>
@@ -404,141 +280,139 @@
 </div>
 
 
+{{-- ================================================================
+    STATUT
+================================================================= --}}
+<input type="hidden"
+       name="statut"
+       value="{{ old('statut', $affectation->statut ?? 'active') }}">
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | DONNÉES ENVOYÉES PAR LE CONTRÔLEUR
-    |--------------------------------------------------------------------------
-    */
+    /* ================================================================
+       DONNÉES
+    ================================================================= */
 
     const campagnes = @json($campagnesJs ?? []);
 
     const cantons = @json($cantonsJs ?? []);
 
-    const villagesPlanifies = @json($villagesPlanifiesJs ?? []);
+    const villagesCampagne = @json(
+        $villagesCampagneJs ?? $villagesPlanifiesJs ?? []
+    );
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ÉLÉMENTS
-    |--------------------------------------------------------------------------
-    */
+    /* ================================================================
+       CAMPAGNE
+    ================================================================= */
 
-    const campagneSearch =
-        document.getElementById('campagne_search');
-
-    const campagneResults =
-        document.getElementById('campagne_results');
-
-    const campagneId =
-        document.getElementById('campagne_id');
-
-    const campagneSelected =
-        document.getElementById('campagne_selected');
-
-    const campagneToggle =
-        document.getElementById('campagne_toggle');
+    const campagneSearch = document.getElementById('campagne_search');
+    const campagneId = document.getElementById('campagne_id');
+    const campagneResults = document.getElementById('campagne_results');
+    const campagneSelected = document.getElementById('campagne_selected');
+    const campagneToggle = document.getElementById('campagne_toggle');
 
 
-    const cantonSearch =
-        document.getElementById('canton_search');
+    /* ================================================================
+       CANTON
+    ================================================================= */
 
-    const cantonResults =
-        document.getElementById('canton_results');
-
-    const cantonId =
-        document.getElementById('canton_id');
-
-    const cantonSelected =
-        document.getElementById('canton_selected');
-
-    const cantonToggle =
-        document.getElementById('canton_toggle');
+    const cantonSearch = document.getElementById('canton_search');
+    const cantonId = document.getElementById('canton_id');
+    const cantonResults = document.getElementById('canton_results');
+    const cantonSelected = document.getElementById('canton_selected');
+    const cantonToggle = document.getElementById('canton_toggle');
 
 
-    const villageSearch =
-        document.getElementById('village_search');
+    /* ================================================================
+       VILLAGES
+    ================================================================= */
 
-    const villageResults =
-        document.getElementById('village_results');
-
-    const villageToggle =
-        document.getElementById('village_toggle');
-
-    const villageLoading =
-        document.getElementById('village_loading');
-
-    const villageHelp =
-        document.getElementById('village_help');
+    const villageSearch = document.getElementById('village_search');
+    const villageResults = document.getElementById('village_results');
+    const villageToggle = document.getElementById('village_toggle');
+    const villageLoading = document.getElementById('village_loading');
+    const villageHelp = document.getElementById('village_help');
+    const villagesSelected = document.getElementById('villages_selected');
 
 
-    const selectedContainer =
-        document.getElementById('selected_villages_container');
+    /* ================================================================
+       VILLAGES SÉLECTIONNÉS
+    ================================================================= */
 
-    const selectedVillages =
-        document.getElementById('selected_villages');
-
-    const selectedCount =
-        document.getElementById('selected_count');
+    let villagesSelectionnes = [];
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | VARIABLES
-    |--------------------------------------------------------------------------
-    */
+    /* ================================================================
+       UTILITAIRES
+    ================================================================= */
 
-    let villages = [];
+    function escapeHtml(value) {
 
-    let selectedVillageIds = [];
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
+    }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CAMPAGNES
-    |--------------------------------------------------------------------------
-    */
+    function afficherZone(element) {
+
+        element.classList.remove('hidden');
+
+    }
+
+
+    function masquerZone(element) {
+
+        element.classList.add('hidden');
+
+    }
+
+
+    /* ================================================================
+       CAMPAGNES
+    ================================================================= */
 
     function afficherCampagnes(recherche = '') {
 
+        const terme = recherche.trim().toLowerCase();
+
+        const resultats = campagnes.filter(campagne => {
+
+            const texte = [
+                campagne.idCampagne,
+                campagne.codeCampagne,
+                campagne.libelle,
+                campagne.statut,
+                campagne.portee
+            ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+            return texte.includes(terme);
+
+        });
+
+
         campagneResults.innerHTML = '';
-
-        const terme =
-            String(recherche)
-                .toLowerCase()
-                .trim();
-
-
-        const resultats =
-            campagnes.filter(campagne => {
-
-                if (!terme) {
-                    return true;
-                }
-
-                return (
-                    String(campagne.code ?? '')
-                        .toLowerCase()
-                        .includes(terme)
-                    ||
-                    String(campagne.libelle ?? '')
-                        .toLowerCase()
-                        .includes(terme)
-                );
-            });
 
 
         if (resultats.length === 0) {
 
             campagneResults.innerHTML = `
-                <div class="px-4 py-4 text-center text-sm text-gray-500">
+                <div class="px-4 py-3 text-sm text-gray-500">
                     Aucune campagne trouvée.
                 </div>
             `;
 
-            campagneResults.classList.remove('hidden');
+            afficherZone(campagneResults);
 
             return;
         }
@@ -546,192 +420,121 @@ document.addEventListener('DOMContentLoaded', function () {
 
         resultats.forEach(campagne => {
 
-            const button =
-                document.createElement('button');
+            const div = document.createElement('button');
 
-            button.type = 'button';
+            div.type = 'button';
 
-            button.className =
-                'block w-full border-b border-gray-100 px-4 py-3 text-left transition hover:bg-gray-50';
+            div.className =
+                'block w-full border-b border-gray-100 px-4 py-3 text-left ' +
+                'hover:bg-emerald-50';
 
+            div.innerHTML = `
+                <div class="font-medium text-gray-800">
+                    ${escapeHtml(campagne.libelle)}
+                </div>
 
-            button.innerHTML = `
-                <div class="flex items-center justify-between gap-3">
-
-                    <div class="min-w-0">
-
-                        <div class="truncate text-sm font-semibold text-gray-800">
-                            ${escapeHtml(campagne.code)}
-                        </div>
-
-                        <div class="mt-0.5 truncate text-xs text-gray-500">
-                            ${escapeHtml(campagne.libelle)}
-                        </div>
-
-                    </div>
-
-                    <span class="
-                        shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold
-                        ${
-                            campagne.statut === 'active'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-gray-100 text-gray-600'
-                        }
-                    ">
-                        ${escapeHtml(campagne.statut)}
-                    </span>
-
+                <div class="mt-0.5 text-xs text-gray-500">
+                    ${escapeHtml(campagne.codeCampagne ?? '')}
+                    ${campagne.statut
+                        ? ' • ' + escapeHtml(campagne.statut)
+                        : ''}
                 </div>
             `;
 
 
-            button.addEventListener('click', function () {
+            div.addEventListener('click', function () {
 
                 selectionnerCampagne(campagne);
 
             });
 
 
-            campagneResults.appendChild(button);
+            campagneResults.appendChild(div);
 
         });
 
 
-        campagneResults.classList.remove('hidden');
+        afficherZone(campagneResults);
+
     }
 
 
     function selectionnerCampagne(campagne) {
 
-        campagneId.value =
-            campagne.id;
+        campagneId.value = campagne.idCampagne ?? campagne.id;
 
-
-        campagneSearch.value =
-            `${campagne.code} — ${campagne.libelle}`;
-
+        campagneSearch.value = campagne.libelle;
 
         campagneSelected.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 class="h-4 w-4 shrink-0"
-                 fill="none"
-                 viewBox="0 0 24 24"
-                 stroke="currentColor">
-                <path stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"/>
-            </svg>
+            <div class="flex items-center justify-between gap-3">
 
-            <span>
-                ${escapeHtml(campagne.code)}
-                —
-                ${escapeHtml(campagne.libelle)}
-            </span>
+                <div>
+                    <div class="text-sm font-semibold text-emerald-800">
+                        ${escapeHtml(campagne.libelle)}
+                    </div>
+
+                    <div class="text-xs text-emerald-700">
+                        ${escapeHtml(campagne.codeCampagne ?? '')}
+                    </div>
+                </div>
+
+                <button type="button"
+                        id="campagne_clear"
+                        class="text-xs font-medium text-red-600 hover:text-red-800">
+                    Modifier
+                </button>
+
+            </div>
         `;
 
 
-        campagneSelected.classList.remove('hidden');
+        afficherZone(campagneSelected);
 
-        campagneSelected.classList.add('flex');
-
-        campagneResults.classList.add('hidden');
+        masquerZone(campagneResults);
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | ACTIVER CANTON
-        |--------------------------------------------------------------------------
-        */
+        document.getElementById('campagne_clear')
+            .addEventListener('click', function () {
 
-        cantonSearch.disabled = false;
+                campagneId.value = '';
+                campagneSearch.value = '';
 
-        cantonToggle.disabled = false;
+                masquerZone(campagneSelected);
 
-        cantonSearch.placeholder =
-            'Sélectionner un canton...';
+                resetCanton();
+                resetVillages();
 
+                campagneSearch.focus();
 
-        /*
-        |--------------------------------------------------------------------------
-        | RESET CANTON
-        |--------------------------------------------------------------------------
-        */
-
-        cantonId.value = '';
-
-        cantonSearch.value = '';
-
-        cantonSelected.classList.add('hidden');
-
-        cantonResults.classList.add('hidden');
+            });
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | RESET VILLAGES
-        |--------------------------------------------------------------------------
-        */
+        activerCanton();
 
-        villages = [];
-
-        selectedVillageIds = [];
-
-        villageSearch.disabled = true;
-
-        villageToggle.disabled = true;
-
-        villageSearch.value = '';
-
-        villageSearch.placeholder =
-            'Sélectionnez d’abord un canton...';
-
-        villageResults.classList.add('hidden');
-
-        villageHelp.textContent =
-            'Sélectionnez d’abord un canton.';
-
-        afficherVillagesSelectionnes();
     }
-
-
-    campagneSearch.addEventListener('focus', function () {
-
-        afficherCampagnes(campagneSearch.value);
-
-    });
 
 
     campagneSearch.addEventListener('input', function () {
 
-        /*
-        | Si l'utilisateur modifie manuellement la campagne,
-        | on invalide l'ancien ID.
-        */
+        if (!this.value.trim()) {
 
-        campagneId.value = '';
+            campagneId.value = '';
 
-        campagneSelected.classList.add('hidden');
+            masquerZone(campagneSelected);
 
-        cantonId.value = '';
+            resetCanton();
+            resetVillages();
 
-        cantonSearch.value = '';
+        }
 
-        cantonSearch.disabled = true;
+        afficherCampagnes(this.value);
 
-        cantonToggle.disabled = true;
+    });
 
-        villageSearch.disabled = true;
 
-        villageToggle.disabled = true;
+    campagneSearch.addEventListener('focus', function () {
 
-        villages = [];
-
-        selectedVillageIds = [];
-
-        afficherVillagesSelectionnes();
-
-        afficherCampagnes(campagneSearch.value);
+        afficherCampagnes(this.value);
 
     });
 
@@ -744,54 +547,66 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else {
 
-            campagneResults.classList.add('hidden');
+            masquerZone(campagneResults);
 
         }
-
-        campagneSearch.focus();
 
     });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CANTONS
-    |--------------------------------------------------------------------------
-    */
+    /* ================================================================
+       CANTONS
+    ================================================================= */
+
+    function activerCanton() {
+
+        cantonSearch.disabled = false;
+        cantonToggle.disabled = false;
+
+        cantonSearch.placeholder = 'Rechercher un canton...';
+
+    }
+
 
     function afficherCantons(recherche = '') {
 
+        if (!campagneId.value) {
+
+            return;
+
+        }
+
+
+        const terme = recherche.trim().toLowerCase();
+
+        const resultats = cantons.filter(canton => {
+
+            const texte = [
+                canton.nom,
+                canton.code,
+                canton.commune_nom
+            ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+            return texte.includes(terme);
+
+        });
+
+
         cantonResults.innerHTML = '';
-
-        const terme =
-            String(recherche)
-                .toLowerCase()
-                .trim();
-
-
-        const resultats =
-            cantons.filter(canton => {
-
-                if (!terme) {
-                    return true;
-                }
-
-                return String(canton.nom ?? '')
-                    .toLowerCase()
-                    .includes(terme);
-
-            });
 
 
         if (resultats.length === 0) {
 
             cantonResults.innerHTML = `
-                <div class="px-4 py-4 text-center text-sm text-gray-500">
+                <div class="px-4 py-3 text-sm text-gray-500">
                     Aucun canton trouvé.
                 </div>
             `;
 
-            cantonResults.classList.remove('hidden');
+            afficherZone(cantonResults);
 
             return;
         }
@@ -799,120 +614,126 @@ document.addEventListener('DOMContentLoaded', function () {
 
         resultats.forEach(canton => {
 
-            const button =
-                document.createElement('button');
+            const div = document.createElement('button');
 
-            button.type = 'button';
+            div.type = 'button';
 
-            button.className =
-                'flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-sm transition hover:bg-gray-50';
+            div.className =
+                'block w-full border-b border-gray-100 px-4 py-3 text-left ' +
+                'hover:bg-emerald-50';
 
-
-            button.innerHTML = `
-
-                <span class="
-                    flex h-8 w-8 shrink-0 items-center justify-center
-                    rounded-lg bg-gray-100 text-gray-500
-                ">
-
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="h-4 w-4"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.8"
-                              d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z"/>
-
-                        <circle cx="12"
-                                cy="10"
-                                r="2.5"
-                                stroke="currentColor"
-                                stroke-width="1.8"/>
-
-                    </svg>
-
-                </span>
-
-                <span class="font-medium text-gray-700">
+            div.innerHTML = `
+                <div class="font-medium text-gray-800">
                     ${escapeHtml(canton.nom)}
-                </span>
+                </div>
 
+                ${
+                    canton.commune_nom
+                    ? `
+                        <div class="text-xs text-gray-500">
+                            Commune : ${escapeHtml(canton.commune_nom)}
+                        </div>
+                      `
+                    : ''
+                }
             `;
 
 
-            button.addEventListener('click', function () {
+            div.addEventListener('click', function () {
 
                 selectionnerCanton(canton);
 
             });
 
 
-            cantonResults.appendChild(button);
+            cantonResults.appendChild(div);
 
         });
 
 
-        cantonResults.classList.remove('hidden');
+        afficherZone(cantonResults);
+
     }
 
 
     function selectionnerCanton(canton) {
 
-        cantonId.value =
-            canton.id;
+        cantonId.value = canton.idCanton ?? canton.id;
+
+        cantonSearch.value = canton.nom;
+
+        cantonSelected.innerHTML = `
+            <div class="flex items-center justify-between gap-3">
+
+                <div>
+                    <div class="text-sm font-semibold text-emerald-800">
+                        ${escapeHtml(canton.nom)}
+                    </div>
+
+                    ${
+                        canton.commune_nom
+                        ? `
+                            <div class="text-xs text-emerald-700">
+                                ${escapeHtml(canton.commune_nom)}
+                            </div>
+                          `
+                        : ''
+                    }
+                </div>
+
+                <button type="button"
+                        id="canton_clear"
+                        class="text-xs font-medium text-red-600 hover:text-red-800">
+                    Modifier
+                </button>
+
+            </div>
+        `;
 
 
-        cantonSearch.value =
-            canton.nom;
+        afficherZone(cantonSelected);
+
+        masquerZone(cantonResults);
 
 
-        cantonSelected.textContent =
-            `Canton sélectionné : ${canton.nom}`;
+        document.getElementById('canton_clear')
+            .addEventListener('click', function () {
 
+                resetCanton();
 
-        cantonSelected.classList.remove('hidden');
+                cantonSearch.focus();
 
-        cantonResults.classList.add('hidden');
+            });
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | CHARGEMENT LOCAL DES VILLAGES
-        |--------------------------------------------------------------------------
-        |
-        | IMPORTANT :
-        | Aucun fetch().
-        |
-        | On utilise directement villagesPlanifiesJs envoyé
-        | par AffectationController.
-        |
-        */
 
         chargerVillages(
             campagneId.value,
-            canton.id
+            cantonId.value
         );
 
     }
 
 
-    cantonSearch.addEventListener('focus', function () {
+    cantonSearch.addEventListener('input', function () {
 
-        if (!cantonSearch.disabled) {
+        if (!this.value.trim()) {
 
-            afficherCantons(cantonSearch.value);
+            cantonId.value = '';
+
+            masquerZone(cantonSelected);
+
+            resetVillages();
 
         }
+
+        afficherCantons(this.value);
 
     });
 
 
-    cantonSearch.addEventListener('input', function () {
+    cantonSearch.addEventListener('focus', function () {
 
-        afficherCantons(cantonSearch.value);
+        afficherCantons(this.value);
 
     });
 
@@ -925,63 +746,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else {
 
-            cantonResults.classList.add('hidden');
+            masquerZone(cantonResults);
 
         }
-
-        cantonSearch.focus();
 
     });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGES
-    |--------------------------------------------------------------------------
-    */
+    /* ================================================================
+       VILLAGES
+    ================================================================= */
 
     function chargerVillages(campagne, canton) {
 
-        villages = [];
-
-        selectedVillageIds = [];
+        resetVillages(false);
 
 
         if (!campagne || !canton) {
 
-            villageSearch.disabled = true;
-
-            villageToggle.disabled = true;
-
             return;
+
         }
 
 
         villageLoading.classList.remove('hidden');
 
-        villageLoading.classList.add('flex');
+        villageHelp.textContent =
+            'Recherche des villages concernés par cette campagne...';
 
 
         villageSearch.disabled = true;
-
         villageToggle.disabled = true;
 
-        villageSearch.value = '';
 
-        villageSearch.placeholder =
-            'Recherche des villages planifiés...';
+        setTimeout(function () {
 
-        villageResults.classList.add('hidden');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | FILTRE LOCAL
-        |--------------------------------------------------------------------------
-        */
-
-        villages =
-            villagesPlanifies.filter(village => {
+            const villages = villagesCampagne.filter(village => {
 
                 return (
                     String(village.campagne_id) === String(campagne)
@@ -992,246 +792,322 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
 
-        villages.sort(function (a, b) {
+            villageLoading.classList.add('hidden');
 
-            return String(a.nom ?? '')
-                .localeCompare(
-                    String(b.nom ?? ''),
-                    'fr'
-                );
+            villageSearch.disabled = false;
+            villageToggle.disabled = false;
 
-        });
-
-
-        villageLoading.classList.add('hidden');
-
-        villageLoading.classList.remove('flex');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | RÉSULTAT
-        |--------------------------------------------------------------------------
-        */
-
-        if (villages.length === 0) {
-
-            villageSearch.disabled = true;
-
-            villageToggle.disabled = true;
 
             villageSearch.placeholder =
-                'Aucun village planifié pour ce canton';
+                'Rechercher un village...';
+
+
+            villageResults.innerHTML = '';
+
+
+            if (villages.length === 0) {
+
+                villageHelp.textContent =
+                    'Aucun village de ce canton n’est couvert par les zones de cette campagne.';
+
+                villageResults.innerHTML = `
+                    <div class="px-4 py-3 text-sm text-gray-500">
+                        Aucun village concerné.
+                    </div>
+                `;
+
+                afficherZone(villageResults);
+
+                return;
+
+            }
+
 
             villageHelp.textContent =
-                'Aucun village de ce canton n’est prévu dans la planification préfectorale pour cette campagne.';
-
-            return;
-        }
+                `${villages.length} village${villages.length > 1 ? 's' : ''} couvert${villages.length > 1 ? 's' : ''} par cette campagne.`;
 
 
-        villageSearch.disabled = false;
+            afficherVillages(villages, '');
 
-        villageToggle.disabled = false;
-
-        villageSearch.placeholder =
-            'Sélectionner un ou plusieurs villages...';
-
-        villageHelp.textContent =
-            `${villages.length} village${villages.length > 1 ? 's' : ''} planifié${villages.length > 1 ? 's' : ''} pour ce canton.`;
+        }, 100);
 
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | AFFICHAGE VILLAGES
-    |--------------------------------------------------------------------------
-    */
+    function afficherVillages(villages, recherche = '') {
 
-    function afficherVillages(recherche = '') {
+        const terme = recherche.trim().toLowerCase();
+
+
+        const resultats = villages.filter(village => {
+
+            const texte = [
+                village.nom,
+                village.code
+            ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+            return texte.includes(terme);
+
+        });
+
 
         villageResults.innerHTML = '';
-
-        const terme =
-            String(recherche)
-                .toLowerCase()
-                .trim();
-
-
-        const resultats =
-            villages.filter(village => {
-
-                const dejaSelectionne =
-                    selectedVillageIds
-                        .map(String)
-                        .includes(
-                            String(village.idVillage)
-                        );
-
-
-                if (dejaSelectionne) {
-                    return false;
-                }
-
-
-                if (!terme) {
-                    return true;
-                }
-
-
-                return (
-                    String(village.nom ?? '')
-                        .toLowerCase()
-                        .includes(terme)
-                    ||
-                    String(village.code ?? '')
-                        .toLowerCase()
-                        .includes(terme)
-                );
-
-            });
 
 
         if (resultats.length === 0) {
 
             villageResults.innerHTML = `
-                <div class="px-4 py-4 text-center text-sm text-gray-500">
-                    ${
-                        villages.length === 0
-                            ? 'Aucun village planifié.'
-                            : 'Aucun village correspondant.'
-                    }
+                <div class="px-4 py-3 text-sm text-gray-500">
+                    Aucun village trouvé.
                 </div>
             `;
 
-            villageResults.classList.remove('hidden');
+            afficherZone(villageResults);
 
             return;
+
         }
 
 
         resultats.forEach(village => {
 
-            const button =
-                document.createElement('button');
+            const villageId = village.idVillage ?? village.id;
 
-            button.type = 'button';
-
-            button.className =
-                'flex w-full items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 text-left transition hover:bg-[#006a4f]/5';
-
-
-            button.innerHTML = `
-
-                <div class="flex min-w-0 items-center gap-3">
-
-                    <span class="
-                        flex h-9 w-9 shrink-0 items-center justify-center
-                        rounded-lg bg-[#006a4f]/10 text-[#006a4f]
-                    ">
-
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             class="h-4 w-4"
-                             fill="none"
-                             viewBox="0 0 24 24"
-                             stroke="currentColor">
-
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="1.8"
-                                  d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z"/>
-
-                            <circle cx="12"
-                                    cy="10"
-                                    r="2.5"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"/>
-
-                        </svg>
-
-                    </span>
+            const dejaSelectionne =
+                villagesSelectionnes.some(
+                    item => String(item.id) === String(villageId)
+                );
 
 
-                    <div class="min-w-0">
+            const div = document.createElement('button');
 
-                        <div class="truncate text-sm font-semibold text-gray-800">
-                            ${escapeHtml(village.nom)}
-                        </div>
+            div.type = 'button';
 
-                        ${
-                            village.code
-                                ? `
-                                    <div class="text-xs text-gray-400">
-                                        ${escapeHtml(village.code)}
-                                    </div>
-                                `
-                                : ''
-                        }
+            div.disabled = dejaSelectionne;
 
-                    </div>
+            div.className =
+                'block w-full border-b border-gray-100 px-4 py-3 text-left ' +
+                (dejaSelectionne
+                    ? 'cursor-not-allowed bg-gray-50 opacity-50'
+                    : 'hover:bg-emerald-50');
 
+
+            div.innerHTML = `
+                <div class="font-medium text-gray-800">
+                    ${escapeHtml(village.nom)}
                 </div>
 
-
-                <span class="
-                    shrink-0 rounded-lg border border-gray-200
-                    px-2 py-1 text-xs font-medium text-gray-500
-                ">
-                    Ajouter
-                </span>
-
+                ${
+                    village.code
+                    ? `
+                        <div class="text-xs text-gray-500">
+                            ${escapeHtml(village.code)}
+                        </div>
+                      `
+                    : ''
+                }
             `;
 
 
-            button.addEventListener('click', function () {
+            if (!dejaSelectionne) {
 
-                const id =
-                    String(village.idVillage);
+                div.addEventListener('click', function () {
 
+                    ajouterVillage(village);
 
-                if (!selectedVillageIds.includes(id)) {
+                });
 
-                    selectedVillageIds.push(id);
-
-                }
+            }
 
 
-                villageSearch.value = '';
-
-                villageResults.classList.add('hidden');
-
-                afficherVillagesSelectionnes();
-
-            });
-
-
-            villageResults.appendChild(button);
+            villageResults.appendChild(div);
 
         });
 
 
-        villageResults.classList.remove('hidden');
+        afficherZone(villageResults);
+
     }
 
 
-    villageSearch.addEventListener('focus', function () {
+    function ajouterVillage(village) {
 
-        if (!villageSearch.disabled) {
+        const id = village.idVillage ?? village.id;
 
-            afficherVillages(
-                villageSearch.value
-            );
+
+        if (
+            villagesSelectionnes.some(
+                item => String(item.id) === String(id)
+            )
+        ) {
+
+            return;
 
         }
 
-    });
+
+        villagesSelectionnes.push({
+
+            id: id,
+
+            nom: village.nom
+
+        });
+
+
+        afficherVillagesSelectionnes();
+
+
+        villageSearch.value = '';
+
+        masquerZone(villageResults);
+
+    }
+
+
+    function supprimerVillage(id) {
+
+        villagesSelectionnes =
+            villagesSelectionnes.filter(
+                village =>
+                    String(village.id) !== String(id)
+            );
+
+
+        afficherVillagesSelectionnes();
+
+    }
+
+
+    function afficherVillagesSelectionnes() {
+
+        villagesSelected.innerHTML = '';
+
+
+        villagesSelectionnes.forEach(village => {
+
+            const wrapper = document.createElement('div');
+
+            wrapper.className =
+                'flex items-center gap-2 rounded-full border border-emerald-200 ' +
+                'bg-emerald-50 px-3 py-1.5 text-sm text-emerald-800';
+
+
+            wrapper.innerHTML = `
+                <span>
+                    ${escapeHtml(village.nom)}
+                </span>
+
+                <button type="button"
+                        class="text-emerald-600 hover:text-red-600"
+                        title="Retirer">
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-4 w-4"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"/>
+
+                    </svg>
+
+                </button>
+            `;
+
+
+            wrapper
+                .querySelector('button')
+                .addEventListener('click', function () {
+
+                    supprimerVillage(village.id);
+
+                });
+
+
+            const input = document.createElement('input');
+
+            input.type = 'hidden';
+
+            input.name = 'village_ids[]';
+
+            input.value = village.id;
+
+
+            wrapper.appendChild(input);
+
+            villagesSelected.appendChild(wrapper);
+
+        });
+
+    }
 
 
     villageSearch.addEventListener('input', function () {
 
+        const campagne = campagneId.value;
+        const canton = cantonId.value;
+
+
+        if (!campagne || !canton) {
+
+            return;
+
+        }
+
+
+        const villages = villagesCampagne.filter(village => {
+
+            return (
+                String(village.campagne_id) === String(campagne)
+                &&
+                String(village.canton_id) === String(canton)
+            );
+
+        });
+
+
         afficherVillages(
-            villageSearch.value
+            villages,
+            this.value
+        );
+
+    });
+
+
+    villageSearch.addEventListener('focus', function () {
+
+        const campagne = campagneId.value;
+        const canton = cantonId.value;
+
+
+        if (!campagne || !canton) {
+
+            return;
+
+        }
+
+
+        const villages = villagesCampagne.filter(village => {
+
+            return (
+                String(village.campagne_id) === String(campagne)
+                &&
+                String(village.canton_id) === String(canton)
+            );
+
+        });
+
+
+        afficherVillages(
+            villages,
+            this.value
         );
 
     });
@@ -1239,168 +1115,111 @@ document.addEventListener('DOMContentLoaded', function () {
 
     villageToggle.addEventListener('click', function () {
 
+        const campagne = campagneId.value;
+        const canton = cantonId.value;
+
+
+        if (!campagne || !canton) {
+
+            return;
+
+        }
+
+
         if (villageResults.classList.contains('hidden')) {
 
+            const villages = villagesCampagne.filter(village => {
+
+                return (
+                    String(village.campagne_id) === String(campagne)
+                    &&
+                    String(village.canton_id) === String(canton)
+                );
+
+            });
+
+
             afficherVillages(
+                villages,
                 villageSearch.value
             );
 
         } else {
 
-            villageResults.classList.add('hidden');
+            masquerZone(villageResults);
 
         }
-
-        villageSearch.focus();
 
     });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGES SÉLECTIONNÉS
-    |--------------------------------------------------------------------------
-    */
+    /* ================================================================
+       RESET CANTON
+    ================================================================= */
 
-    function afficherVillagesSelectionnes() {
+    function resetCanton() {
 
-        selectedVillages.innerHTML = '';
+        cantonId.value = '';
 
+        cantonSearch.value = '';
 
-        document
-            .querySelectorAll('.village-hidden-input')
-            .forEach(input => input.remove());
+        cantonSearch.disabled = !campagneId.value;
 
+        cantonToggle.disabled = !campagneId.value;
 
-        if (selectedVillageIds.length === 0) {
-
-            selectedContainer.classList.add('hidden');
-
-            selectedCount.textContent =
-                '0 village';
-
-            return;
-        }
+        cantonSearch.placeholder =
+            campagneId.value
+                ? 'Rechercher un canton...'
+                : 'Sélectionnez d’abord une campagne...';
 
 
-        selectedContainer.classList.remove('hidden');
+        masquerZone(cantonResults);
 
+        masquerZone(cantonSelected);
 
-        selectedCount.textContent =
-            selectedVillageIds.length +
-            (
-                selectedVillageIds.length > 1
-                    ? ' villages'
-                    : ' village'
-            );
-
-
-        selectedVillageIds.forEach(id => {
-
-            const village =
-                villages.find(
-                    item =>
-                        String(item.idVillage) === String(id)
-                );
-
-
-            const badge =
-                document.createElement('div');
-
-
-            badge.className =
-                'flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm';
-
-
-            badge.innerHTML = `
-
-                <span class="
-                    h-2 w-2 shrink-0 rounded-full bg-[#006a4f]
-                "></span>
-
-                <span class="font-medium text-gray-700">
-                    ${escapeHtml(village?.nom ?? 'Village')}
-                </span>
-
-                <button
-                    type="button"
-                    class="ml-1 text-lg leading-none text-gray-400 transition hover:text-red-600"
-                    aria-label="Retirer"
-                >
-                    ×
-                </button>
-
-            `;
-
-
-            badge
-                .querySelector('button')
-                .addEventListener('click', function () {
-
-                    selectedVillageIds =
-                        selectedVillageIds.filter(
-                            villageId =>
-                                String(villageId) !== String(id)
-                        );
-
-
-                    afficherVillagesSelectionnes();
-
-                });
-
-
-            selectedVillages.appendChild(badge);
-
-
-            ajouterInputVillage(id);
-
-        });
+        resetVillages();
 
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | INPUTS CACHÉS
-    |--------------------------------------------------------------------------
-    */
+    /* ================================================================
+       RESET VILLAGES
+    ================================================================= */
 
-    function ajouterInputVillage(id) {
+    function resetVillages(clearSelection = true) {
 
-        const form =
-            villageSearch.closest('form') ||
-            document.querySelector('form');
+        if (clearSelection) {
 
+            villagesSelectionnes = [];
 
-        if (!form) {
-            return;
+            afficherVillagesSelectionnes();
+
         }
 
 
-        const input =
-            document.createElement('input');
+        villageSearch.value = '';
+
+        villageSearch.disabled = true;
+
+        villageToggle.disabled = true;
+
+        villageSearch.placeholder =
+            'Sélectionnez d’abord un canton...';
 
 
-        input.type = 'hidden';
+        masquerZone(villageResults);
 
-        input.name = 'village_ids[]';
+        villageLoading.classList.add('hidden');
 
-        input.value = id;
-
-        input.className =
-            'village-hidden-input';
-
-
-        form.appendChild(input);
+        villageHelp.textContent =
+            'Les villages proposés correspondent aux zones couvertes par la campagne.';
 
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | FERMETURE DES LISTES
-    |--------------------------------------------------------------------------
-    */
+    /* ================================================================
+       FERMETURE DES LISTES
+    ================================================================= */
 
     document.addEventListener('click', function (event) {
 
@@ -1409,7 +1228,9 @@ document.addEventListener('DOMContentLoaded', function () {
             !campagneResults.contains(event.target) &&
             !campagneToggle.contains(event.target)
         ) {
-            campagneResults.classList.add('hidden');
+
+            masquerZone(campagneResults);
+
         }
 
 
@@ -1418,7 +1239,9 @@ document.addEventListener('DOMContentLoaded', function () {
             !cantonResults.contains(event.target) &&
             !cantonToggle.contains(event.target)
         ) {
-            cantonResults.classList.add('hidden');
+
+            masquerZone(cantonResults);
+
         }
 
 
@@ -1427,125 +1250,106 @@ document.addEventListener('DOMContentLoaded', function () {
             !villageResults.contains(event.target) &&
             !villageToggle.contains(event.target)
         ) {
-            villageResults.classList.add('hidden');
+
+            masquerZone(villageResults);
+
         }
 
     });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ESCAPE HTML
-    |--------------------------------------------------------------------------
-    */
+    /* ================================================================
+       RESTAURATION DES ANCIENNES VALEURS
+    ================================================================= */
 
-    function escapeHtml(value) {
+    const ancienneCampagneId = campagneId.value;
 
-        const div =
-            document.createElement('div');
-
-        div.textContent =
-            value ?? '';
-
-        return div.innerHTML;
-
-    }
-
+    const ancienCantonId = cantonId.value;
 
     /*
-    |--------------------------------------------------------------------------
-    | RESTAURATION APRÈS ERREUR
-    |--------------------------------------------------------------------------
-    */
-
-    const ancienneCampagne =
-        @json(old('campagne_id'));
-
-    const ancienCanton =
-        @json(old('canton_id'));
-
-    const anciensVillages =
-        @json(old('village_ids', []));
+     * Ne pas utiliser :
+     *
+     * $affectation->villages->pluck(...)
+     *
+     * car la relation villages n'est pas disponible ici.
+     */
+    const anciensVillages = @json(old('village_ids', []));
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CAMPAGNE
-    |--------------------------------------------------------------------------
-    */
+    /* ------------------------------------------------
+       Restaurer campagne
+    ------------------------------------------------ */
 
-    if (ancienneCampagne) {
+    if (ancienneCampagneId) {
 
-        const campagne =
-            campagnes.find(
-                item =>
-                    String(item.id) ===
-                    String(ancienneCampagne)
-            );
+        const campagne = campagnes.find(item =>
+            String(item.idCampagne) === String(ancienneCampagneId)
+        );
 
 
         if (campagne) {
 
-            selectionnerCampagne(
-                campagne
-            );
+            selectionnerCampagne(campagne);
 
         }
 
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CANTON
-    |--------------------------------------------------------------------------
-    */
+    /* ------------------------------------------------
+       Restaurer canton
+    ------------------------------------------------ */
 
-    if (
-        ancienCanton &&
-        ancienneCampagne
-    ) {
+    if (ancienCantonId) {
 
-        const canton =
-            cantons.find(
-                item =>
-                    String(item.id) ===
-                    String(ancienCanton)
-            );
+        const canton = cantons.find(item => {
+
+            const id = item.idCanton ?? item.id;
+
+            return String(id) === String(ancienCantonId);
+
+        });
 
 
         if (canton) {
 
-            selectionnerCanton(
-                canton
-            );
+            selectionnerCanton(canton);
 
         }
 
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ANCIENS VILLAGES
-    |--------------------------------------------------------------------------
-    */
+    /* ------------------------------------------------
+       Restaurer villages
+    ------------------------------------------------ */
 
-    if (Array.isArray(anciensVillages)) {
+    if (
+        Array.isArray(anciensVillages) &&
+        anciensVillages.length > 0
+    ) {
 
-        selectedVillageIds =
-            anciensVillages.map(String);
+        anciensVillages.forEach(id => {
+
+            const village = villagesCampagne.find(item => {
+
+                const villageId =
+                    item.idVillage ?? item.id;
+
+                return String(villageId) === String(id);
+
+            });
+
+
+            if (village) {
+
+                ajouterVillage(village);
+
+            }
+
+        });
 
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | AFFICHAGE INITIAL
-    |--------------------------------------------------------------------------
-    */
-
-    afficherVillagesSelectionnes();
 
 });
 </script>

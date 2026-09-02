@@ -16,59 +16,6 @@
 
     /*
     |--------------------------------------------------------------------------
-    | TERRITOIRES EXISTANTS
-    |--------------------------------------------------------------------------
-    */
-
-    $territoiresExistants = $planificationActuelle
-        ? $planificationActuelle->territoires
-        : collect();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | COMMUNES SÉLECTIONNÉES
-    |--------------------------------------------------------------------------
-    */
-
-    $communesSelectionnees = $territoiresExistants
-        ->whereNotNull('commune_id')
-        ->pluck('commune_id')
-        ->map(fn ($id) => (string) $id)
-        ->values()
-        ->toArray();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CANTONS SÉLECTIONNÉS
-    |--------------------------------------------------------------------------
-    */
-
-    $cantonsSelectionnes = $territoiresExistants
-        ->whereNotNull('canton_id')
-        ->pluck('canton_id')
-        ->map(fn ($id) => (string) $id)
-        ->values()
-        ->toArray();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGES SÉLECTIONNÉS
-    |--------------------------------------------------------------------------
-    */
-
-    $villagesSelectionnes = $territoiresExistants
-        ->whereNotNull('village_id')
-        ->pluck('village_id')
-        ->map(fn ($id) => (string) $id)
-        ->values()
-        ->toArray();
-
-
-    /*
-    |--------------------------------------------------------------------------
     | BESOINS EXISTANTS
     |--------------------------------------------------------------------------
     */
@@ -94,22 +41,10 @@
     x-data="{
         besoins: @js(old('besoins', $besoinsExistants)),
 
-        communesSelectionnees: @js(
-            old('commune_ids', $communesSelectionnees)
-        ),
-
-        cantonsSelectionnes: @js(
-            old('canton_ids', $cantonsSelectionnes)
-        ),
-
-        villagesSelectionnes: @js(
-            old('village_ids', $villagesSelectionnes)
-        ),
-
 
         /*
         |--------------------------------------------------------------------------
-        | BESOINS
+        | AJOUTER UN BESOIN
         |--------------------------------------------------------------------------
         */
 
@@ -125,232 +60,16 @@
 
         },
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPRIMER UN BESOIN
+        |--------------------------------------------------------------------------
+        */
+
         supprimerBesoin(index) {
 
             this.besoins.splice(index, 1);
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | TEST COMMUNE
-        |--------------------------------------------------------------------------
-        */
-
-        communeSelectionnee(communeId) {
-
-            return this.communesSelectionnees
-                .includes(String(communeId));
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | TEST CANTON
-        |--------------------------------------------------------------------------
-        */
-
-        cantonSelectionne(cantonId) {
-
-            return this.cantonsSelectionnes
-                .includes(String(cantonId));
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | TEST VILLAGE
-        |--------------------------------------------------------------------------
-        */
-
-        villageSelectionne(villageId) {
-
-            return this.villagesSelectionnes
-                .includes(String(villageId));
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SÉLECTION COMMUNE ENTIÈRE
-        |--------------------------------------------------------------------------
-        */
-
-        selectionnerCommune(communeId) {
-
-            communeId = String(communeId);
-
-
-            /*
-            | Ajouter la commune
-            */
-
-            if (!this.communesSelectionnees.includes(communeId)) {
-
-                this.communesSelectionnees.push(communeId);
-
-            }
-
-
-            /*
-            | Une commune entière couvre tous ses cantons.
-            | On supprime donc les cantons de cette commune.
-            */
-
-            this.cantonsSelectionnes =
-                this.cantonsSelectionnes.filter(cantonId => {
-
-                    return !document.querySelector(
-                        `[data-commune-id='${communeId}'][data-canton-id='${cantonId}']`
-                    );
-
-                });
-
-
-            /*
-            | Une commune entière couvre également tous
-            | les villages de la commune.
-            */
-
-            this.villagesSelectionnes =
-                this.villagesSelectionnes.filter(villageId => {
-
-                    return !document.querySelector(
-                        `[data-commune-id='${communeId}'][data-village-id='${villageId}']`
-                    );
-
-                });
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | DÉSÉLECTION COMMUNE
-        |--------------------------------------------------------------------------
-        */
-
-        deselectionnerCommune(communeId) {
-
-            communeId = String(communeId);
-
-            this.communesSelectionnees =
-                this.communesSelectionnees.filter(
-                    id => id !== communeId
-                );
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SÉLECTION CANTON ENTIER
-        |--------------------------------------------------------------------------
-        */
-
-        selectionnerCanton(cantonId) {
-
-            cantonId = String(cantonId);
-
-
-            /*
-            | Ajouter le canton
-            */
-
-            if (!this.cantonsSelectionnes.includes(cantonId)) {
-
-                this.cantonsSelectionnes.push(cantonId);
-
-            }
-
-
-            /*
-            | Un canton entier couvre tous ses villages.
-            | On supprime donc les villages de ce canton.
-            */
-
-            this.villagesSelectionnes =
-                this.villagesSelectionnes.filter(villageId => {
-
-                    return !document.querySelector(
-                        `[data-canton-id='${cantonId}'][data-village-id='${villageId}']`
-                    );
-
-                });
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | DÉSÉLECTION CANTON
-        |--------------------------------------------------------------------------
-        */
-
-        deselectionnerCanton(cantonId) {
-
-            cantonId = String(cantonId);
-
-            this.cantonsSelectionnes =
-                this.cantonsSelectionnes.filter(
-                    id => id !== cantonId
-                );
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CHANGEMENT COMMUNE
-        |--------------------------------------------------------------------------
-        */
-
-        changerCommune(communeId) {
-
-            communeId = String(communeId);
-
-            if (
-                this.communesSelectionnees
-                    .includes(communeId)
-            ) {
-
-                this.selectionnerCommune(communeId);
-
-            } else {
-
-                this.deselectionnerCommune(communeId);
-
-            }
-
-        },
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CHANGEMENT CANTON
-        |--------------------------------------------------------------------------
-        */
-
-        changerCanton(cantonId) {
-
-            cantonId = String(cantonId);
-
-            if (
-                this.cantonsSelectionnes
-                    .includes(cantonId)
-            ) {
-
-                this.selectionnerCanton(cantonId);
-
-            } else {
-
-                this.deselectionnerCanton(cantonId);
-
-            }
 
         }
 
@@ -359,386 +78,41 @@
 
 
     {{-- ==========================================================
-        TERRITOIRE CONCERNÉ
+        INFORMATIONS DE LA PLANIFICATION
     =========================================================== --}}
 
-    <div>
+    <div class="rounded-lg border border-green-200 bg-green-50 p-4">
 
-        <div class="mb-5">
+        <div class="flex items-start gap-3">
 
-            <h3 class="text-sm font-semibold text-gray-800">
-                Territoire concerné
-            </h3>
+            <svg
+                class="mt-0.5 h-5 w-5 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"
+                />
+            </svg>
 
-            <p class="mt-1 text-xs leading-5 text-gray-500">
-                Sélectionnez les territoires concernés par la campagne.
-                Vous pouvez sélectionner une commune entière, un ou plusieurs
-                cantons entiers, ou seulement certains villages.
-            </p>
+            <div>
 
-        </div>
-
-
-        {{-- ======================================================
-            LÉGENDE
-        ======================================================= --}}
-
-        <div class="mb-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-
-            <div class="rounded-lg border border-green-200 bg-green-50 p-3">
-
-                <p class="text-xs font-semibold text-green-800">
-                    Commune entière
+                <p class="text-sm font-semibold text-green-800">
+                    Préfecture de {{ $deploiement->prefecture->nom }}
                 </p>
 
-                <p class="mt-1 text-xs text-green-700">
-                    Tous les cantons et villages de la commune.
-                </p>
-
-            </div>
-
-
-            <div class="rounded-lg border border-blue-200 bg-blue-50 p-3">
-
-                <p class="text-xs font-semibold text-blue-800">
-                    Canton entier
-                </p>
-
-                <p class="mt-1 text-xs text-blue-700">
-                    Tous les villages du canton.
-                </p>
-
-            </div>
-
-
-            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-
-                <p class="text-xs font-semibold text-gray-800">
-                    Villages
-                </p>
-
-                <p class="mt-1 text-xs text-gray-600">
-                    Sélection de villages précis.
+                <p class="mt-1 text-xs leading-5 text-green-700">
+                    Cette planification concerne l'organisation de la campagne
+                    au niveau préfectoral.
                 </p>
 
             </div>
 
         </div>
-
-
-        {{-- ======================================================
-            PRÉFECTURE
-        ======================================================= --}}
-
-        <div class="rounded-lg border border-green-200 bg-green-50 p-4">
-
-            <div class="flex items-start gap-3">
-
-                <svg
-                    class="mt-0.5 h-5 w-5 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"
-                    />
-                </svg>
-
-                <div>
-
-                    <p class="text-sm font-semibold text-green-800">
-                        Préfecture de {{ $deploiement->prefecture->nom }}
-                    </p>
-
-                    <p class="mt-1 text-xs text-green-700">
-                        La sélection est limitée au territoire de cette
-                        préfecture.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        {{-- ======================================================
-            COMMUNES
-        ======================================================= --}}
-
-        <div class="mt-5 space-y-4">
-
-            @forelse($communes as $commune)
-
-                <div
-                    class="overflow-hidden rounded-xl border border-gray-200 bg-white"
-                    x-data="{ ouvert: true }"
-                    data-commune-id="{{ $commune->idCommune }}"
-                >
-
-                    {{-- ==================================================
-                        COMMUNE
-                    =================================================== --}}
-
-                    <div class="flex items-center justify-between bg-gray-50 p-4">
-
-                        <div class="flex items-center gap-3">
-
-                            <div
-                                class="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100"
-                            >
-
-                                <svg
-                                    class="h-5 w-5 text-green-600"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M3 21h18M5 21V9l7-4 7 4v12M9 21v-6h6v6"
-                                    />
-                                </svg>
-
-                            </div>
-
-                            <div>
-
-                                <p class="text-sm font-semibold text-gray-800">
-                                    {{ $commune->nom }}
-                                </p>
-
-                                <p class="mt-0.5 text-xs text-gray-500">
-                                    {{ $commune->cantons->count() }}
-                                    canton(s)
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        {{-- COMMUNE ENTIÈRE --}}
-
-                        <label class="flex cursor-pointer items-center gap-2">
-
-                            <input
-                                type="checkbox"
-                                name="commune_ids[]"
-                                value="{{ $commune->idCommune }}"
-
-                                x-model="communesSelectionnees"
-
-                                @change="changerCommune('{{ $commune->idCommune }}')"
-
-                                class="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                            >
-
-                            <span class="text-xs font-semibold text-gray-700">
-                                Commune entière
-                            </span>
-
-                        </label>
-
-                    </div>
-
-
-                    {{-- ==================================================
-                        CANTONS
-                    =================================================== --}}
-
-                    <div
-                        x-show="ouvert"
-                        class="space-y-3 border-t border-gray-100 p-4"
-                    >
-
-                        @forelse($commune->cantons as $canton)
-
-                            <div
-                                class="rounded-lg border border-gray-200"
-                                data-commune-id="{{ $commune->idCommune }}"
-                                data-canton-id="{{ $canton->idCanton }}"
-                                x-data="{ ouvertCanton: false }"
-                            >
-
-                                {{-- CANTON --}}
-
-                                <div class="flex items-center justify-between p-3">
-
-                                    <label class="flex cursor-pointer items-center gap-3">
-
-                                        <input
-                                            type="checkbox"
-                                            name="canton_ids[]"
-                                            value="{{ $canton->idCanton }}"
-
-                                            x-model="cantonsSelectionnes"
-
-                                            @change="changerCanton('{{ $canton->idCanton }}')"
-
-                                            :disabled="
-                                                communeSelectionnee('{{ $commune->idCommune }}')
-                                            "
-
-                                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                        >
-
-                                        <div>
-
-                                            <p class="text-sm font-medium text-gray-700">
-                                                {{ $canton->nom }}
-                                            </p>
-
-                                            <p class="mt-0.5 text-xs text-gray-400">
-                                                {{ $canton->villages->count() }}
-                                                village(s)
-                                            </p>
-
-                                        </div>
-
-                                    </label>
-
-
-                                    <button
-                                        type="button"
-                                        @click="ouvertCanton = !ouvertCanton"
-                                        class="rounded-lg px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                    >
-
-                                        <span x-show="!ouvertCanton">
-                                            Voir les villages
-                                        </span>
-
-                                        <span x-show="ouvertCanton">
-                                            Masquer
-                                        </span>
-
-                                    </button>
-
-                                </div>
-
-
-                                {{-- ==================================================
-                                    VILLAGES
-                                =================================================== --}}
-
-                                <div
-                                    x-show="ouvertCanton"
-                                    class="border-t border-gray-100 bg-gray-50 px-4 py-3"
-                                >
-
-                                    <div class="mb-3">
-
-                                        <p class="text-xs font-medium text-gray-500">
-                                            Sélectionner certains villages
-                                        </p>
-
-                                    </div>
-
-
-                                    <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
-
-                                        @forelse($canton->villages as $village)
-
-                                            <label
-                                                data-commune-id="{{ $commune->idCommune }}"
-                                                data-canton-id="{{ $canton->idCanton }}"
-                                                data-village-id="{{ $village->idVillage }}"
-
-                                                class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 transition hover:bg-gray-50"
-                                            >
-
-                                                <input
-                                                    type="checkbox"
-                                                    name="village_ids[]"
-                                                    value="{{ $village->idVillage }}"
-
-                                                    x-model="villagesSelectionnes"
-
-                                                    :disabled="
-                                                        communeSelectionnee('{{ $commune->idCommune }}')
-                                                        ||
-                                                        cantonSelectionne('{{ $canton->idCanton }}')
-                                                    "
-
-                                                    class="rounded border-gray-300 text-gray-700 focus:ring-green-500"
-                                                >
-
-                                                <span class="text-sm text-gray-700">
-                                                    {{ $village->nom }}
-                                                </span>
-
-                                            </label>
-
-                                        @empty
-
-                                            <p class="text-xs text-gray-500">
-                                                Aucun village enregistré.
-                                            </p>
-
-                                        @endforelse
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        @empty
-
-                            <p class="text-sm text-gray-500">
-                                Aucun canton enregistré pour cette commune.
-                            </p>
-
-                        @endforelse
-
-                    </div>
-
-                </div>
-
-            @empty
-
-                <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-5">
-
-                    <p class="text-sm text-gray-500">
-                        Aucune commune enregistrée pour cette préfecture.
-                    </p>
-
-                </div>
-
-            @endforelse
-
-        </div>
-
-
-        {{-- ======================================================
-            ERREURS TERRITOIRES
-        ======================================================= --}}
-
-        @foreach([
-            'commune_ids',
-            'commune_ids.*',
-            'canton_ids',
-            'canton_ids.*',
-            'village_ids',
-            'village_ids.*'
-        ] as $champ)
-
-            @error($champ)
-
-                <p class="mt-2 text-sm text-red-600">
-                    {{ $message }}
-                </p>
-
-            @enderror
-
-        @endforeach
 
     </div>
 
@@ -765,6 +139,8 @@
             </div>
 
 
+            {{-- AJOUTER --}}
+
             <button
                 type="button"
                 @click="ajouterBesoin()"
@@ -777,12 +153,14 @@
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                 >
+
                     <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="2"
                         d="M12 4v16m8-8H4"
                     />
+
                 </svg>
 
                 Ajouter un besoin
@@ -792,7 +170,9 @@
         </div>
 
 
-        {{-- AUCUN BESOIN --}}
+        {{-- ======================================================
+            AUCUN BESOIN
+        ======================================================= --}}
 
         <template x-if="besoins.length === 0">
 
@@ -813,7 +193,9 @@
         </template>
 
 
-        {{-- LISTE DES BESOINS --}}
+        {{-- ======================================================
+            LISTE DES BESOINS
+        ======================================================= --}}
 
         <div class="space-y-4">
 
@@ -826,12 +208,17 @@
                     class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
                 >
 
+                    {{-- EN-TÊTE --}}
+
                     <div class="mb-4 flex items-center justify-between">
 
                         <p class="text-sm font-semibold text-gray-800">
+
                             Besoin
                             <span x-text="index + 1"></span>
+
                         </p>
+
 
                         <button
                             type="button"
@@ -846,14 +233,25 @@
 
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 
-                        {{-- CATÉGORIE --}}
+
+                        {{-- ==================================================
+                            CATÉGORIE
+                        =================================================== --}}
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700">
+                            <label
+                                class="block text-sm font-medium text-gray-700"
+                            >
+
                                 Catégorie
-                                <span class="text-red-500">*</span>
+
+                                <span class="text-red-500">
+                                    *
+                                </span>
+
                             </label>
+
 
                             <select
                                 :name="`besoins[${index}][categorie]`"
@@ -895,14 +293,24 @@
                         </div>
 
 
-                        {{-- DÉSIGNATION --}}
+                        {{-- ==================================================
+                            DÉSIGNATION
+                        =================================================== --}}
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700">
+                            <label
+                                class="block text-sm font-medium text-gray-700"
+                            >
+
                                 Besoin
-                                <span class="text-red-500">*</span>
+
+                                <span class="text-red-500">
+                                    *
+                                </span>
+
                             </label>
+
 
                             <input
                                 type="text"
@@ -916,14 +324,24 @@
                         </div>
 
 
-                        {{-- QUANTITÉ --}}
+                        {{-- ==================================================
+                            QUANTITÉ
+                        =================================================== --}}
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700">
+                            <label
+                                class="block text-sm font-medium text-gray-700"
+                            >
+
                                 Quantité
-                                <span class="text-red-500">*</span>
+
+                                <span class="text-red-500">
+                                    *
+                                </span>
+
                             </label>
+
 
                             <input
                                 type="number"
@@ -939,32 +357,21 @@
                         </div>
 
 
-                        {{-- UNITÉ --}}
-
-                        <div>
-
-                            <label class="block text-sm font-medium text-gray-700">
-                                Unité
-                            </label>
-
-                            <input
-                                type="text"
-                                :name="`besoins[${index}][unite]`"
-                                x-model="besoin.unite"
-                                placeholder="Ex. unité, litre, jour..."
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                            >
-
-                        </div>
+        
 
 
-                        {{-- OBSERVATIONS --}}
+                        {{-- ==================================================
+                            OBSERVATIONS DU BESOIN
+                        =================================================== --}}
 
                         <div class="md:col-span-2">
 
-                            <label class="block text-sm font-medium text-gray-700">
+                            <label
+                                class="block text-sm font-medium text-gray-700"
+                            >
                                 Observations
                             </label>
+
 
                             <input
                                 type="text"
@@ -985,30 +392,43 @@
         </div>
 
 
-        {{-- ERREURS BESOINS --}}
+        {{-- ======================================================
+            ERREURS BESOINS
+        ======================================================= --}}
 
         @error('besoins')
+
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
+
         @enderror
+
 
         @error('besoins.*.categorie')
+
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
+
         @enderror
+
 
         @error('besoins.*.designation')
+
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
+
         @enderror
 
+
         @error('besoins.*.quantite')
+
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
+
         @enderror
 
     </div>
@@ -1027,15 +447,23 @@
             Plan de travail
         </label>
 
+
+        <p class="mt-1 text-xs text-gray-500">
+            Décrivez les principales dispositions prévues pour la mise
+            en œuvre de la campagne dans la préfecture.
+        </p>
+
+
         <textarea
             id="planTravail"
             name="planTravail"
             rows="5"
-            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+            class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
         >{{ old(
             'planTravail',
             $planificationActuelle?->planTravail ?? ''
         ) }}</textarea>
+
 
         @error('planTravail')
 
@@ -1049,7 +477,7 @@
 
 
     {{-- ==========================================================
-        OBSERVATIONS
+        OBSERVATIONS GÉNÉRALES
     =========================================================== --}}
 
     <div class="mt-6">
@@ -1061,6 +489,7 @@
             Observations générales
         </label>
 
+
         <textarea
             id="observations"
             name="observations"
@@ -1070,6 +499,7 @@
             'observations',
             $planificationActuelle?->observations ?? ''
         ) }}</textarea>
+
 
         @error('observations')
 
@@ -1094,6 +524,7 @@
         >
             Annuler
         </a>
+
 
         <button
             type="submit"

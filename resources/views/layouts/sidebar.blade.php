@@ -816,6 +816,62 @@
 
             </a>
 
+            <a
+                href="{{ route('dpa.affectations.index') }}"
+                :class="[
+                    sidebarCollapsed ? 'justify-center px-0' : 'px-4',
+                    {{ request()->routeIs('dpa.affectations.*') ? 'true' : 'false' }}
+                        ? 'bg-green-50 text-green-700 font-semibold'
+                        : 'text-text-secondary hover:bg-background-muted'
+                ]"
+                class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
+                title="Affectations"
+            >
+
+                {{-- Icône Affectations --}}
+                <svg
+                    class="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 5H7a2 2 0 00-2 2v11a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"
+                    />
+
+                    <rect
+                        x="9"
+                        y="3"
+                        width="6"
+                        height="4"
+                        rx="1"
+                        stroke-width="1.8"
+                    />
+
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M8 11l1.5 1.5L12 10
+                        M8 16l1.5 1.5L12 15
+                        M14 12h2
+                        M14 17h2"
+                    />
+                </svg>
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition.opacity
+                    class="whitespace-nowrap"
+                >
+                    Déployement des agents
+                </span>
+
+            </a>
+
             
 
         </div>

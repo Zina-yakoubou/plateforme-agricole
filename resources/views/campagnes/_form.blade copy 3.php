@@ -1,5 +1,4 @@
 @csrf
-
 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 
     {{-- ================================================================
@@ -51,7 +50,7 @@
         >
 
         <p class="mt-1 text-xs text-gray-500">
-            La campagne doit commencer aujourd'hui ou à une date ultérieure.
+            La campagne doit commencer aujourd’hui ou à une date ultérieure.
         </p>
 
         @error('dateDebut')
@@ -99,12 +98,12 @@
 
 
     {{-- ================================================================
-        PORTÉE + ZONES (avec accordéon)
+        PORTÉE + ZONES
     ================================================================= --}}
     <div
         class="md:col-span-2"
         x-data="{
-            portee: @js(old('portee', $campagne->portee ?? 'nationale')),
+            portee: @js(old('portee', $campagne->portee ?? '')),
 
             regionIds: @js(
                 old(
@@ -171,49 +170,6 @@
                 )
             ),
 
-            /* --------------------------------------------------------
-                Accordéon : niveaux ouverts/fermés
-            --------------------------------------------------------- */
-            openPrefectures: [],
-            openCommunes: [],
-            openCantons: [],
-
-            toggleOpenPrefecture(id) {
-
-                id = String(id);
-
-                if (this.openPrefectures.includes(id)) {
-                    this.openPrefectures = this.openPrefectures.filter(i => i !== id);
-                } else {
-                    this.openPrefectures.push(id);
-                }
-            },
-
-            toggleOpenCommune(id) {
-
-                id = String(id);
-
-                if (this.openCommunes.includes(id)) {
-                    this.openCommunes = this.openCommunes.filter(i => i !== id);
-                } else {
-                    this.openCommunes.push(id);
-                }
-            },
-
-            toggleOpenCanton(id) {
-
-                id = String(id);
-
-                if (this.openCantons.includes(id)) {
-                    this.openCantons = this.openCantons.filter(i => i !== id);
-                } else {
-                    this.openCantons.push(id);
-                }
-            },
-
-            /* --------------------------------------------------------
-                Portée
-            --------------------------------------------------------- */
             changePortee() {
 
                 if (this.portee === 'nationale') {
@@ -222,9 +178,6 @@
                     this.communeIds = [];
                     this.cantonIds = [];
                     this.villageIds = [];
-                    this.openPrefectures = [];
-                    this.openCommunes = [];
-                    this.openCantons = [];
                 }
 
                 if (this.portee === 'regionale') {
@@ -232,9 +185,6 @@
                     this.communeIds = [];
                     this.cantonIds = [];
                     this.villageIds = [];
-                    this.openPrefectures = [];
-                    this.openCommunes = [];
-                    this.openCantons = [];
                 }
 
                 if (this.portee === 'prefectorale') {
@@ -242,166 +192,149 @@
                 }
             },
 
-            /* --------------------------------------------------------
-                Préfecture
-            --------------------------------------------------------- */
             togglePrefecture(id) {
 
                 id = String(id);
 
                 if (this.prefectureIds.map(String).includes(id)) {
+
+                    /*
+                     * Une préfecture entière est sélectionnée.
+                     * Les niveaux inférieurs deviennent inutiles.
+                     */
                     this.removeChildrenOfPrefecture(id);
                 }
             },
 
             removeChildrenOfPrefecture(prefectureId) {
 
-                prefectureId = String(prefectureId);
-
                 const prefecture = document.querySelector(
-                    `[data-prefecture-id='${prefectureId}']`
+                    '[data-prefecture-id="' + prefectureId + '"]'
                 );
 
-                if (prefecture) {
-
-                    prefecture
-                        .querySelectorAll(`input[data-child-type='commune']`)
-                        .forEach(input => {
-
-                            this.communeIds = this.communeIds.filter(
-                                id => String(id) !== String(input.value)
-                            );
-
-                        });
-
-                    prefecture
-                        .querySelectorAll(`input[data-child-type='canton']`)
-                        .forEach(input => {
-
-                            this.cantonIds = this.cantonIds.filter(
-                                id => String(id) !== String(input.value)
-                            );
-
-                        });
-
-                    prefecture
-                        .querySelectorAll(`input[data-child-type='village']`)
-                        .forEach(input => {
-
-                            this.villageIds = this.villageIds.filter(
-                                id => String(id) !== String(input.value)
-                            );
-
-                        });
-
+                if (!prefecture) {
+                    return;
                 }
 
-                this.openPrefectures = this.openPrefectures.filter(
-                    id => id !== prefectureId
-                );
+                prefecture
+                    .querySelectorAll('input[data-child-type="commune"]')
+                    .forEach(input => {
+
+                        this.communeIds = this.communeIds.filter(
+                            id => String(id) !== String(input.value)
+                        );
+
+                    });
+
+                prefecture
+                    .querySelectorAll('input[data-child-type="canton"]')
+                    .forEach(input => {
+
+                        this.cantonIds = this.cantonIds.filter(
+                            id => String(id) !== String(input.value)
+                        );
+
+                    });
+
+                prefecture
+                    .querySelectorAll('input[data-child-type="village"]')
+                    .forEach(input => {
+
+                        this.villageIds = this.villageIds.filter(
+                            id => String(id) !== String(input.value)
+                        );
+
+                    });
             },
 
-            /* --------------------------------------------------------
-                Commune
-            --------------------------------------------------------- */
             toggleCommune(id) {
 
                 id = String(id);
 
                 if (this.communeIds.map(String).includes(id)) {
+
                     this.removeChildrenOfCommune(id);
                 }
             },
 
             removeChildrenOfCommune(communeId) {
 
-                communeId = String(communeId);
-
                 const commune = document.querySelector(
-                    `[data-commune-id='${communeId}']`
+                    '[data-commune-id="' + communeId + '"]'
                 );
 
-                if (commune) {
-
-                    commune
-                        .querySelectorAll(`input[data-child-type='canton']`)
-                        .forEach(input => {
-
-                            this.cantonIds = this.cantonIds.filter(
-                                id => String(id) !== String(input.value)
-                            );
-
-                        });
-
-                    commune
-                        .querySelectorAll(`input[data-child-type='village']`)
-                        .forEach(input => {
-
-                            this.villageIds = this.villageIds.filter(
-                                id => String(id) !== String(input.value)
-                            );
-
-                        });
-
+                if (!commune) {
+                    return;
                 }
 
-                this.openCommunes = this.openCommunes.filter(
-                    id => id !== communeId
-                );
+                commune
+                    .querySelectorAll('input[data-child-type="canton"]')
+                    .forEach(input => {
+
+                        this.cantonIds = this.cantonIds.filter(
+                            id => String(id) !== String(input.value)
+                        );
+
+                    });
+
+                commune
+                    .querySelectorAll('input[data-child-type="village"]')
+                    .forEach(input => {
+
+                        this.villageIds = this.villageIds.filter(
+                            id => String(id) !== String(input.value)
+                        );
+
+                    });
             },
 
-            /* --------------------------------------------------------
-                Canton
-            --------------------------------------------------------- */
             toggleCanton(id) {
 
                 id = String(id);
 
                 if (this.cantonIds.map(String).includes(id)) {
+
                     this.removeChildrenOfCanton(id);
                 }
             },
 
             removeChildrenOfCanton(cantonId) {
 
-                cantonId = String(cantonId);
-
                 const canton = document.querySelector(
-                    `[data-canton-id='${cantonId}']`
+                    '[data-canton-id="' + cantonId + '"]'
                 );
 
-                if (canton) {
-
-                    canton
-                        .querySelectorAll(`input[data-child-type='village']`)
-                        .forEach(input => {
-
-                            this.villageIds = this.villageIds.filter(
-                                id => String(id) !== String(input.value)
-                            );
-
-                        });
-
+                if (!canton) {
+                    return;
                 }
 
-                this.openCantons = this.openCantons.filter(
-                    id => id !== cantonId
-                );
+                canton
+                    .querySelectorAll('input[data-child-type="village"]')
+                    .forEach(input => {
+
+                        this.villageIds = this.villageIds.filter(
+                            id => String(id) !== String(input.value)
+                        );
+
+                    });
             },
 
-            /* --------------------------------------------------------
-                Helpers de sélection
-            --------------------------------------------------------- */
             isPrefectureSelected(id) {
-                return this.prefectureIds.map(String).includes(String(id));
+                return this.prefectureIds
+                    .map(String)
+                    .includes(String(id));
             },
 
             isCommuneSelected(id) {
-                return this.communeIds.map(String).includes(String(id));
+                return this.communeIds
+                    .map(String)
+                    .includes(String(id));
             },
 
             isCantonSelected(id) {
-                return this.cantonIds.map(String).includes(String(id));
+                return this.cantonIds
+                    .map(String)
+                    .includes(String(id));
             }
         }"
     >
@@ -459,8 +392,8 @@
                 </h3>
 
                 <p class="mt-1 text-xs text-gray-500">
-                    Cliquez sur la flèche pour ouvrir une préfecture, une
-                    commune ou un canton et sélectionner un niveau plus fin.
+                    Définissez précisément le territoire administratif
+                    couvert par cette campagne.
                 </p>
             </div>
 
@@ -574,7 +507,7 @@
 
 
             {{-- ========================================================
-                PRÉFECTORALE (accordéon)
+                PRÉFECTORALE
             ========================================================= --}}
             <template x-if="portee === 'prefectorale'">
 
@@ -587,11 +520,10 @@
                         </p>
 
                         <p class="mt-1 text-xs text-gray-500">
-                            Sélectionnez une préfecture entière ou cliquez sur
-                            la flèche pour descendre jusqu'à la commune, au
-                            canton ou au village. Lorsqu'un niveau supérieur
-                            est sélectionné, ses niveaux inférieurs sont
-                            masqués et désélectionnés.
+                            Sélectionnez une préfecture entière ou descendez
+                            jusqu'à la commune, au canton ou au village.
+                            Lorsqu'un niveau supérieur est sélectionné,
+                            ses niveaux inférieurs sont masqués.
                         </p>
 
                     </div>
@@ -647,36 +579,14 @@
                                             ================================================== --}}
                                             <div
                                                 data-prefecture-id="{{ $prefecture->idPrefecture }}"
-                                                class="overflow-hidden rounded-xl border border-gray-200"
+                                                class="rounded-xl border border-gray-200
+                                                    overflow-hidden"
                                             >
 
                                                 <div
                                                     class="flex items-center gap-3
                                                         bg-gray-50 px-4 py-3"
                                                 >
-
-                                                    {{-- Flèche préfecture --}}
-                                                    <button
-                                                        type="button"
-                                                        @click="toggleOpenPrefecture('{{ $prefecture->idPrefecture }}')"
-                                                        x-show="!isPrefectureSelected('{{ $prefecture->idPrefecture }}')"
-                                                        class="rounded p-1 text-gray-400 transition hover:bg-gray-200 hover:text-gray-600"
-                                                    >
-                                                        <svg
-                                                            class="h-4 w-4 transition-transform"
-                                                            :class="openPrefectures.includes('{{ $prefecture->idPrefecture }}') ? 'rotate-90' : ''"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                stroke-linecap="round"
-                                                                stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M9 5l7 7-7 7"
-                                                            />
-                                                        </svg>
-                                                    </button>
 
                                                     <input
                                                         type="checkbox"
@@ -716,10 +626,10 @@
 
 
                                                 {{-- =================================================
-                                                    COMMUNES (fermées par défaut)
+                                                    COMMUNES
                                                 ================================================== --}}
                                                 <div
-                                                    x-show="openPrefectures.includes('{{ $prefecture->idPrefecture }}') && !isPrefectureSelected('{{ $prefecture->idPrefecture }}')"
+                                                    x-show="!isPrefectureSelected('{{ $prefecture->idPrefecture }}')"
                                                     x-transition
                                                     class="space-y-2 p-3"
                                                 >
@@ -736,29 +646,6 @@
                                                                 class="flex items-center gap-3
                                                                     px-3 py-2.5 hover:bg-gray-50"
                                                             >
-
-                                                                {{-- Flèche commune --}}
-                                                                <button
-                                                                    type="button"
-                                                                    @click="toggleOpenCommune('{{ $commune->idCommune }}')"
-                                                                    x-show="!isCommuneSelected('{{ $commune->idCommune }}')"
-                                                                    class="rounded p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-                                                                >
-                                                                    <svg
-                                                                        class="h-4 w-4 transition-transform"
-                                                                        :class="openCommunes.includes('{{ $commune->idCommune }}') ? 'rotate-90' : ''"
-                                                                        fill="none"
-                                                                        stroke="currentColor"
-                                                                        viewBox="0 0 24 24"
-                                                                    >
-                                                                        <path
-                                                                            stroke-linecap="round"
-                                                                            stroke-linejoin="round"
-                                                                            stroke-width="2"
-                                                                            d="M9 5l7 7-7 7"
-                                                                        />
-                                                                    </svg>
-                                                                </button>
 
                                                                 <input
                                                                     type="checkbox"
@@ -800,10 +687,10 @@
 
 
                                                             {{-- =================================================
-                                                                CANTONS (fermés par défaut)
+                                                                CANTONS
                                                             ================================================== --}}
                                                             <div
-                                                                x-show="openCommunes.includes('{{ $commune->idCommune }}') && !isCommuneSelected('{{ $commune->idCommune }}')"
+                                                                x-show="!isCommuneSelected('{{ $commune->idCommune }}')"
                                                                 x-transition
                                                                 class="ml-7 space-y-2 border-l
                                                                     border-gray-200 py-2 pl-3"
@@ -821,29 +708,6 @@
                                                                             class="flex items-center gap-3
                                                                                 px-3 py-2.5 hover:bg-gray-50"
                                                                         >
-
-                                                                            {{-- Flèche canton --}}
-                                                                            <button
-                                                                                type="button"
-                                                                                @click="toggleOpenCanton('{{ $canton->idCanton }}')"
-                                                                                x-show="!isCantonSelected('{{ $canton->idCanton }}')"
-                                                                                class="rounded p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-                                                                            >
-                                                                                <svg
-                                                                                    class="h-4 w-4 transition-transform"
-                                                                                    :class="openCantons.includes('{{ $canton->idCanton }}') ? 'rotate-90' : ''"
-                                                                                    fill="none"
-                                                                                    stroke="currentColor"
-                                                                                    viewBox="0 0 24 24"
-                                                                                >
-                                                                                    <path
-                                                                                        stroke-linecap="round"
-                                                                                        stroke-linejoin="round"
-                                                                                        stroke-width="2"
-                                                                                        d="M9 5l7 7-7 7"
-                                                                                    />
-                                                                                </svg>
-                                                                            </button>
 
                                                                             <input
                                                                                 type="checkbox"
@@ -885,11 +749,10 @@
 
 
                                                                         {{-- =================================================
-                                                                            VILLAGES (visibles quand le canton
-                                                                            est ouvert et non sélectionné)
+                                                                            VILLAGES
                                                                         ================================================== --}}
                                                                         <div
-                                                                            x-show="openCantons.includes('{{ $canton->idCanton }}') && !isCantonSelected('{{ $canton->idCanton }}')"
+                                                                            x-show="!isCantonSelected('{{ $canton->idCanton }}')"
                                                                             x-transition
                                                                             class="ml-7 space-y-1 border-l
                                                                                 border-gray-200 py-2 pl-3"

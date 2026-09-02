@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 
 class StorePlanificationPrefectoraleRequest extends FormRequest
@@ -37,72 +36,6 @@ class StorePlanificationPrefectoraleRequest extends FormRequest
             'observations' => [
                 'nullable',
                 'string',
-            ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | COMMUNES
-            |--------------------------------------------------------------------------
-            |
-            | Une commune sélectionnée signifie :
-            | "toute la commune est concernée".
-            |
-            */
-
-            'commune_ids' => [
-                'nullable',
-                'array',
-            ],
-
-            'commune_ids.*' => [
-                'integer',
-                'distinct',
-                'exists:communes,idCommune',
-            ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | CANTONS
-            |--------------------------------------------------------------------------
-            |
-            | Un canton sélectionné signifie :
-            | "tout le canton est concerné".
-            |
-            */
-
-            'canton_ids' => [
-                'nullable',
-                'array',
-            ],
-
-            'canton_ids.*' => [
-                'integer',
-                'distinct',
-                'exists:cantons,idCanton',
-            ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | VILLAGES
-            |--------------------------------------------------------------------------
-            |
-            | Un village sélectionné signifie uniquement
-            | que ce village est concerné.
-            |
-            */
-
-            'village_ids' => [
-                'nullable',
-                'array',
-            ],
-
-            'village_ids.*' => [
-                'integer',
-                'distinct',
-                'exists:villages,idVillage',
             ],
 
 
@@ -156,35 +89,14 @@ class StorePlanificationPrefectoraleRequest extends FormRequest
     {
         return [
 
-            'commune_ids.array' =>
-                'Les communes sélectionnées sont invalides.',
+            /*
+            |--------------------------------------------------------------------------
+            | BESOINS
+            |--------------------------------------------------------------------------
+            */
 
-            'commune_ids.*.exists' =>
-                'Une commune sélectionnée n’existe pas.',
-
-            'commune_ids.*.distinct' =>
-                'Une commune ne peut pas être sélectionnée plusieurs fois.',
-
-
-            'canton_ids.array' =>
-                'Les cantons sélectionnés sont invalides.',
-
-            'canton_ids.*.exists' =>
-                'Un canton sélectionné n’existe pas.',
-
-            'canton_ids.*.distinct' =>
-                'Un canton ne peut pas être sélectionné plusieurs fois.',
-
-
-            'village_ids.array' =>
-                'Les villages sélectionnés sont invalides.',
-
-            'village_ids.*.exists' =>
-                'Un village sélectionné n’existe pas.',
-
-            'village_ids.*.distinct' =>
-                'Un village ne peut pas être sélectionné plusieurs fois.',
-
+            'besoins.array' =>
+                'Les besoins transmis sont invalides.',
 
             'besoins.*.categorie.required' =>
                 'La catégorie du besoin est obligatoire.',
@@ -200,47 +112,18 @@ class StorePlanificationPrefectoraleRequest extends FormRequest
 
             'besoins.*.quantite.min' =>
                 'La quantité ne peut pas être négative.',
+
+            'besoins.*.unite.string' =>
+                'L’unité doit être une chaîne de caractères.',
+
+            'besoins.*.unite.max' =>
+                'L’unité ne peut pas dépasser 50 caractères.',
+
+            'besoins.*.observations.string' =>
+                'Les observations du besoin doivent être une chaîne de caractères.',
+
+            'besoins.*.observations.max' =>
+                'Les observations du besoin ne peuvent pas dépasser 1000 caractères.',
         ];
-    }
-
-    /**
-     * Validation supplémentaire après les règles classiques.
-     */
-    protected function passedValidation(): void
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | NORMALISATION
-        |--------------------------------------------------------------------------
-        */
-
-        $this->merge([
-            'commune_ids' => array_values(
-                array_unique(
-                    array_map(
-                        'intval',
-                        $this->input('commune_ids', [])
-                    )
-                )
-            ),
-
-            'canton_ids' => array_values(
-                array_unique(
-                    array_map(
-                        'intval',
-                        $this->input('canton_ids', [])
-                    )
-                )
-            ),
-
-            'village_ids' => array_values(
-                array_unique(
-                    array_map(
-                        'intval',
-                        $this->input('village_ids', [])
-                    )
-                )
-            ),
-        ]);
     }
 }
