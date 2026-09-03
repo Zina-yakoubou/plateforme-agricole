@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCampagnePlanificationRequest;
 use App\Models\CampagnePlanification;
 use App\Models\CampagneRecensement;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class CampagnePlanificationController extends Controller
@@ -63,7 +64,7 @@ class CampagnePlanificationController extends Controller
 
             $planification = CampagnePlanification::create([
                 'campagne_id'  => $campagne->idCampagne,
-                'planifie_par' => auth()->id(),
+                'planifie_par' => Auth::user()->id,
                 'statut'       => 'planifiee',
                 'observations' => $data['observations'] ?? null,
             ]);

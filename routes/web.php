@@ -18,6 +18,8 @@ use App\Http\Controllers\DpaCampagneController;
 use App\Http\Controllers\CampagnePlanificationController;
 use App\Http\Controllers\Dpa\PlanificationPrefectoraleController;
 use App\Http\Controllers\Dpa\EquipeController;
+use App\Http\Controllers\Dpa\DpaAgentController;
+
 
 
 
@@ -457,13 +459,23 @@ Route::middleware(['auth'])
     ->group(function () {
 
 
-        
+        //Gestion des agents et superviseurs 
 
-    // Liste des équipes
+         Route::resource('agents', DpaAgentController::class);
+
+        Route::patch(
+            'agents/{user}/toggle-status',
+            [DpaAgentController::class, 'toggleStatus']
+        )->name('agents.toggle-status');
+
+
+        // Liste des équipes
         Route::get('/equipes', [
             EquipeController::class,
             'index'
         ])->name('equipes.index');
+
+        
 
         // Formulaire de création
         Route::get('/equipes/create', [
@@ -500,6 +512,11 @@ Route::middleware(['auth'])
             EquipeController::class,
             'destroy'
         ])->name('equipes.destroy');
+
+        Route::patch(
+            '/equipes/{equipe}/reactiver',
+            [EquipeController::class, 'reactiver']
+        )->name('equipes.reactiver');
 
 
 
@@ -547,6 +564,18 @@ Route::middleware(['auth'])
             '/equipes/{equipe}/affectations/{affectation}/desactiver',
             [AffectationController::class, 'desactiver']
         )->name('equipes.affectations.desactiver');
+
+         Route::get('/affectations/{affectation}', [AffectationController::class, 'show'])
+            ->name('affectations.show');
+
+        Route::delete('/affectations/{affectation}', [AffectationController::class, 'destroy'])
+            ->name('affectations.destroy');
+
+        Route::patch(
+                '/affectations/{affectation}/reactiver',
+                [AffectationController::class, 'reactiver']
+            )->name('affectations.reactiver');
+                    
 
         // =========================================================
         // RECONDUIRE UNE ÉQUIPE

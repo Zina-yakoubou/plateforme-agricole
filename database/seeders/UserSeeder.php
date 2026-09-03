@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Prefecture;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -14,112 +16,142 @@ class UserSeeder extends Seeder
     {
         /*
         |--------------------------------------------------------------------------
+        | Préfecture de Mô
+        |--------------------------------------------------------------------------
+        |
+        | On récupère la préfecture depuis la base.
+        | Aucun ID brut n'est utilisé.
+        |
+        */
+        $prefectureMo = Prefecture::query()
+            ->where('nom', 'Mô')
+            ->firstOrFail();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Fonction de création d'un utilisateur
+        |--------------------------------------------------------------------------
+        */
+        $creerUtilisateur = function (array $data) use ($prefectureMo): User {
+            $user = User::updateOrCreate(
+                [
+                    'telephone' => $data['telephone'],
+                ],
+                [
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'password' => Hash::make('password'),
+                    'telephone_verified_at' => now(),
+                    'statut' => true,
+                    'role_id' => $data['role_id'],
+                ]
+            );
+
+            /*
+             * Le compte est rattaché à la préfecture de Mô
+             * sauf pour l'administrateur.
+             */
+            if (! empty($data['rattacher_prefecture'])) {
+
+                $rattachement = $user
+                    ->rattachementsPrefecture()
+                    ->firstOrNew([
+                        'prefecture_id' => $prefectureMo->getKey(),
+                    ]);
+
+                $rattachement->dateDebut ??= now()->startOfDay();
+                $rattachement->dateFin = null;
+                $rattachement->statut = 'actif';
+
+                $rattachement->save();
+            }
+
+            return $user;
+        };
+
+        /*
+        |--------------------------------------------------------------------------
         | Administrateur
         |--------------------------------------------------------------------------
         */
-        User::updateOrCreate(
-            ['telephone' => '90000000'],
-            [
-                'name' => 'Koffi Mensah',
-                'email' => 'koffi.mensah@gmail.com',
-                'password' => 'password',
-                'telephone_verified_at' => now(),
-                'statut' => true,
-                'role_id' => 'R01',
-            ]
-        );
+        $creerUtilisateur([
+            'name' => 'Koffi Mensah',
+            'email' => 'koffi.mensah@gmail.com',
+            'telephone' => '90000000',
+            'role_id' => 'R01',
+            'rattacher_prefecture' => false,
+        ]);
 
         /*
         |--------------------------------------------------------------------------
         | DPA
         |--------------------------------------------------------------------------
         */
-        User::updateOrCreate(
-            ['telephone' => '91111111'],
-            [
-                'name' => 'Kodjo Agbeko',
-                'email' => 'kodjo.agbeko@gmail.com',
-                'password' => 'password',
-                'telephone_verified_at' => now(),
-                'statut' => true,
-                'role_id' => 'R02',
-            ]
-        );
+        $creerUtilisateur([
+            'name' => 'Kodjo Agbeko',
+            'email' => 'kodjo.agbeko@gmail.com',
+            'telephone' => '91111111',
+            'role_id' => 'R02',
+            'rattacher_prefecture' => true,
+        ]);
 
         /*
         |--------------------------------------------------------------------------
         | Superviseur principal
         |--------------------------------------------------------------------------
         */
-        User::updateOrCreate(
-            ['telephone' => '92222222'],
-            [
-                'name' => 'Kossi Amouzou',
-                'email' => 'kossi.amouzou@gmail.com',
-                'password' => 'password',
-                'telephone_verified_at' => now(),
-                'statut' => true,
-                'role_id' => 'R03',
-            ]
-        );
+        $creerUtilisateur([
+            'name' => 'Kossi Amouzou',
+            'email' => 'kossi.amouzou@gmail.com',
+            'telephone' => '92222222',
+            'role_id' => 'R03',
+            'rattacher_prefecture' => true,
+        ]);
 
         /*
         |--------------------------------------------------------------------------
         | Technicien
         |--------------------------------------------------------------------------
         */
-        User::updateOrCreate(
-            ['telephone' => '93333333'],
-            [
-                'name' => 'Yawovi Lawson',
-                'email' => 'yawovi.lawson@gmail.com',
-                'password' => 'password',
-                'telephone_verified_at' => now(),
-                'statut' => true,
-                'role_id' => 'R04',
-            ]
-        );
+        $creerUtilisateur([
+            'name' => 'Yawovi Lawson',
+            'email' => 'yawovi.lawson@gmail.com',
+            'telephone' => '93333333',
+            'role_id' => 'R04',
+            'rattacher_prefecture' => true,
+        ]);
 
         /*
         |--------------------------------------------------------------------------
         | CACH
         |--------------------------------------------------------------------------
         */
-        User::updateOrCreate(
-            ['telephone' => '94444444'],
-            [
-                'name' => 'Ama Koudjo',
-                'email' => 'ama.koudjo@gmail.com',
-                'password' => 'password',
-                'telephone_verified_at' => now(),
-                'statut' => true,
-                'role_id' => 'R05',
-            ]
-        );
+        $creerUtilisateur([
+            'name' => 'Ama Koudjo',
+            'email' => 'ama.koudjo@gmail.com',
+            'telephone' => '94444444',
+            'role_id' => 'R05',
+            'rattacher_prefecture' => true,
+        ]);
 
         /*
         |--------------------------------------------------------------------------
         | Agent recenseur principal
         |--------------------------------------------------------------------------
         */
-        User::updateOrCreate(
-            ['telephone' => '95555555'],
-            [
-                'name' => 'Komlan Adjeoda',
-                'email' => 'komlan.adjeoda@gmail.com',
-                'password' => 'password',
-                'telephone_verified_at' => now(),
-                'statut' => true,
-                'role_id' => 'R06',
-            ]
-        );
+        $creerUtilisateur([
+            'name' => 'Komlan Adjeoda',
+            'email' => 'komlan.adjeoda@gmail.com',
+            'telephone' => '95555555',
+            'role_id' => 'R06',
+            'rattacher_prefecture' => true,
+        ]);
 
         /*
         |--------------------------------------------------------------------------
         | 10 SUPERVISEURS
         |--------------------------------------------------------------------------
         */
-
         $superviseurs = [
             'Abalo Kokou',
             'Akakpo Mawuli',
@@ -135,17 +167,20 @@ class UserSeeder extends Seeder
 
         foreach ($superviseurs as $index => $nom) {
 
-            User::updateOrCreate(
-                ['telephone' => '92222' . str_pad($index + 1, 3, '0', STR_PAD_LEFT)],
-                [
-                    'name' => $nom,
-                    'email' => 'superviseur' . ($index + 1) . '@siramo.test',
-                    'password' => 'password',
-                    'telephone_verified_at' => now(),
-                    'statut' => true,
-                    'role_id' => 'R03',
-                ]
-            );
+            $numero = $index + 1;
+
+            $creerUtilisateur([
+                'name' => $nom,
+                'email' => 'superviseur' . $numero . '@siramo.test',
+                'telephone' => '92222' . str_pad(
+                    $numero,
+                    3,
+                    '0',
+                    STR_PAD_LEFT
+                ),
+                'role_id' => 'R03',
+                'rattacher_prefecture' => true,
+            ]);
         }
 
         /*
@@ -153,7 +188,6 @@ class UserSeeder extends Seeder
         | 20 AGENTS RECENSEURS
         |--------------------------------------------------------------------------
         */
-
         $agents = [
             'Afi Eyram',
             'Akouvi Mensah',
@@ -179,17 +213,20 @@ class UserSeeder extends Seeder
 
         foreach ($agents as $index => $nom) {
 
-            User::updateOrCreate(
-                ['telephone' => '95555' . str_pad($index + 1, 3, '0', STR_PAD_LEFT)],
-                [
-                    'name' => $nom,
-                    'email' => 'agent' . ($index + 1) . '@siramo.test',
-                    'password' => 'password',
-                    'telephone_verified_at' => now(),
-                    'statut' => true,
-                    'role_id' => 'R06',
-                ]
-            );
+            $numero = $index + 1;
+
+            $creerUtilisateur([
+                'name' => $nom,
+                'email' => 'agent' . $numero . '@siramo.test',
+                'telephone' => '95555' . str_pad(
+                    $numero,
+                    3,
+                    '0',
+                    STR_PAD_LEFT
+                ),
+                'role_id' => 'R06',
+                'rattacher_prefecture' => true,
+            ]);
         }
     }
 }

@@ -778,7 +778,7 @@ class CampagneRecensementController extends Controller
             'dateDebut'          => $validated['dateDebut'],
             'dateFin'            => $validated['dateFin'] ?? null,
             'statut'             => 'planifiee',
-            'created_by'         => auth()->id(),
+            'created_by'         => Auth::user()->id,
         ]);
 
         /*

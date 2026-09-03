@@ -7,6 +7,7 @@ use App\Models\Commune;
 use App\Http\Requests\StoreCantonRequest;
 use App\Http\Requests\UpdateCantonRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CantonController extends Controller
 {
@@ -17,7 +18,7 @@ class CantonController extends Controller
     {
         $search = $request->input('search');
 
-        $user = auth()->user();
+        $user = Auth::user();
 
         $cantons = Canton::with('commune')
             ->when($user->isDpa(), function ($query) use ($user) {

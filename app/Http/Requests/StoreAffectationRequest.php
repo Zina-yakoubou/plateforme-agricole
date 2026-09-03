@@ -7,26 +7,19 @@ use Illuminate\Support\Facades\Auth;
 
 class StoreAffectationRequest extends FormRequest
 {
-    /**
-     * Autorisation de la requête.
-     */
     public function authorize(): bool
     {
         return Auth::check();
     }
 
     /**
-     * Règles de validation.
+     * canton_id n'est plus un champ du formulaire : chaque
+     * village porte déjà son canton en base, la vérification
+     * se fait directement sur les villages dans le contrôleur.
      */
     public function rules(): array
     {
         return [
-
-            /*
-            |--------------------------------------------------------------------------
-            | CAMPAGNE
-            |--------------------------------------------------------------------------
-            */
 
             'campagne_id' => [
                 'required',
@@ -34,42 +27,11 @@ class StoreAffectationRequest extends FormRequest
                 'exists:campagne_recensements,idCampagne',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | ÉQUIPE
-            |--------------------------------------------------------------------------
-            */
-
             'equipe_id' => [
                 'required',
                 'integer',
                 'exists:equipes,idEquipe',
             ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | CANTON
-            |--------------------------------------------------------------------------
-            |
-            | Le canton sert à déterminer les villages disponibles.
-            | Il n'est pas enregistré directement dans affectations.
-            |
-            */
-
-            'canton_id' => [
-                'required',
-                'integer',
-                'exists:cantons,idCanton',
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | VILLAGES
-            |--------------------------------------------------------------------------
-            |
-            | Une équipe peut être affectée à plusieurs villages.
-            |
-            */
 
             'village_ids' => [
                 'required',
@@ -84,16 +46,6 @@ class StoreAffectationRequest extends FormRequest
                 'exists:villages,idVillage',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | DATES
-            |--------------------------------------------------------------------------
-            |
-            | Les dates sont volontairement facultatives.
-            | Elles peuvent donc être nulles.
-            |
-            */
-
             'dateDebut' => [
                 'nullable',
                 'date',
@@ -105,22 +57,10 @@ class StoreAffectationRequest extends FormRequest
                 'after_or_equal:dateDebut',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | STATUT
-            |--------------------------------------------------------------------------
-            */
-
             'statut' => [
                 'nullable',
                 'in:active,terminee,annulee',
             ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | OBSERVATIONS
-            |--------------------------------------------------------------------------
-            */
 
             'observations' => [
                 'nullable',
@@ -130,18 +70,9 @@ class StoreAffectationRequest extends FormRequest
         ];
     }
 
-    /**
-     * Messages personnalisés.
-     */
     public function messages(): array
     {
         return [
-
-            /*
-            |----------------------------------------------------------------------
-            | CAMPAGNE
-            |----------------------------------------------------------------------
-            */
 
             'campagne_id.required' =>
                 'Veuillez sélectionner une campagne.',
@@ -152,13 +83,6 @@ class StoreAffectationRequest extends FormRequest
             'campagne_id.exists' =>
                 'La campagne sélectionnée est invalide.',
 
-
-            /*
-            |----------------------------------------------------------------------
-            | ÉQUIPE
-            |----------------------------------------------------------------------
-            */
-
             'equipe_id.required' =>
                 'L’équipe est obligatoire.',
 
@@ -167,29 +91,6 @@ class StoreAffectationRequest extends FormRequest
 
             'equipe_id.exists' =>
                 'L’équipe sélectionnée est invalide.',
-
-
-            /*
-            |----------------------------------------------------------------------
-            | CANTON
-            |----------------------------------------------------------------------
-            */
-
-            'canton_id.required' =>
-                'Veuillez sélectionner un canton.',
-
-            'canton_id.integer' =>
-                'Le canton sélectionné est invalide.',
-
-            'canton_id.exists' =>
-                'Le canton sélectionné est invalide.',
-
-
-            /*
-            |----------------------------------------------------------------------
-            | VILLAGES
-            |----------------------------------------------------------------------
-            */
 
             'village_ids.required' =>
                 'Veuillez sélectionner au moins un village.',
@@ -212,13 +113,6 @@ class StoreAffectationRequest extends FormRequest
             'village_ids.*.exists' =>
                 'Un des villages sélectionnés est invalide.',
 
-
-            /*
-            |----------------------------------------------------------------------
-            | DATES
-            |----------------------------------------------------------------------
-            */
-
             'dateDebut.date' =>
                 'La date de début est invalide.',
 
@@ -228,22 +122,8 @@ class StoreAffectationRequest extends FormRequest
             'dateFin.after_or_equal' =>
                 'La date de fin doit être postérieure ou égale à la date de début.',
 
-
-            /*
-            |----------------------------------------------------------------------
-            | STATUT
-            |----------------------------------------------------------------------
-            */
-
             'statut.in' =>
                 'Le statut sélectionné est invalide.',
-
-
-            /*
-            |----------------------------------------------------------------------
-            | OBSERVATIONS
-            |----------------------------------------------------------------------
-            */
 
             'observations.string' =>
                 'Les observations doivent être du texte.',
@@ -253,21 +133,8 @@ class StoreAffectationRequest extends FormRequest
         ];
     }
 
-    /**
-     * Préparation éventuelle des données avant validation.
-     */
     protected function prepareForValidation(): void
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Normaliser village_ids
-        |--------------------------------------------------------------------------
-        |
-        | Si un seul village est envoyé sous forme de valeur simple,
-        | on le transforme en tableau.
-        |
-        */
-
         if (
             $this->has('village_ids')
             && !is_array($this->village_ids)
@@ -280,4 +147,3 @@ class StoreAffectationRequest extends FormRequest
         }
     }
 }
-

@@ -63,47 +63,110 @@ class EquipeController extends Controller
     // }
 
 
-        public function index(Request $request)
+    //     public function index(Request $request)
+    // {
+    //     $search = $request->input('search');
+
+    //     $equipes = Equipe::query()
+    //         ->with('superviseur')
+    //         ->withCount('membres')
+
+    //         ->when($search, function ($query, $search) {
+
+    //             $query->where(function ($q) use ($search) {
+
+    //                 $q->where('nom', 'like', '%' . $search . '%')
+    //                     ->orWhere('reference', 'like', '%' . $search . '%')
+
+    //                     ->orWhereHas('superviseur', function ($superviseur) use ($search) {
+
+    //                         $superviseur
+    //                             ->where('name', 'like', '%' . $search . '%')
+    //                             ->orWhere('telephone', 'like', '%' . $search . '%');
+
+    //                     });
+
+    //             });
+
+    //         })
+
+    //         ->when($request->filled('statut'), function ($query) use ($request) {
+
+    //             $query->where('statut', $request->statut);
+
+    //         })
+
+    //         ->latest()
+    //         ->paginate(20)
+    //         ->withQueryString();
+
+    //     return view('dpa.equipes.index', compact(
+    //         'equipes',
+    //         'search'
+    //     ));
+    // }
+
+
+
+        public function index(Request $request): View
     {
-        $search = $request->input('search');
+        $query = Equipe::with([
+            'superviseur',
+            'membres',
+        ])
+        ->withCount('membres');
 
-        $equipes = Equipe::query()
-            ->with('superviseur')
-            ->withCount('membres')
+        // ============================================================
+        // RECHERCHE
+        // ============================================================
+        if ($request->filled('search')) {
 
-            ->when($search, function ($query, $search) {
+            $search = trim($request->search);
 
-                $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search) {
 
-                    $q->where('nom', 'like', '%' . $search . '%')
-                        ->orWhere('reference', 'like', '%' . $search . '%')
+                // Référence de l'équipe
+                $q->where('reference', 'like', "%{$search}%")
 
-                        ->orWhereHas('superviseur', function ($superviseur) use ($search) {
+                    // Nom de l'équipe
+                    ->orWhere('nom', 'like', "%{$search}%")
 
-                            $superviseur
-                                ->where('name', 'like', '%' . $search . '%')
-                                ->orWhere('telephone', 'like', '%' . $search . '%');
+                    // Libellé si la colonne existe
+                    ->orWhere('libelle', 'like', "%{$search}%")
 
-                        });
+                    // Superviseur
+                    ->orWhereHas('superviseur', function ($q) use ($search) {
 
-                });
+                        $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('telephone', 'like', "%{$search}%");
 
-            })
+                    });
+            });
+        }
 
-            ->when($request->filled('statut'), function ($query) use ($request) {
+        // ============================================================
+        // FILTRE STATUT
+        // ============================================================
+        if ($request->filled('statut')) {
 
-                $query->where('statut', $request->statut);
+            $query->where(
+                'statut',
+                strtoupper($request->statut)
+            );
+        }
 
-            })
-
-            ->latest()
-            ->paginate(20)
+        // ============================================================
+        // PAGINATION
+        // ============================================================
+        $equipes = $query
+            ->latest('idEquipe')
+            ->paginate(15)
             ->withQueryString();
 
-        return view('dpa.equipes.index', compact(
-            'equipes',
-            'search'
-        ));
+        return view('dpa.equipes.index', [
+            'equipes' => $equipes,
+            'search' => $request->search,
+        ]);
     }
 
 
@@ -410,5 +473,23 @@ class EquipeController extends Controller
 
 
         return $reference;
+    }
+
+
+        public function reactiver(Equipe $equipe): RedirectResponse
+    {
+        if ($equipe->statut === 'ACTIVE') {
+            return redirect()
+                ->route('dpa.equipes.index')
+                ->with('error', 'Cette équipe est déjà active.');
+        }
+
+        $equipe->update([
+            'statut' => 'ACTIVE',
+        ]);
+
+        return redirect()
+            ->route('dpa.equipes.index')
+            ->with('success', 'L’équipe a été réactivée avec succès.');
     }
 }

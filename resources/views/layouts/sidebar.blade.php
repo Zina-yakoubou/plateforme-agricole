@@ -673,6 +673,7 @@
                 title="Campagnes"
             >
 
+                {{-- Icône Campagnes --}}
                 <svg
                     class="h-5 w-5 shrink-0"
                     fill="none"
@@ -719,6 +720,7 @@
                 title="Planifications"
             >
 
+                {{-- Icône Planifications --}}
                 <svg
                     class="h-5 w-5 shrink-0"
                     fill="none"
@@ -760,8 +762,38 @@
 
             </a>
 
-              {{-- =========================================================
-                EQUIPE
+
+            {{-- AGENTS RECENSEURS --}}
+            <a
+                href="{{ route('dpa.agents.index') }}"
+                :class="[
+                    sidebarCollapsed ? 'justify-center px-0' : 'px-4',
+                    {{ request()->routeIs('dpa.agents.*') ? 'true' : 'false' }}
+                        ? 'bg-green-50 text-green-700 font-semibold'
+                        : 'text-text-secondary hover:bg-background-muted'
+                ]"
+                class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
+                title="Agents recenseurs"
+            >
+
+                {{-- Icône badge + utilisateur --}}
+                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="7" r="4" stroke-width="1.8"/>
+                    <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                        d="M5 21a7 7 0 0114 0"/>
+                    <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                        d="M18 4l1 1 2-2"/>
+                </svg>
+
+                <span x-show="!sidebarCollapsed" x-transition.opacity class="whitespace-nowrap">
+                    Agents & Superviseurs
+                </span>
+
+            </a>
+
+
+            {{-- =========================================================
+                ÉQUIPES
             ========================================================== --}}
             <a
                 href="{{ route('dpa.equipes.index') }}"
@@ -772,9 +804,10 @@
                         : 'text-text-secondary hover:bg-background-muted'
                 ]"
                 class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
-                title="Equipes"
+                title="Équipes"
             >
 
+                {{-- Icône Équipes : groupe de personnes --}}
                 <svg
                     class="h-5 w-5 shrink-0"
                     fill="none"
@@ -785,24 +818,22 @@
                         stroke-width="1.8"
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        d="M7 3v4
-                        M17 3v4
-                        M4 9h16
-                        M6 5h12a2 2 0 012 2v12
-                        a2 2 0 01-2 2H6
-                        a2 2 0 01-2-2V7
-                        a2 2 0 012-2z"
+                        d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"
+                    />
+
+                    <circle
+                        cx="9"
+                        cy="7"
+                        r="4"
+                        stroke-width="1.8"
                     />
 
                     <path
                         stroke-width="1.8"
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        d="M8 13h2
-                        M12 13h2
-                        M16 13h.01
-                        M8 17h2
-                        M12 17h2"
+                        d="M22 21v-2a4 4 0 00-3-3.87
+                        M16 3.13a4 4 0 010 7.75"
                     />
                 </svg>
 
@@ -811,11 +842,15 @@
                     x-transition.opacity
                     class="whitespace-nowrap"
                 >
-                    Equipes
+                    Équipes
                 </span>
 
             </a>
 
+
+            {{-- =========================================================
+                DÉPLOIEMENT DES AGENTS
+            ========================================================== --}}
             <a
                 href="{{ route('dpa.affectations.index') }}"
                 :class="[
@@ -825,29 +860,22 @@
                         : 'text-text-secondary hover:bg-background-muted'
                 ]"
                 class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
-                title="Affectations"
+                title="Déploiement des agents"
             >
 
-                {{-- Icône Affectations --}}
+                {{-- Icône Déploiement : utilisateurs + flèche --}}
                 <svg
                     class="h-5 w-5 shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                 >
-                    <path
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M9 5H7a2 2 0 00-2 2v11a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"
-                    />
 
-                    <rect
-                        x="9"
-                        y="3"
-                        width="6"
-                        height="4"
-                        rx="1"
+                    {{-- Utilisateur --}}
+                    <circle
+                        cx="9"
+                        cy="8"
+                        r="3"
                         stroke-width="1.8"
                     />
 
@@ -855,10 +883,97 @@
                         stroke-width="1.8"
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        d="M8 11l1.5 1.5L12 10
-                        M8 16l1.5 1.5L12 15
-                        M14 12h2
-                        M14 17h2"
+                        d="M3 20v-1a6 6 0 0112 0v1"
+                    />
+
+                    {{-- Flèche de déploiement --}}
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M16 8h5
+                        m0 0l-3-3
+                        m3 3l-3 3"
+                    />
+
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M16 14h5
+                        m0 0l-3-3
+                        m3 3l-3 3"
+                    />
+
+                </svg>
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition.opacity
+                    class="whitespace-nowrap"
+                >
+                    Déploiement des agents
+                </span>
+
+            </a>
+
+
+            {{-- =========================================================
+                SUIVI & STATISTIQUES
+            ========================================================== --}}
+            <a
+                href="#"
+                {{-- href="{{ route('dpa.statistiques.index') }}" --}}
+
+                :class="[
+                    sidebarCollapsed ? 'justify-center px-0' : 'px-4',
+                    {{ request()->routeIs('dpa.statistiques.*') ? 'true' : 'false' }}
+                        ? 'bg-green-50 text-green-700 font-semibold'
+                        : 'text-text-secondary hover:bg-background-muted'
+                ]"
+                class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
+                title="Suivi & statistiques"
+            >
+
+                {{-- Icône Suivi & statistiques --}}
+                <svg
+                    class="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    {{-- Axe --}}
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M4 19V5"
+                    />
+
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M4 19h17"
+                    />
+
+                    {{-- Barres --}}
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M8 16v-5
+                        M12 16V8
+                        M16 16v-4
+                        M20 16V6"
+                    />
+
+                    {{-- Tendance --}}
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M8 9l3-3 3 2 5-5"
                     />
                 </svg>
 
@@ -867,19 +982,18 @@
                     x-transition.opacity
                     class="whitespace-nowrap"
                 >
-                    Déployement des agents
+                    Suivi & statistiques
                 </span>
 
             </a>
 
-            
-
         </div>
 
     @endif
+
     
     
-    @if($user->isAgent())
+    {{-- @if($user->isAgent())
         <div class="mt-6">
             <p x-show="!sidebarCollapsed" class="text-xs uppercase tracking-widest text-text-muted mb-3 px-1 whitespace-nowrap">Recensement</p>
 
@@ -910,6 +1024,278 @@
 
             </a>
         </div>
+    @endif --}}
+
+    @if($user->isAgent())
+
+        <div class="mt-6">
+
+            {{-- =========================================================
+                RECENSEMENT
+            ========================================================== --}}
+            <p
+                x-show="!sidebarCollapsed"
+                class="mb-3 px-1 text-xs uppercase tracking-widest text-text-muted whitespace-nowrap"
+            >
+                Recensement
+            </p>
+
+
+            {{-- =========================================================
+                MA CAMPAGNE
+            ========================================================== --}}
+            <a
+                href="{{ route('agent.campagne') }}"
+                :class="[
+                    sidebarCollapsed ? 'justify-center px-0' : 'px-4',
+                    {{ request()->routeIs('agent.campagne') ? 'true' : 'false' }}
+                        ? 'bg-green-50 text-green-700 font-semibold'
+                        : 'text-text-secondary hover:bg-background-muted'
+                ]"
+                class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
+                title="Ma campagne"
+            >
+
+                {{-- Icône campagne --}}
+                <svg
+                    class="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M8 7V3
+                        m8 4V3
+                        M4 11h16
+                        M5 5h14a1 1 0 011 1v13
+                        a1 1 0 01-1 1H5
+                        a1 1 0 01-1-1V6
+                        a1 1 0 011-1z"
+                    />
+                </svg>
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition.opacity
+                    class="whitespace-nowrap"
+                >
+                    Ma campagne
+                </span>
+
+            </a>
+
+
+            {{-- =========================================================
+                MES AFFECTATIONS
+            ========================================================== --}}
+            <a
+                href="{{ route('agent.affectations') }}"
+                :class="[
+                    sidebarCollapsed ? 'justify-center px-0' : 'px-4',
+                    {{ request()->routeIs('agent.affectations') ? 'true' : 'false' }}
+                        ? 'bg-green-50 text-green-700 font-semibold'
+                        : 'text-text-secondary hover:bg-background-muted'
+                ]"
+                class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
+                title="Mes affectations"
+            >
+
+                {{-- Icône affectations --}}
+                <svg
+                    class="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M9 5H7a2 2 0 00-2 2v12
+                        a2 2 0 002 2h10
+                        a2 2 0 002-2V7
+                        a2 2 0 00-2-2h-2
+                        M9 5a3 3 0 006 0
+                        M9 12h6
+                        M9 16h4"
+                    />
+                </svg>
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition.opacity
+                    class="whitespace-nowrap"
+                >
+                    Mes affectations
+                </span>
+
+            </a>
+
+
+            {{-- =========================================================
+                IDENTIFICATION
+            ========================================================== --}}
+            <a
+                href="{{ route('agent.identifications.index') }}"
+                :class="[
+                    sidebarCollapsed ? 'justify-center px-0' : 'px-4',
+                    {{ request()->routeIs('agent.identifications.*') ? 'true' : 'false' }}
+                        ? 'bg-green-50 text-green-700 font-semibold'
+                        : 'text-text-secondary hover:bg-background-muted'
+                ]"
+                class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
+                title="Identification"
+            >
+
+                {{-- Icône identification --}}
+                <svg
+                    class="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <circle
+                        cx="9"
+                        cy="8"
+                        r="3"
+                        stroke-width="1.8"
+                    />
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M3 20v-1a6 6 0 0112 0v1"
+                    />
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M16 8h5
+                        m0 0l-3-3
+                        m3 3l-3 3"
+                    />
+                </svg>
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition.opacity
+                    class="whitespace-nowrap"
+                >
+                    Identification
+                </span>
+
+            </a>
+
+
+            {{-- =========================================================
+                RECENSEMENT
+            ========================================================== --}}
+            <a
+                href="{{ route('agent.recensements.index') }}"
+                :class="[
+                    sidebarCollapsed ? 'justify-center px-0' : 'px-4',
+                    {{ request()->routeIs('agent.recensements.*') ? 'true' : 'false' }}
+                        ? 'bg-green-50 text-green-700 font-semibold'
+                        : 'text-text-secondary hover:bg-background-muted'
+                ]"
+                class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
+                title="Recensement"
+            >
+
+                {{-- Icône questionnaire --}}
+                <svg
+                    class="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M6 4h12a2 2 0 012 2v12
+                        a2 2 0 01-2 2H6
+                        a2 2 0 01-2-2V6
+                        a2 2 0 012-2z"
+                    />
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M8 8h8
+                        M8 12h8
+                        M8 16h5"
+                    />
+                </svg>
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition.opacity
+                    class="whitespace-nowrap"
+                >
+                    Recensement
+                </span>
+
+            </a>
+
+
+            {{-- =========================================================
+                SYNCHRONISATION
+            ========================================================== --}}
+            <a
+                href="{{ route('agent.synchronisation') }}"
+                :class="[
+                    sidebarCollapsed ? 'justify-center px-0' : 'px-4',
+                    {{ request()->routeIs('agent.synchronisation') ? 'true' : 'false' }}
+                        ? 'bg-green-50 text-green-700 font-semibold'
+                        : 'text-text-secondary hover:bg-background-muted'
+                ]"
+                class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out"
+                title="Synchronisation"
+            >
+
+                {{-- Icône synchronisation --}}
+                <svg
+                    class="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M4 12a8 8 0 0114.9-4
+                        M20 12a8 8 0 01-14.9 4"
+                    />
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M19 4v4h-4
+                        M5 20v-4h4"
+                    />
+                </svg>
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition.opacity
+                    class="whitespace-nowrap"
+                >
+                    Synchronisation
+                </span>
+
+            </a>
+
+        </div>
+
     @endif
 
 

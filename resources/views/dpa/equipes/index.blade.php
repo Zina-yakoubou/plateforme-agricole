@@ -712,315 +712,470 @@
                                     </a>
 
                                   {{-- RECONDUIRE --}}
-{{-- =========================================
-     AFFECTER / RECONDUIRE
-========================================= --}}
-@php
-    $aUneAffectation = $equipe->affectations()->exists();
-    $derniereAffectation = $equipe->affectations()->latest('idAffectation')->first();
-@endphp
+                               @php
+                                $aUneAffectation = $equipe->affectations()->exists();
+                                $derniereAffectation = $equipe->affectations()->latest('idAffectation')->first();
+                            @endphp
 
-@if($aUneAffectation)
+                            @if($aUneAffectation)
 
-    {{-- RECONDUIRE --}}
-    {{-- <form method="POST"
-          action="{{ route('dpa.equipes.reconduire', [$equipe, $derniereAffectation]) }}"
-          onsubmit="return confirm('Reconduire cette équipe pour une nouvelle campagne ?')">
+                                {{-- AFFECTER / RECONDUIRE --}}
+                                <a
+                                    href="{{ route('dpa.equipes.affectations.create', $equipe) }}"
+                                    title="Affecter / Reconduire"
+                                    class="inline-flex
+                                        h-9 w-9
+                                        items-center
+                                        justify-center
+                                        rounded-lg
+                                        border
+                                        border-[#e5e7eb]
+                                        bg-white
+                                        text-[#006a4f]
+                                        transition
+                                        hover:border-[#006a4f]
+                                        hover:bg-[#e5f2ee]"
+                                >
+                                    <svg
+                                        class="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            cx="9"
+                                            cy="8"
+                                            r="3"
+                                            stroke-width="1.8"
+                                        />
 
-        @csrf
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.8"
+                                            d="M3 20v-1a6 6 0 0112 0v1"
+                                        />
 
-        <button
-            type="submit"
-            class="inline-flex items-center gap-2 rounded-lg
-                   bg-amber-500 px-3 py-2 text-xs font-semibold
-                   text-white transition hover:bg-amber-600"
-            title="Reconduire cette équipe">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4 4v5h5M20 20v-5h-5M5.64 9A7 7 0 0117.9 6.1L20 8M18.36 15A7 7 0 016.1 17.9L4 16"/>
-            </svg>
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.8"
+                                            d="M15 8h6m0 0l-3-3m3 3l-3 3"
+                                        />
+                                    </svg>
+                                </a>
 
-            Reconduire
-        </button>
+                            @else
 
-    </form> --}}
+                                {{-- PREMIÈRE AFFECTATION --}}
+                                <a
+                                    href="{{ route('dpa.equipes.affectations.create', $equipe) }}"
+                                    title="Affecter l'équipe"
+                                    class="inline-flex
+                                        h-9 w-9
+                                        items-center
+                                        justify-center
+                                        rounded-lg
+                                        border
+                                        border-[#e5e7eb]
+                                        bg-white
+                                        text-[#006a4f]
+                                        transition
+                                        hover:border-[#006a4f]
+                                        hover:bg-[#e5f2ee]"
+                                >
+                                    <svg
+                                        class="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            cx="9"
+                                            cy="8"
+                                            r="3"
+                                            stroke-width="1.8"
+                                        />
 
-    {{-- <a href="{{ route('dpa.equipes.reconduire', $equipe) }}"
-   class="inline-flex items-center rounded-lg bg-[#006a4f] px-3 py-2 text-sm font-medium text-white hover:bg-[#00523d]">
-    Reconduire
-</a> --}}
-<a
-    href="{{ route('dpa.equipes.affectations.create', $equipe) }}"
-    class="inline-flex items-center gap-2 rounded-xl bg-[#006a4f] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#00563f]"
->
-    Affecter / Reconduire
-</a>
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.8"
+                                            d="M3 20v-1a6 6 0 0112 0v1"
+                                        />
 
-@else
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.8"
+                                            d="M15 8h6m0 0l-3-3m3 3l-3 3"
+                                        />
+                                    </svg>
+                                </a>
 
-    {{-- PREMIÈRE AFFECTATION --}}
-    <a href="{{ route('dpa.equipes.affectations.create', $equipe) }}"
-       class="inline-flex items-center gap-2 rounded-lg
-              bg-[#006a4f] px-3 py-2 text-xs font-semibold
-              text-white transition hover:bg-[#156c52]"
-       title="Affecter cette équipe">
-
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4v16m8-8H4"/>
-        </svg>
-
-        Affecter
-    </a>
-
-@endif
-
-                                    {{-- MODIFIER --}}
-
-                                    @if($equipe->statut === 'ACTIVE')
-
-                                        <a
-                                            href="{{ route('dpa.equipes.edit', $equipe) }}"
-                                            title="Modifier"
-                                            class="inline-flex
-                                                   h-9 w-9
-                                                   items-center
-                                                   justify-center
-                                                   rounded-lg
-                                                   border
-                                                   border-[#e5e7eb]
-                                                   bg-white
-                                                   text-gray-600
-                                                   transition
-                                                   hover:border-blue-500
-                                                   hover:bg-blue-50
-                                                   hover:text-blue-600"
-                                        >
-
-                                            <svg
-                                                class="h-4 w-4"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
-                                                       m-1.5-9.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 8.5-8.5z"
-                                                />
-
-                                            </svg>
-
-                                        </a>
-
-                                    @endif
+                            @endif
 
 
-                                    {{-- DÉSACTIVER --}}
+                            {{-- MODIFIER --}}
 
-                                    @if($equipe->statut === 'ACTIVE')
+                                                                    @if($equipe->statut === 'ACTIVE')
 
-                                        <form
-                                            method="POST"
-                                            action="{{ route('dpa.equipes.destroy', $equipe) }}"
-                                            onsubmit="return confirm(
-                                                'Voulez-vous désactiver cette équipe ?'
-                                            )"
-                                        >
+                                                                        <a
+                                                                            href="{{ route('dpa.equipes.edit', $equipe) }}"
+                                                                            title="Modifier"
+                                                                            class="inline-flex
+                                                                                h-9 w-9
+                                                                                items-center
+                                                                                justify-center
+                                                                                rounded-lg
+                                                                                border
+                                                                                border-[#e5e7eb]
+                                                                                bg-white
+                                                                                text-gray-600
+                                                                                transition
+                                                                                hover:border-blue-500
+                                                                                hover:bg-blue-50
+                                                                                hover:text-blue-600"
+                                                                        >
 
-                                            @csrf
+                                                                            <svg
+                                                                                class="h-4 w-4"
+                                                                                fill="none"
+                                                                                stroke="currentColor"
+                                                                                viewBox="0 0 24 24"
+                                                                            >
 
-                                            @method('DELETE')
+                                                                                <path
+                                                                                    stroke-linecap="round"
+                                                                                    stroke-linejoin="round"
+                                                                                    stroke-width="2"
+                                                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
+                                                                                    m-1.5-9.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 8.5-8.5z"
+                                                                                />
 
+                                                                            </svg>
 
-                                            <button
-                                                type="submit"
-                                                title="Désactiver"
-                                                class="inline-flex
-                                                       h-9 w-9
-                                                       items-center
-                                                       justify-center
-                                                       rounded-lg
-                                                       bg-red-50
-                                                       text-red-600
-                                                       transition
-                                                       hover:bg-red-100
-                                                       focus:outline-none
-                                                       focus:ring-2
-                                                       focus:ring-red-500/20"
-                                            >
+                                                                        </a>
 
-                                                <svg
-                                                    class="h-4 w-4"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="1.8"
-                                                        d="M6 6l12 12M6 18L18 6"
-                                                    />
-
-                                                </svg>
-
-                                            </button>
-
-                                        </form>
-
-                                    @endif
-
-                                </div>
-
-                            </td>
-
-                        </tr>
+                                                                    @endif
 
 
-                    @empty
+                                                                    {{-- DÉSACTIVER --}}
 
-                        {{-- =================================================
-                             AUCUNE ÉQUIPE
-                        ================================================== --}}
+                                                                    {{-- @if($equipe->statut === 'ACTIVE')
 
-                        <tr>
+                                                                        <form
+                                                                            method="POST"
+                                                                            action="{{ route('dpa.equipes.destroy', $equipe) }}"
+                                                                            onsubmit="return confirm(
+                                                                                'Voulez-vous désactiver cette équipe ?'
+                                                                            )"
+                                                                        >
 
-                            <td
-                                colspan="6"
-                                class="px-6 py-16 text-center"
-                            >
+                                                                            @csrf
 
-                                <div class="flex flex-col items-center">
+                                                                            @method('DELETE')
 
 
-                                    <div class="mb-4
-                                                flex h-14 w-14
-                                                items-center
-                                                justify-center
-                                                rounded-full
-                                                bg-[#e5f2ee]
-                                                text-[#006a4f]">
+                                                                            <button
+                                                                                type="submit"
+                                                                                title="Désactiver"
+                                                                                class="inline-flex
+                                                                                    h-9 w-9
+                                                                                    items-center
+                                                                                    justify-center
+                                                                                    rounded-lg
+                                                                                    bg-red-50
+                                                                                    text-red-600
+                                                                                    transition
+                                                                                    hover:bg-red-100
+                                                                                    focus:outline-none
+                                                                                    focus:ring-2
+                                                                                    focus:ring-red-500/20"
+                                                                            >
 
-                                        <svg
-                                            class="h-7 w-7"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
+                                                                                <svg
+                                                                                    class="h-4 w-4"
+                                                                                    fill="none"
+                                                                                    stroke="currentColor"
+                                                                                    viewBox="0 0 24 24"
+                                                                                >
 
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.7"
-                                                d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2
-                                                   m9-9a4 4 0 100-8 4 4 0 000 8
-                                                   m5-3a3 3 0 100-6
-                                                   m2 18v-2a4 4 0 00-3-3.87"
-                                            />
+                                                                                    <path
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="1.8"
+                                                                                        d="M6 6l12 12M6 18L18 6"
+                                                                                    />
 
-                                        </svg>
+                                                                                </svg>
+
+                                                                            </button>
+
+                                                                        </form>
+
+                                                                    @endif --}}
+
+
+                                                                    {{-- =========================================================
+                                                                        ACTIVATION / DÉSACTIVATION
+                                                                    ========================================================= --}}
+
+                                                                    @if($equipe->statut === 'ACTIVE')
+
+                                                                        {{-- DÉSACTIVER --}}
+
+                                                                        <form
+                                                                            method="POST"
+                                                                            action="{{ route('dpa.equipes.destroy', $equipe) }}"
+                                                                            onsubmit="return confirm(
+                                                                                'Voulez-vous désactiver cette équipe ?'
+                                                                            )"
+                                                                        >
+
+                                                                            @csrf
+                                                                            @method('DELETE')
+
+                                                                            <button
+                                                                                type="submit"
+                                                                                title="Désactiver"
+                                                                                class="inline-flex
+                                                                                    h-9 w-9
+                                                                                    items-center
+                                                                                    justify-center
+                                                                                    rounded-lg
+                                                                                    bg-red-50
+                                                                                    text-red-600
+                                                                                    transition
+                                                                                    hover:bg-red-100
+                                                                                    focus:outline-none
+                                                                                    focus:ring-2
+                                                                                    focus:ring-red-500/20"
+                                                                            >
+
+                                                                                <svg
+                                                                                    class="h-4 w-4"
+                                                                                    fill="none"
+                                                                                    stroke="currentColor"
+                                                                                    viewBox="0 0 24 24"
+                                                                                >
+
+                                                                                    <path
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="1.8"
+                                                                                        d="M6 6l12 12M6 18L18 6"
+                                                                                    />
+
+                                                                                </svg>
+
+                                                                            </button>
+
+                                                                        </form>
+
+                                                                    @else
+
+                                                                        {{-- RÉACTIVER --}}
+
+                                                                        <form
+                                                                            method="POST"
+                                                                            action="{{ route('dpa.equipes.reactiver', $equipe) }}"
+                                                                            onsubmit="return confirm(
+                                                                                'Voulez-vous réactiver cette équipe ?'
+                                                                            )"
+                                                                        >
+
+                                                                            @csrf
+                                                                            @method('PATCH')
+
+                                                                            <button
+                                                                                type="submit"
+                                                                                title="Réactiver"
+                                                                                class="inline-flex
+                                                                                    h-9 w-9
+                                                                                    items-center
+                                                                                    justify-center
+                                                                                    rounded-lg
+                                                                                    bg-green-50
+                                                                                    text-green-600
+                                                                                    transition
+                                                                                    hover:bg-green-100
+                                                                                    focus:outline-none
+                                                                                    focus:ring-2
+                                                                                    focus:ring-green-500/20"
+                                                                            >
+
+                                                                                <svg
+                                                                                    class="h-4 w-4"
+                                                                                    fill="none"
+                                                                                    stroke="currentColor"
+                                                                                    viewBox="0 0 24 24"
+                                                                                >
+
+                                                                                    <path
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M4 12a8 8 0 018-8
+                                                                                        8 8 0 018 8
+                                                                                        8 8 0 01-8 8
+                                                                                        8 8 0 01-8-8z
+                                                                                        M8 12l3 3 5-6"
+                                                                                    />
+
+                                                                                </svg>
+
+                                                                            </button>
+
+                                                                        </form>
+
+                                                                    @endif
+
+                                                                </div>
+
+                                                            </td>
+
+                                                        </tr>
+
+
+                                                    @empty
+
+                                                        {{-- =================================================
+                                                            AUCUNE ÉQUIPE
+                                                        ================================================== --}}
+
+                                                        <tr>
+
+                                                            <td
+                                                                colspan="6"
+                                                                class="px-6 py-16 text-center"
+                                                            >
+
+                                                                <div class="flex flex-col items-center">
+
+
+                                                                    <div class="mb-4
+                                                                                flex h-14 w-14
+                                                                                items-center
+                                                                                justify-center
+                                                                                rounded-full
+                                                                                bg-[#e5f2ee]
+                                                                                text-[#006a4f]">
+
+                                                                        <svg
+                                                                            class="h-7 w-7"
+                                                                            fill="none"
+                                                                            stroke="currentColor"
+                                                                            viewBox="0 0 24 24"
+                                                                        >
+
+                                                                            <path
+                                                                                stroke-linecap="round"
+                                                                                stroke-linejoin="round"
+                                                                                stroke-width="1.7"
+                                                                                d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2
+                                                                                m9-9a4 4 0 100-8 4 4 0 000 8
+                                                                                m5-3a3 3 0 100-6
+                                                                                m2 18v-2a4 4 0 00-3-3.87"
+                                                                            />
+
+                                                                        </svg>
+
+                                                                    </div>
+
+
+                                                                    <p class="font-semibold text-[#212529]">
+                                                                        Aucune équipe trouvée
+                                                                    </p>
+
+
+                                                                    <p class="mt-1 text-sm text-gray-500">
+                                                                        Aucune équipe ne correspond à votre recherche.
+                                                                    </p>
+
+
+                                                                    @if(
+                                                                        request()->filled('search')
+                                                                        || request()->filled('statut')
+                                                                    )
+
+                                                                        <a
+                                                                            href="{{ route('dpa.equipes.index') }}"
+                                                                            class="mt-4 text-sm font-semibold
+                                                                                text-[#006a4f]
+                                                                                hover:underline"
+                                                                        >
+                                                                            Réinitialiser les filtres
+                                                                        </a>
+
+                                                                    @else
+
+                                                                        <a
+                                                                            href="{{ route('dpa.equipes.create') }}"
+                                                                            class="mt-4 inline-flex
+                                                                                items-center
+                                                                                gap-2
+                                                                                text-sm font-semibold
+                                                                                text-[#006a4f]
+                                                                                hover:underline"
+                                                                        >
+
+                                                                            <svg
+                                                                                class="h-4 w-4"
+                                                                                fill="none"
+                                                                                stroke="currentColor"
+                                                                                viewBox="0 0 24 24"
+                                                                            >
+
+                                                                                <path
+                                                                                    stroke-linecap="round"
+                                                                                    stroke-linejoin="round"
+                                                                                    stroke-width="2"
+                                                                                    d="M12 4v16m8-8H4"
+                                                                                />
+
+                                                                            </svg>
+
+                                                                            Enregistrer
+
+                                                                        </a>
+
+                                                                    @endif
+
+                                                                </div>
+
+                                                            </td>
+
+                                                        </tr>
+
+                                                    @endforelse
+
+                                                </tbody>
+
+                                            </table>
+
+                                        </div>
+
+
+                                        {{-- =====================================================
+                                            PAGINATION
+                                        ====================================================== --}}
+
+                                        @if($equipes->hasPages())
+
+                                            <div class="border-t border-[#e5e7eb] px-6 py-4">
+
+                                                {{ $equipes->withQueryString()->links() }}
+
+                                            </div>
+
+                                        @endif
 
                                     </div>
 
-
-                                    <p class="font-semibold text-[#212529]">
-                                        Aucune équipe trouvée
-                                    </p>
-
-
-                                    <p class="mt-1 text-sm text-gray-500">
-                                        Aucune équipe ne correspond à votre recherche.
-                                    </p>
-
-
-                                    @if(
-                                        request()->filled('search')
-                                        || request()->filled('statut')
-                                    )
-
-                                        <a
-                                            href="{{ route('dpa.equipes.index') }}"
-                                            class="mt-4 text-sm font-semibold
-                                                   text-[#006a4f]
-                                                   hover:underline"
-                                        >
-                                            Réinitialiser les filtres
-                                        </a>
-
-                                    @else
-
-                                        <a
-                                            href="{{ route('dpa.equipes.create') }}"
-                                            class="mt-4 inline-flex
-                                                   items-center
-                                                   gap-2
-                                                   text-sm font-semibold
-                                                   text-[#006a4f]
-                                                   hover:underline"
-                                        >
-
-                                            <svg
-                                                class="h-4 w-4"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M12 4v16m8-8H4"
-                                                />
-
-                                            </svg>
-
-                                            Enregistrer
-
-                                        </a>
-
-                                    @endif
-
                                 </div>
 
-                            </td>
+                            
 
-                        </tr>
-
-                    @endforelse
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-
-        {{-- =====================================================
-             PAGINATION
-        ====================================================== --}}
-
-        @if($equipes->hasPages())
-
-            <div class="border-t border-[#e5e7eb] px-6 py-4">
-
-                {{ $equipes->withQueryString()->links() }}
-
-            </div>
-
-        @endif
-
-    </div>
-
-</div>
-
+                                                                    
 @endsection

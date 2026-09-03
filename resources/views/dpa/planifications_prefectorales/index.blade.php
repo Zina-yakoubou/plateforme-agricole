@@ -33,9 +33,8 @@
         STATISTIQUES
     ================================================================= --}}
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {{-- <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
-        {{-- TOTAL --}}
         <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
             <div class="flex items-center justify-between">
@@ -75,7 +74,6 @@
         </div>
 
 
-        {{-- EN COURS --}}
         <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
             <div class="flex items-center justify-between">
@@ -115,7 +113,6 @@
         </div>
 
 
-        {{-- TERMINÉES --}}
         <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
             <div class="flex items-center justify-between">
@@ -154,7 +151,7 @@
 
         </div>
 
-    </div>
+    </div> --}}
 
 
     {{-- ================================================================
