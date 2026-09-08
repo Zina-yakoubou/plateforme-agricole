@@ -6,24 +6,32 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('intrants', function (Blueprint $table) {
+
             $table->id('idIntrant');
+
             $table->string('nom');
-            $table->string('type');
+
+            $table->enum('type',[
+                'semence',
+                'engrais',
+                'herbicide',
+                'insecticide',
+                'fongicide',
+                'fumure_organique',
+                'autre'
+            ]);
+
             $table->string('unite');
-            $table->float('seuilAlerte')->default(0);
+
+            $table->boolean('actif')->default(true);
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('intrants');

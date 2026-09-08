@@ -64,7 +64,7 @@ return new class extends Migration
             |
             */
 
-            $table->date('dateDebut');
+            $table->date('dateDebut')->nullable();
 
             $table->date('dateFin')->nullable();
 

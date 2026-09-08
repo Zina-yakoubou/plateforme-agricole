@@ -197,9 +197,7 @@
             {{-- Commune --}}
             <div class="rounded-xl bg-slate-50 p-5">
 
-                <div class="text-2xl mb-3">
-                    🏘️
-                </div>
+               
 
                 <p class="text-xs uppercase tracking-wider
                           text-slate-400">
@@ -220,9 +218,7 @@
             {{-- Canton --}}
             <div class="rounded-xl bg-slate-50 p-5">
 
-                <div class="text-2xl mb-3">
-                    🗺️
-                </div>
+              
 
                 <p class="text-xs uppercase tracking-wider
                           text-slate-400">
@@ -244,10 +240,7 @@
             <div class="rounded-xl bg-green-50 p-5
                         border border-green-100">
 
-                <div class="text-2xl mb-3">
-                    🌾
-                </div>
-
+                
                 <p class="text-xs uppercase tracking-wider
                           text-green-600">
 
@@ -364,7 +357,7 @@
                                font-semibold
                                opacity-50 cursor-not-allowed">
 
-                        📝
+                        
 
                         Commencer le recensement
 
@@ -382,7 +375,7 @@
                             hover:bg-green-700
                             transition">
 
-                        📝
+                        
 
                         Commencer le recensement
 
@@ -397,7 +390,7 @@
                             px-5 py-4">
 
                     <span class="text-xl">
-                        🔒
+                        
                     </span>
 
                     <div>

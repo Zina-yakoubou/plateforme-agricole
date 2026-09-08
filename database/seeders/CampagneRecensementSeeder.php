@@ -55,7 +55,7 @@ class CampagneRecensementSeeder extends Seeder
 
                 'portee' => 'nationale',
 
-                'dateDebut' => '2026-09-01 08:00:00',
+                'dateDebut' => '2026-09-08 08:00:00',
 
                 'dateFin' => '2026-12-31 18:00:00',
 
@@ -110,7 +110,7 @@ class CampagneRecensementSeeder extends Seeder
 
                 'portee' => 'regionale',
 
-                'dateDebut' => '2026-08-20 08:00:00',
+                'dateDebut' => '2026-09-20 08:00:00',
 
                 'dateFin' => '2026-10-30 18:00:00',
 
@@ -154,7 +154,7 @@ class CampagneRecensementSeeder extends Seeder
 
                 'portee' => 'prefectorale',
 
-                'dateDebut' => '2026-08-18 08:00:00',
+                'dateDebut' => '2026-09-20 08:00:00',
 
                 'dateFin' => '2026-11-30 18:00:00',
 

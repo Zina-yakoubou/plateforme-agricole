@@ -18,7 +18,7 @@ class DpaAgentController extends Controller
 {
     /**
      * =========================================================================
-     * ID DE LA PRÉFECTURE DU DPA CONNECTÉ
+     * PRÉFECTURE DU DPA CONNECTÉ
      * =========================================================================
      */
     private function prefectureId(): int
@@ -26,7 +26,7 @@ class DpaAgentController extends Controller
         $rattachement = Auth::user()->rattachementPrefectureActif;
 
         abort_if(
-            ! $rattachement?->prefecture_id,
+            !$rattachement?->prefecture_id,
             403,
             "Aucune préfecture n'est rattachée à votre compte."
         );
@@ -36,19 +36,18 @@ class DpaAgentController extends Controller
 
     /**
      * =========================================================================
-     * VÉRIFIER QU'UN UTILISATEUR APPARTIENT À LA PRÉFECTURE DU DPA
+     * VÉRIFIER L'APPARTENANCE À LA PRÉFECTURE
      * =========================================================================
      */
     private function verifierUtilisateur(User $user): void
     {
         $prefectureId = $this->prefectureId();
 
-        $prefectureUtilisateur =
-            $user->rattachementPrefectureActif?->prefecture_id;
+        $rattachement = $user->rattachementPrefectureActif;
 
         abort_if(
-            ! $prefectureUtilisateur
-                || (int) $prefectureUtilisateur !== $prefectureId,
+            !$rattachement ||
+            (int) $rattachement->prefecture_id !== $prefectureId,
             403,
             "Cet utilisateur n'appartient pas à votre préfecture."
         );
@@ -56,33 +55,19 @@ class DpaAgentController extends Controller
 
     /**
      * =========================================================================
-     * VÉRIFIER QU'UN COMPTE PEUT ÊTRE GÉRÉ PAR LE DPA
+     * VÉRIFIER QU'UN COMPTE EST GÉRABLE
      * =========================================================================
      */
     private function verifierCompteGerable(User $user): void
     {
-        /*
-         * L'utilisateur doit appartenir à la même préfecture.
-         */
         $this->verifierUtilisateur($user);
 
-        /*
-         * Le DPA ne peut pas modifier son propre compte
-         * depuis cette interface.
-         */
         abort_if(
             (int) $user->id === (int) Auth::id(),
             403,
             "Vous ne pouvez pas modifier votre propre compte depuis cette interface."
         );
 
-        /*
-         * Le DPA ne gère que :
-         * - Superviseur
-         * - Agent recenseur
-         *
-         * Aucun ID de rôle n'est utilisé ici.
-         */
         abort_unless(
             in_array(
                 $user->role?->nom,
@@ -99,25 +84,17 @@ class DpaAgentController extends Controller
 
     /**
      * =========================================================================
-     * LISTE DES AGENTS / SUPERVISEURS
+     * INDEX
      * =========================================================================
      */
     public function index(Request $request): View
     {
+        $prefectureId = $this->prefectureId();
+
         $search = trim((string) $request->input('search'));
         $role   = $request->input('role');
         $statut = $request->input('statut');
 
-        /*
-         * Préfecture du DPA connecté.
-         */
-        $prefectureId = $this->prefectureId();
-
-        /*
-         * Rôles disponibles dans le filtre.
-         *
-         * Pas d'ID brut.
-         */
         $roles = Role::query()
             ->whereIn('nom', [
                 'Superviseur',
@@ -126,15 +103,6 @@ class DpaAgentController extends Controller
             ->orderBy('nom')
             ->get();
 
-        /*
-         * ---------------------------------------------------------------------
-         * UTILISATEURS DE LA PRÉFECTURE UNIQUEMENT
-         * ---------------------------------------------------------------------
-         *
-         * On passe obligatoirement par le rattachement préfectoral actif.
-         *
-         * Un agent d'une autre préfecture ne sera donc pas retourné.
-         */
         $agents = User::query()
             ->with([
                 'role',
@@ -142,19 +110,20 @@ class DpaAgentController extends Controller
             ])
 
             /*
-             * Préfecture du DPA.
+             * UNIQUEMENT LA PRÉFECTURE DU DPA
              */
             ->whereHas(
                 'rattachementPrefectureActif',
                 function ($query) use ($prefectureId) {
                     $query
                         ->where('prefecture_id', $prefectureId)
-                        ->where('statut', 'actif');
+                        ->where('statut', 'actif')
+                        ->whereNull('dateFin');
                 }
             )
 
             /*
-             * Seulement les comptes gérés par le DPA.
+             * UNIQUEMENT SUPERVISEUR / AGENT
              */
             ->whereHas('role', function ($query) {
                 $query->whereIn('nom', [
@@ -164,52 +133,34 @@ class DpaAgentController extends Controller
             })
 
             /*
-             * Recherche.
+             * RECHERCHE
              */
             ->when(
                 filled($search),
                 function ($query) use ($search) {
                     $query->where(function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%")
-                            ->orWhere(
-                                'telephone',
-                                'like',
-                                "%{$search}%"
-                            )
-                            ->orWhere(
-                                'email',
-                                'like',
-                                "%{$search}%"
-                            )
-                            ->orWhere(
-                                'login',
-                                'like',
-                                "%{$search}%"
-                            );
+                            ->orWhere('telephone', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('login', 'like', "%{$search}%");
                     });
                 }
             )
 
             /*
-             * Filtre par rôle.
-             *
-             * Le formulaire envoie le nom du rôle,
-             * pas son ID.
+             * FILTRE RÔLE
              */
             ->when(
                 filled($role),
                 function ($query) use ($role) {
-                    $query->whereHas(
-                        'role',
-                        function ($q) use ($role) {
-                            $q->where('nom', $role);
-                        }
-                    );
+                    $query->whereHas('role', function ($q) use ($role) {
+                        $q->where('nom', $role);
+                    });
                 }
             )
 
             /*
-             * Filtre actif / désactivé.
+             * FILTRE STATUT
              */
             ->when(
                 $statut !== null && $statut !== '',
@@ -221,8 +172,8 @@ class DpaAgentController extends Controller
                 }
             )
 
-            ->latest()
-            ->paginate(15)
+            ->orderBy('name')
+            ->paginate(7)
             ->withQueryString();
 
         return view(
@@ -239,16 +190,11 @@ class DpaAgentController extends Controller
 
     /**
      * =========================================================================
-     * FORMULAIRE DE CRÉATION
+     * CREATE
      * =========================================================================
      */
     public function create(): View
     {
-        /*
-         * Le DPA ne peut créer que ces deux types de comptes.
-         *
-         * Pas de DPA, pas d'administrateur.
-         */
         $roles = Role::query()
             ->whereIn('nom', [
                 'Superviseur',
@@ -257,15 +203,12 @@ class DpaAgentController extends Controller
             ->orderBy('nom')
             ->get();
 
-        /*
-         * Préfecture du DPA.
-         */
         $prefecture = Auth::user()
             ->rattachementPrefectureActif
             ?->prefecture;
 
         abort_if(
-            ! $prefecture,
+            !$prefecture,
             403,
             "Aucune préfecture n'est rattachée à votre compte."
         );
@@ -281,25 +224,15 @@ class DpaAgentController extends Controller
 
     /**
      * =========================================================================
-     * CRÉATION D'UN AGENT / SUPERVISEUR
+     * STORE
      * =========================================================================
      */
     public function store(
         StoreDpaAgentRequest $request
     ): RedirectResponse {
-        /*
-         * On récupère la préfecture du DPA.
-         *
-         * Elle ne vient PAS du formulaire.
-         */
+
         $prefectureId = $this->prefectureId();
 
-        /*
-         * Vérification supplémentaire du rôle demandé.
-         *
-         * Même si quelqu'un modifie le formulaire manuellement,
-         * il ne pourra pas créer un administrateur ou un DPA.
-         */
         $role = Role::query()
             ->whereKey($request->role_id)
             ->firstOrFail();
@@ -323,9 +256,6 @@ class DpaAgentController extends Controller
             $role
         ) {
 
-            /*
-             * Création du compte.
-             */
             $user = User::create([
                 'name' => $request->name,
                 'telephone' => $request->telephone,
@@ -335,11 +265,6 @@ class DpaAgentController extends Controller
                 'statut' => true,
             ]);
 
-            /*
-             * RATTACHEMENT AUTOMATIQUE À LA PRÉFECTURE DU DPA.
-             *
-             * Le DPA n'envoie aucune prefecture_id depuis le formulaire.
-             */
             $user->rattachementsPrefecture()->create([
                 'prefecture_id' => $prefectureId,
                 'dateDebut' => now()->startOfDay(),
@@ -358,14 +283,11 @@ class DpaAgentController extends Controller
 
     /**
      * =========================================================================
-     * AFFICHER UN AGENT
+     * SHOW
      * =========================================================================
      */
     public function show(User $agent): View
     {
-        /*
-         * Impossible d'afficher un agent d'une autre préfecture.
-         */
         $this->verifierUtilisateur($agent);
 
         $agent->load([
@@ -381,14 +303,11 @@ class DpaAgentController extends Controller
 
     /**
      * =========================================================================
-     * FORMULAIRE DE MODIFICATION
+     * EDIT
      * =========================================================================
      */
     public function edit(User $agent): View
     {
-        /*
-         * Même préfecture + compte gérable.
-         */
         $this->verifierCompteGerable($agent);
 
         $roles = Role::query()
@@ -403,12 +322,6 @@ class DpaAgentController extends Controller
             ->rattachementPrefectureActif
             ?->prefecture;
 
-        abort_if(
-            ! $prefecture,
-            403,
-            "Aucune préfecture n'est rattachée à votre compte."
-        );
-
         return view(
             'dpa.agents.edit',
             compact(
@@ -421,48 +334,29 @@ class DpaAgentController extends Controller
 
     /**
      * =========================================================================
-     * MODIFICATION
+     * UPDATE
      * =========================================================================
      */
     public function update(
         UpdateDpaAgentRequest $request,
         User $agent
     ): RedirectResponse {
-        /*
-         * Vérifie :
-         * - même préfecture
-         * - pas son propre compte
-         * - rôle gérable
-         */
+
         $this->verifierCompteGerable($agent);
 
         $data = $request->validated();
 
-        /*
-         * Si un mot de passe est fourni,
-         * on le chiffre.
-         */
         if (
-            isset($data['password'])
-            && filled($data['password'])
+            isset($data['password']) &&
+            filled($data['password'])
         ) {
             $data['password'] = Hash::make(
                 $data['password']
             );
         } else {
-            /*
-             * Aucun nouveau mot de passe :
-             * on conserve l'ancien.
-             */
             unset($data['password']);
         }
 
-        /*
-         * Sécurité supplémentaire :
-         *
-         * On vérifie que le rôle demandé reste
-         * dans les rôles autorisés.
-         */
         if (isset($data['role_id'])) {
 
             $role = Role::query()
@@ -495,19 +389,17 @@ class DpaAgentController extends Controller
 
     /**
      * =========================================================================
-     * ACTIVER / DÉSACTIVER UN COMPTE
+     * TOGGLE STATUS
      * =========================================================================
      */
     public function toggleStatus(
         User $agent
     ): RedirectResponse {
-        /*
-         * Le compte doit appartenir à la préfecture du DPA.
-         */
+
         $this->verifierCompteGerable($agent);
 
         $agent->update([
-            'statut' => ! $agent->statut,
+            'statut' => !$agent->statut,
         ]);
 
         return back()->with(
@@ -520,15 +412,13 @@ class DpaAgentController extends Controller
 
     /**
      * =========================================================================
-     * SUPPRESSION
+     * DESTROY
      * =========================================================================
-     *
-     * La suppression physique des comptes est interdite.
-     * On utilise la désactivation.
      */
     public function destroy(
         User $agent
     ): RedirectResponse {
+
         $this->verifierCompteGerable($agent);
 
         return back()->with(

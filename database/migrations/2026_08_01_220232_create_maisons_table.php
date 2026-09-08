@@ -6,39 +6,58 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('maisons', function (Blueprint $table) {
+
             $table->id('idMaison');
 
-            // Identifiant technique unique
-            // Utilisé notamment pour le mode hors ligne et la synchronisation
+            // Identifiant hors ligne
             $table->uuid('uid')->unique();
 
-            // Référence métier visible sur le terrain
+            // Numéro officiel de recensement
             $table->string('numeroMaison')->unique();
 
-            // Adresse ou indication complémentaire
+            // Localisation administrative
+            $table->foreignId('village_id')
+                ->constrained('villages','idVillage')
+                ->cascadeOnDelete();
+
+            // Informations observées
+            $table->string('chefMaison');
+
             $table->string('adresse')->nullable();
 
-            // Village auquel appartient la maison
-            $table->foreignId('village_id')
-                ->constrained('villages', 'idVillage')
-                ->onDelete('cascade');
+            $table->unsignedSmallInteger('nombreMenages')->default(1);
+
+            // Coordonnées GPS de la maison
+            $table->decimal('latitude',10,7)->nullable();
+            $table->decimal('longitude',10,7)->nullable();
+            $table->decimal('precisionGPS',6,2)->nullable();
+
+            // Photo éventuelle
+            $table->string('photoMaison')->nullable();
+
+            // Suivi terrain
+            $table->enum('statut',[
+                'brouillon',
+                'en_cours',
+                'terminee',
+                'verifiee'
+            ])->default('brouillon');
+
+            $table->foreignId('agent_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+
+            $table->timestamp('dateIdentification')->nullable();
 
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('maisons');
     }
 };
-

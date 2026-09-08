@@ -6,26 +6,72 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('cultures', function (Blueprint $table) {
-           $table->id('idCulture');
-            $table->string('typeCulture');
-            $table->date('dateDebut');
-            $table->date('dateFin')->nullable();
-            $table->float('superficieCultivee');
-            $table->string('campagne');
-            $table->foreignId('parcelle_id')->constrained('parcelles', 'idParcelle')->onDelete('cascade');
+
+            $table->id('idCulture');
+
+            $table->foreignId('parcelle_id')
+                ->constrained('parcelles','idParcelle')
+                ->cascadeOnDelete();
+
+            // Culture
+            $table->string('nomCulture');
+
+            $table->enum('categorie',[
+                'vivriere',
+                'rente',
+                'maraichere',
+                'fruitiere',
+                'fourragere',
+                'autre'
+            ]);
+
+            $table->enum('modeCulture',[
+                'principale',
+                'associee',
+                'rotation'
+            ]);
+
+            // Campagne agricole
+            $table->string('campagneAgricole');
+
+            // Superficie occupée
+            $table->decimal('superficieCultivee',8,2);
+
+            // Calendrier agricole
+            $table->date('dateSemis')->nullable();
+
+            $table->date('dateRecoltePrevue')->nullable();
+
+            $table->date('dateRecolteEffective')->nullable();
+
+            // Production
+            $table->decimal('productionEstimee',10,2)->nullable();
+
+            $table->decimal('productionRecoltee',10,2)->nullable();
+
+            $table->string('uniteProduction')->default('kg');
+
+            // Irrigation
+            $table->boolean('irriguee')->default(false);
+
+            // État de la culture
+            $table->enum('etatCulture',[
+                'semis',
+                'croissance',
+                'floraison',
+                'recolte',
+                'terminee'
+            ])->default('semis');
+
+            $table->text('observations')->nullable();
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('cultures');

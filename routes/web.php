@@ -19,15 +19,18 @@ use App\Http\Controllers\CampagnePlanificationController;
 use App\Http\Controllers\Dpa\PlanificationPrefectoraleController;
 use App\Http\Controllers\Dpa\EquipeController;
 use App\Http\Controllers\Dpa\DpaAgentController;
+use App\Http\Controllers\StatistiqueController;
+use App\Http\Controllers\SuperviseurController;
 
 
 
 
-/*
-|--------------------------------------------------------------------------
-| Accueil
-|--------------------------------------------------------------------------
-*/
+
+    /*
+    |--------------------------------------------------------------------------
+    | Accueil
+    |--------------------------------------------------------------------------
+    */
 
 Route::get('/', function () {
     return view('welcome');
@@ -67,6 +70,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
 
+
+
+    Route::get('/statistiques', [StatistiqueController::class, 'index'])
+        ->name('statistiques.index');
 
     /*
     |--------------------------------------------------------------------------
@@ -575,7 +582,10 @@ Route::middleware(['auth'])
                 '/affectations/{affectation}/reactiver',
                 [AffectationController::class, 'reactiver']
             )->name('affectations.reactiver');
-                    
+            
+            
+        Route::get('/mes-affectations', [AffectationController::class, 'mesAffectations'])
+        ->name('agent.affectations');
 
         // =========================================================
         // RECONDUIRE UNE ÉQUIPE
@@ -693,6 +703,42 @@ Route::middleware(['auth'])->group(function () {
         });
 
 });
+
+
+
+
+Route::middleware(['auth'])
+    ->prefix('superviseur')
+    ->name('superviseur.')
+    ->group(function () {
+
+        // Mes équipes
+        Route::get('/mes-equipes', [EquipeController::class, 'mesEquipes'])
+            ->name('equipes.index');
+
+        Route::get('/mes-equipes/{equipe:reference}', [EquipeController::class, 'showSuperviseur'])
+            ->name('equipes.show');
+
+        // Mes zones
+        Route::get('/mes-zones', [AffectationController::class, 'mesZonesSupervision'])
+            ->name('zones.index');
+
+        Route::get('/mes-zones/{affectation:reference}', [AffectationController::class, 'zoneSupervision'])
+            ->name('zones.show');
+
+        // Suivi
+        Route::get('/suivi', [SuperviseurController::class, 'suivi'])
+            ->name('suivi.index');
+        
+        Route::get(
+            '/controle-qualite',
+            [SuperviseurController::class, 'controleQualite']
+        )->name('controle-qualite.index');
+    });
+
+
+
+
 
 
 

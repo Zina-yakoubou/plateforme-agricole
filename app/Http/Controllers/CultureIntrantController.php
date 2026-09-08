@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class DpaAgentController extends Controller
+class CultureIntrantController extends Controller
 {
     //
 }

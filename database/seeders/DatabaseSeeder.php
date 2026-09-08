@@ -30,6 +30,8 @@ class DatabaseSeeder extends Seeder
             CampagneRecensementSeeder::class,
             CampagneZoneSeeder::class,
             QuestionnaireSeeder::class, // Insère questionnaires + pivot
+            CampagnePlanificationSeeder::class,
+            PlanificationActiviteSeeder::class,
 
 
             //DirecteurPrefectureSeeder::class,

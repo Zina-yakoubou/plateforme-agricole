@@ -7,7 +7,10 @@ use App\Http\Requests\UpdateMaisonRequest;
 use App\Models\Maison;
 use App\Models\Village;
 use App\Services\ReferenceGeneratorService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class MaisonController extends Controller
 {
@@ -19,25 +22,12 @@ class MaisonController extends Controller
     /**
      * Liste des maisons d'un village.
      */
-    // public function index(Village $village)
-    // {
-    //     $maisons = $village->maisons()
-    //         ->withCount('menages')
-    //         ->orderBy('idMaison')
-    //         ->paginate(10);
-
-    //     return view('maisons.index', compact(
-    //         'village',
-    //         'maisons'
-    //     ));
-    // }
-
-        public function index(Village $village)
+    public function index(Village $village): View
     {
         $maisons = $village->maisons()
             ->withCount('menages')
             ->orderBy('idMaison')
-            ->paginate(5);
+            ->paginate(10);
 
         return view('maisons.index', compact(
             'village',
@@ -46,27 +36,30 @@ class MaisonController extends Controller
     }
 
     /**
-     * Formulaire de création.
+     * Formulaire de création d'une maison.
      */
-    public function create(Village $village)
+    public function create(Village $village): View
     {
+        $village->load([
+            'canton.commune',
+        ]);
+
         return view('maisons.create', compact('village'));
     }
 
     /**
-     * Enregistrement d'une maison.
+     * Enregistre une nouvelle maison.
      */
     public function store(
         StoreMaisonRequest $request,
         Village $village
-    ) {
+    ): RedirectResponse {
         /*
-         * Génération de la référence métier.
-         *
-         * Exemple :
-         * KPE-M-00001
-         * KPE-M-00002
-         */
+        |--------------------------------------------------------------------------
+        | Génération automatique du numéro de maison
+        |--------------------------------------------------------------------------
+        */
+
         $numeroMaison = $this->referenceGenerator->generate(
             type: 'maison',
             parentType: 'village',
@@ -77,18 +70,62 @@ class MaisonController extends Controller
         );
 
         /*
-         * Génération de l'identifiant technique unique.
-         *
-         * Cet UID ne change jamais pendant la vie
-         * de la maison et pourra servir à la
-         * synchronisation hors ligne.
-         */
+        |--------------------------------------------------------------------------
+        | Génération de l'identifiant hors ligne
+        |--------------------------------------------------------------------------
+        */
+
         $uid = (string) Str::uuid();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Photo de la maison
+        |--------------------------------------------------------------------------
+        */
+
+        $photoMaison = null;
+
+        if ($request->hasFile('photoMaison')) {
+            $photoMaison = $request
+                ->file('photoMaison')
+                ->store('maisons', 'public');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Création
+        |--------------------------------------------------------------------------
+        */
 
         $maison = $village->maisons()->create([
             'uid' => $uid,
+
             'numeroMaison' => $numeroMaison,
+
+            'chefMaison' => $request->validated('chefMaison'),
+
             'adresse' => $request->validated('adresse'),
+
+            'nombreMenages' => 1,
+
+            'latitude' => $request->validated('latitude'),
+
+            'longitude' => $request->validated('longitude'),
+
+            'precisionGPS' => $request->validated('precisionGPS'),
+
+            'photoMaison' => $photoMaison,
+
+            'statut' => $request->validated(
+                'statut',
+                'brouillon'
+            ),
+
+            'agent_id' => auth()->id(),
+
+            'dateIdentification' => $request->validated(
+                'dateIdentification'
+            ),
         ]);
 
         return redirect()
@@ -103,13 +140,14 @@ class MaisonController extends Controller
     }
 
     /**
-     * Affichage d'une maison.
+     * Affiche une maison.
      */
-    public function show(Maison $maison)
+    public function show(Maison $maison): View
     {
         $maison->load([
-            'village',
+            'village.canton.commune',
             'menages',
+            'agent',
         ]);
 
         return view('maisons.show', compact('maison'));
@@ -118,41 +156,118 @@ class MaisonController extends Controller
     /**
      * Formulaire de modification.
      */
-    public function edit(Maison $maison)
+    public function edit(Maison $maison): View
     {
-        $maison->load('village');
+        $maison->load([
+            'village.canton.commune',
+        ]);
 
         return view('maisons.edit', compact('maison'));
     }
 
     /**
-     * Modification d'une maison.
+     * Met à jour une maison.
      */
     public function update(
         UpdateMaisonRequest $request,
         Maison $maison
-    ) {
-        $maison->update([
+    ): RedirectResponse {
+        /*
+        |--------------------------------------------------------------------------
+        | Données modifiables
+        |--------------------------------------------------------------------------
+        */
+
+        $donnees = [
+            'chefMaison' => $request->validated('chefMaison'),
+
             'adresse' => $request->validated('adresse'),
-        ]);
+
+            'latitude' => $request->validated('latitude'),
+
+            'longitude' => $request->validated('longitude'),
+
+            'precisionGPS' => $request->validated('precisionGPS'),
+
+            'statut' => $request->validated('statut'),
+
+            'dateIdentification' => $request->validated(
+                'dateIdentification'
+            ),
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Nouvelle photo
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->hasFile('photoMaison')) {
+
+            if (
+                $maison->photoMaison &&
+                Storage::disk('public')->exists(
+                    $maison->photoMaison
+                )
+            ) {
+                Storage::disk('public')->delete(
+                    $maison->photoMaison
+                );
+            }
+
+            $donnees['photoMaison'] = $request
+                ->file('photoMaison')
+                ->store('maisons', 'public');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Mise à jour
+        |--------------------------------------------------------------------------
+        */
+
+        $maison->update($donnees);
 
         return redirect()
             ->route(
-                'villages.maisons.index',
-                $maison->village
+                'maisons.show',
+                $maison
             )
             ->with(
                 'success',
-                "La maison {$maison->numeroMaison} a été modifiée avec succès."
+                'La maison a été mise à jour avec succès.'
             );
     }
 
     /**
-     * Suppression d'une maison.
+     * Supprime une maison.
      */
-    public function destroy(Maison $maison)
+    public function destroy(Maison $maison): RedirectResponse
     {
         $village = $maison->village;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Suppression de la photo
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $maison->photoMaison &&
+            Storage::disk('public')->exists(
+                $maison->photoMaison
+            )
+        ) {
+            Storage::disk('public')->delete(
+                $maison->photoMaison
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Suppression de la maison
+        |--------------------------------------------------------------------------
+        */
 
         $maison->delete();
 
@@ -167,4 +282,3 @@ class MaisonController extends Controller
             );
     }
 }
-

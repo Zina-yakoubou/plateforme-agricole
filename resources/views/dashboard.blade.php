@@ -1,495 +1,1414 @@
-@php
-    $user = auth()->user();
-@endphp
+@extends('layouts.app')
 
+@section('page-title', 'Tableau de bord')
 
-{{-- =========================================================
-     OVERLAY MOBILE
-========================================================== --}}
+@section(
+    'page-subtitle',
+    $typeDashboard === 'dpa'
+        ? 'Pilotage de la campagne dans votre préfecture'
+        : 'Vue générale du recensement agricole'
+)
 
-<div
-    x-show="sidebarOpen"
-    x-transition.opacity
-    x-cloak
-    @click="sidebarOpen = false"
-    class="fixed inset-0 bg-black/50 z-40 lg:hidden"
-></div>
+@section('content')
 
-
-{{-- =========================================================
-     SIDEBAR
-========================================================== --}}
-
-<aside
-    class="w-72 h-screen fixed lg:sticky top-0 left-0 z-50 lg:z-auto
-           bg-white border-r border-[#e5e7eb] flex flex-col shrink-0
-           transition-all duration-300 ease-in-out relative"
-    :class="[
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-        collapsed ? 'lg:w-20' : 'lg:w-72'
-    ]"
->
+<div class="mx-auto max-w-7xl space-y-6">
 
     {{-- =========================================================
-         BOUTON REPLIER (desktop uniquement)
+         EN-TÊTE
     ========================================================== --}}
 
-    <button
-        type="button"
-        @click="collapsed = !collapsed"
-        class="hidden lg:flex absolute -right-3 top-8 w-6 h-6 rounded-full
-               bg-white border border-[#e5e7eb] shadow-[0_1px_2px_rgba(0,0,0,0.05)]
-               items-center justify-center text-[#434343] hover:text-[#006a4f]
-               hover:border-[#006a4f] transition-colors duration-150 z-10"
-        :aria-label="collapsed ? 'Déplier le menu' : 'Replier le menu'"
-    >
-        <svg
-            class="w-3.5 h-3.5 transition-transform duration-300"
-            :class="collapsed ? 'rotate-180' : ''"
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-        >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
-        </svg>
-    </button>
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+        <div>
+
+            @if($typeDashboard === 'dpa')
+
+                <h1 class="font-poppins text-2xl font-semibold text-[#212529]">
+                    Tableau de bord
+                </h1>
+
+                <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                    Préfecture de {{ $prefecture->nom ?? 'Non définie' }}
+                </p>
+
+            @elseif($typeDashboard === 'admin')
+
+                <h1 class="font-poppins text-2xl font-semibold text-[#212529]">
+                    Tableau de bord
+                </h1>
+
+                <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                    Vue globale de la campagne de recensement
+                </p>
+
+            @else
+
+                <h1 class="font-poppins text-2xl font-semibold text-[#212529]">
+                    Tableau de bord
+                </h1>
+
+            @endif
+
+        </div>
+
+
+        {{-- =====================================================
+             CAMPAGNE ACTUELLE
+        ====================================================== --}}
+
+        @if($campagne)
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white px-5 py-3">
+
+                <p class="font-poppins text-xs font-medium uppercase tracking-wide text-[#6b7280]">
+                    Campagne actuelle
+                </p>
+
+                <div class="mt-1 flex items-center gap-3">
+
+                    <span class="font-poppins text-sm font-semibold text-[#212529]">
+                        {{ $campagne->libelle }}
+                    </span>
+
+                    @if($campagne->statut === 'active')
+
+                        <span class="rounded-full bg-[#e5f2ee] px-2.5 py-1 font-poppins text-xs font-semibold text-[#006a4f]">
+                            Active
+                        </span>
+
+                    @elseif($campagne->statut === 'planifiee')
+
+                        <span class="rounded-full bg-amber-50 px-2.5 py-1 font-poppins text-xs font-semibold text-amber-700">
+                            Planifiée
+                        </span>
+
+                    @endif
+
+                </div>
+
+            </div>
+
+        @endif
+
+    </div>
 
 
     {{-- =========================================================
-         LOGO
+         MESSAGE SI AUCUNE CAMPAGNE
     ========================================================== --}}
 
-    <div
-        class="h-20 flex items-center border-b border-[#e5e7eb] shrink-0"
-        :class="collapsed ? 'lg:justify-center lg:px-0 px-6' : 'px-6 justify-between'"
-    >
+    @if(!$campagne)
 
-        <div class="flex items-center min-w-0" :class="collapsed ? 'lg:justify-center' : ''">
-            <img
-                src="{{ asset('images/sira-mo.png') }}"
-                class="w-11 h-11 rounded-lg object-contain bg-[#e5f2ee] p-1 shrink-0"
-                alt="SIRA-Mô"
-            >
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
 
-            <div class="ml-3 min-w-0" x-show="!collapsed" x-cloak.lg>
-                <h2 class="font-poppins text-lg font-semibold text-[#212529] truncate">
-                    SIRA-Mô
+            <div class="flex items-start gap-3">
+
+                <svg
+                    class="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v3m0 4h.01M10.29 3.86l-8.2 14A2 2 0 003.82 21h16.36a2 2 0 001.73-3.14l-8.2-14a2 2 0 00-3.42 0z"
+                    />
+                </svg>
+
+                <div>
+
+                    <p class="font-poppins text-sm font-semibold text-amber-800">
+                        Aucune campagne en cours
+                    </p>
+
+                    <p class="mt-1 font-poppins text-sm text-amber-700">
+                        Aucune campagne active ou planifiée n'est actuellement disponible.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    @endif
+
+
+    {{-- =========================================================
+         DASHBOARD DPA
+    ========================================================== --}}
+
+    @if($typeDashboard === 'dpa')
+
+        {{-- =====================================================
+             INDICATEURS
+        ====================================================== --}}
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+            {{-- Équipes --}}
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+                        <p class="font-poppins text-sm text-[#6b7280]">
+                            Équipes
+                        </p>
+
+                        <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
+                            {{ $nombreEquipes }}
+                        </p>
+                    </div>
+
+                    <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-[#e5f2ee] text-[#006a4f]">
+
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M17 20h5v-2a4 4 0 00-4-4h-1
+                                   M9 20H4v-2a4 4 0 014-4h1
+                                   M12 14a4 4 0 100-8 4 4 0 000 8
+                                   M16 3.13a4 4 0 010 7.75
+                                   M8 3.13a4 4 0 000 7.75"
+                            />
+                        </svg>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- Agents --}}
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+
+                        <p class="font-poppins text-sm text-[#6b7280]">
+                            Agents recenseurs
+                        </p>
+
+                        <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
+                            {{ $nombreAgents }}
+                        </p>
+
+                    </div>
+
+                    <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-[#e5f2ee] text-[#006a4f]">
+
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2
+                                   M9 11a4 4 0 100-8 4 4 0 000 8
+                                   M22 21v-2a4 4 0 00-3-3.87
+                                   M16 3.13a4 4 0 010 7.75"
+                            />
+
+                        </svg>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- Superviseurs --}}
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+
+                        <p class="font-poppins text-sm text-[#6b7280]">
+                            Superviseurs
+                        </p>
+
+                        <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
+                            {{ $nombreSuperviseurs }}
+                        </p>
+
+                    </div>
+
+                    <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-[#e5f2ee] text-[#006a4f]">
+
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M12 14a4 4 0 100-8 4 4 0 000 8
+                                   M4 21a8 8 0 0116 0"
+                            />
+
+                        </svg>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- Villages --}}
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+
+                        <p class="font-poppins text-sm text-[#6b7280]">
+                            Villages
+                        </p>
+
+                        <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
+                            {{ $nombreVillages }}
+                        </p>
+
+                    </div>
+
+                    <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-[#e5f2ee] text-[#006a4f]">
+
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M12 21s7-5.2 7-12a7 7 0 10-14 0c0 6.8 7 12 7 12z
+                                   M12 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"
+                            />
+
+                        </svg>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {{-- =====================================================
+             PROGRESSION + AFFECTATIONS
+        ====================================================== --}}
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+            {{-- Progression --}}
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-6 lg:col-span-2">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+
+                        <h2 class="font-poppins text-base font-semibold text-[#212529]">
+                            Progression de la campagne
+                        </h2>
+
+                        <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                            Couverture des villages par les affectations
+                        </p>
+
+                    </div>
+
+                    <span class="font-poppins text-2xl font-semibold text-[#006a4f]">
+                        {{ $progression }}%
+                    </span>
+
+                </div>
+
+
+                <div class="mt-6 h-3 overflow-hidden rounded-full bg-[#e5e7eb]">
+
+                    <div
+                        class="h-full rounded-full bg-[#006a4f] transition-all duration-500"
+                        style="width: {{ $progression }}%"
+                    ></div>
+
+                </div>
+
+
+                <div class="mt-4 grid grid-cols-2 gap-4">
+
+                    <div class="rounded-lg bg-[#f9fafb] p-4">
+
+                        <p class="font-poppins text-xs text-[#6b7280]">
+                            Villages affectés
+                        </p>
+
+                        <p class="mt-1 font-poppins text-xl font-semibold text-[#212529]">
+                            {{ $villagesAffectes }}
+                        </p>
+
+                    </div>
+
+
+                    <div class="rounded-lg bg-[#f9fafb] p-4">
+
+                        <p class="font-poppins text-xs text-[#6b7280]">
+                            Villages non affectés
+                        </p>
+
+                        <p class="mt-1 font-poppins text-xl font-semibold text-[#212529]">
+                            {{ $villagesNonAffectes }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- Affectations --}}
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-6">
+
+                <h2 class="font-poppins text-base font-semibold text-[#212529]">
+                    Affectations
                 </h2>
 
-                <p class="font-poppins text-xs text-[#374151] truncate">
-                    Recensement Agricole
-                </p>
+                <div class="mt-6 space-y-5">
+
+                    <div class="flex items-center justify-between">
+
+                        <span class="font-poppins text-sm text-[#6b7280]">
+                            Total
+                        </span>
+
+                        <span class="font-poppins text-lg font-semibold text-[#212529]">
+                            {{ $nombreAffectations }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="flex items-center justify-between">
+
+                        <span class="font-poppins text-sm text-[#6b7280]">
+                            Actives
+                        </span>
+
+                        <span class="font-poppins text-lg font-semibold text-[#006a4f]">
+                            {{ $affectationsActives }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="border-t border-[#e5e7eb] pt-5">
+
+                        <a
+                            href="{{ route('dpa.affectations.index') }}"
+                            class="flex items-center justify-center rounded-lg bg-[#006a4f] px-4 py-2.5 font-poppins text-sm font-medium text-white transition hover:bg-[#005a43]"
+                        >
+                            Voir les affectations
+                        </a>
+
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
 
-        {{-- Fermer (mobile) --}}
-        <button
-            type="button"
-            @click="sidebarOpen = false"
-            class="lg:hidden w-9 h-9 shrink-0 flex items-center justify-center rounded-lg
-                   text-[#434343] hover:bg-[#e5f2ee] hover:text-[#006a4f] transition-colors duration-150"
-            aria-label="Fermer le menu"
-        >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
+
+        {{-- =====================================================
+             PROGRESSION PAR COMMUNE
+        ====================================================== --}}
+
+        <div class="rounded-xl border border-[#e5e7eb] bg-white">
+
+            <div class="border-b border-[#e5e7eb] px-6 py-5">
+
+                <h2 class="font-poppins text-base font-semibold text-[#212529]">
+                    Progression par commune
+                </h2>
+
+                <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                    Suivi territorial de la campagne
+                </p>
+
+            </div>
+
+
+            <div class="overflow-x-auto">
+
+                <table class="min-w-full">
+
+                    <thead class="bg-[#f9fafb]">
+
+                        <tr>
+
+                            <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                                Commune
+                            </th>
+
+                            <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                                Villages
+                            </th>
+
+                            <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                                Affectés
+                            </th>
+
+                            <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                                Progression
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody class="divide-y divide-[#e5e7eb]">
+
+                        @forelse($communes as $commune)
+
+                            <tr class="hover:bg-[#f9fafb]">
+
+                                <td class="px-6 py-4 font-poppins text-sm font-medium text-[#212529]">
+                                    {{ $commune['nom'] }}
+                                </td>
+
+                                <td class="px-6 py-4 font-poppins text-sm text-[#434343]">
+                                    {{ $commune['villages'] }}
+                                </td>
+
+                                <td class="px-6 py-4 font-poppins text-sm text-[#434343]">
+                                    {{ $commune['villages_affectes'] }}
+                                </td>
+
+                                <td class="px-6 py-4">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <div class="h-2 w-28 overflow-hidden rounded-full bg-[#e5e7eb]">
+
+                                            <div
+                                                class="h-full rounded-full bg-[#006a4f]"
+                                                style="width: {{ $commune['progression'] }}%"
+                                            ></div>
+
+                                        </div>
+
+                                        <span class="font-poppins text-sm font-semibold text-[#212529]">
+                                            {{ $commune['progression'] }}%
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        @empty
+
+                            <tr>
+
+                                <td
+                                    colspan="4"
+                                    class="px-6 py-10 text-center font-poppins text-sm text-[#6b7280]"
+                                >
+                                    Aucune donnée territoriale disponible.
+                                </td>
+
+                            </tr>
+
+                        @endforelse
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+    {{-- =========================================================
+         DASHBOARD ADMINISTRATEUR
+    ========================================================== --}}
+
+    @elseif($typeDashboard === 'admin')
+
+        {{-- =====================================================
+             INDICATEURS
+        ====================================================== --}}
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+
+                <p class="font-poppins text-sm text-[#6b7280]">
+                    Campagnes
+                </p>
+
+                <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
+                    {{ $nombreCampagnes }}
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+
+                <p class="font-poppins text-sm text-[#6b7280]">
+                    Équipes
+                </p>
+
+                <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
+                    {{ $nombreEquipes }}
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+
+                <p class="font-poppins text-sm text-[#6b7280]">
+                    Agents recenseurs
+                </p>
+
+                <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
+                    {{ $nombreAgents }}
+                </p>
+
+            </div>
+
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+
+                <p class="font-poppins text-sm text-[#6b7280]">
+                    Villages
+                </p>
+
+                <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
+                    {{ $nombreVillages }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {{-- =====================================================
+             CAMPAGNE
+        ====================================================== --}}
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-6 lg:col-span-2">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+
+                        <h2 class="font-poppins text-base font-semibold text-[#212529]">
+                            Campagne actuelle
+                        </h2>
+
+                        @if($campagne)
+
+                            <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                                {{ $campagne->libelle }}
+                            </p>
+
+                        @else
+
+                            <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                                Aucune campagne active
+                            </p>
+
+                        @endif
+
+                    </div>
+
+
+                    @if($campagne)
+
+                        <span class="rounded-full bg-[#e5f2ee] px-3 py-1 font-poppins text-xs font-semibold text-[#006a4f]">
+                            {{ ucfirst($campagne->statut) }}
+                        </span>
+
+                    @endif
+
+                </div>
+
+
+                <div class="mt-6 h-3 overflow-hidden rounded-full bg-[#e5e7eb]">
+
+                    <div
+                        class="h-full rounded-full bg-[#006a4f]"
+                        style="width: {{ $progression }}%"
+                    ></div>
+
+                </div>
+
+
+                <div class="mt-3 flex items-center justify-between">
+
+                    <span class="font-poppins text-sm text-[#6b7280]">
+                        Couverture des villages
+                    </span>
+
+                    <span class="font-poppins text-sm font-semibold text-[#006a4f]">
+                        {{ $progression }}%
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="rounded-xl border border-[#e5e7eb] bg-white p-6">
+
+                <h2 class="font-poppins text-base font-semibold text-[#212529]">
+                    Affectations
+                </h2>
+
+                <div class="mt-5 space-y-4">
+
+                    <div class="flex items-center justify-between">
+
+                        <span class="font-poppins text-sm text-[#6b7280]">
+                            Total
+                        </span>
+
+                        <span class="font-poppins text-xl font-semibold text-[#212529]">
+                            {{ $nombreAffectations }}
+                        </span>
+
+                    </div>
+
+                    <div class="flex items-center justify-between">
+
+                        <span class="font-poppins text-sm text-[#6b7280]">
+                            Actives
+                        </span>
+
+                        <span class="font-poppins text-xl font-semibold text-[#006a4f]">
+                            {{ $affectationsActives }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {{-- =====================================================
+             PRÉFECTURES
+        ====================================================== --}}
+
+        <div class="rounded-xl border border-[#e5e7eb] bg-white">
+
+            <div class="border-b border-[#e5e7eb] px-6 py-5">
+
+                <h2 class="font-poppins text-base font-semibold text-[#212529]">
+                    Situation par préfecture
+                </h2>
+
+                <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                    Vue globale de la campagne actuelle
+                </p>
+
+            </div>
+
+
+            <div class="overflow-x-auto">
+
+                <table class="min-w-full">
+
+                    <thead class="bg-[#f9fafb]">
+
+                        <tr>
+
+                            <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                                Préfecture
+                            </th>
+
+                            <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                                Équipes
+                            </th>
+
+                            <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                                Villages
+                            </th>
+
+                            <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                                Affectés
+                            </th>
+
+                            <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                                Progression
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody class="divide-y divide-[#e5e7eb]">
+
+                        @forelse($prefectures as $prefecture)
+
+                            <tr class="hover:bg-[#f9fafb]">
+
+                                <td class="px-6 py-4 font-poppins text-sm font-medium text-[#212529]">
+                                    {{ $prefecture['nom'] }}
+                                </td>
+
+                                <td class="px-6 py-4 font-poppins text-sm text-[#434343]">
+                                    {{ $prefecture['equipes'] }}
+                                </td>
+
+                                <td class="px-6 py-4 font-poppins text-sm text-[#434343]">
+                                    {{ $prefecture['villages'] }}
+                                </td>
+
+                                <td class="px-6 py-4 font-poppins text-sm text-[#434343]">
+                                    {{ $prefecture['villages_affectes'] }}
+                                </td>
+
+                                <td class="px-6 py-4">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <div class="h-2 w-28 overflow-hidden rounded-full bg-[#e5e7eb]">
+
+                                            <div
+                                                class="h-full rounded-full bg-[#006a4f]"
+                                                style="width: {{ $prefecture['progression'] }}%"
+                                            ></div>
+
+                                        </div>
+
+                                        <span class="font-poppins text-sm font-semibold text-[#212529]">
+                                            {{ $prefecture['progression'] }}%
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        @empty
+
+                            <tr>
+
+                                <td
+                                    colspan="5"
+                                    class="px-6 py-10 text-center font-poppins text-sm text-[#6b7280]"
+                                >
+                                    Aucune donnée disponible.
+                                </td>
+
+                            </tr>
+
+                        @endforelse
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+        @elseif($typeDashboard === 'agent')
+
+    {{-- =====================================================
+         DASHBOARD AGENT RECENSEUR
+    ====================================================== --}}
+
+    {{-- =====================================================
+         INFORMATIONS DE L'AGENT
+    ====================================================== --}}
+
+    <div class="rounded-xl border border-[#e5e7eb] bg-white p-6">
+
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+            <div>
+
+                <p class="font-poppins text-sm text-[#6b7280]">
+                    Espace agent recenseur
+                </p>
+
+                <h2 class="mt-1 font-poppins text-xl font-semibold text-[#212529]">
+                    Bonjour, {{ auth()->user()->name }}
+                </h2>
+
+                <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                    Suivi de votre mission de recensement sur le terrain.
+                </p>
+
+            </div>
+
+            @if($campagne)
+
+                <span class="inline-flex w-fit rounded-full bg-[#e5f2ee] px-3 py-1.5 font-poppins text-xs font-semibold text-[#006a4f]">
+                    Campagne active
+                </span>
+
+            @endif
+
+        </div>
 
     </div>
 
 
-    {{-- =========================================================
-         NAVIGATION
-    ========================================================== --}}
+    {{-- =====================================================
+         CAMPAGNE ACTUELLE
+    ====================================================== --}}
 
-    <nav class="flex-1 px-4 py-5 overflow-y-auto overflow-x-hidden">
+    @if($campagne)
 
+        <div class="rounded-xl border border-[#e5e7eb] bg-white p-6">
 
-        {{-- =====================================================
-             TABLEAU DE BORD
-        ====================================================== --}}
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 
-        
-            href="{{ route('dashboard') }}"
-            title="Tableau de bord"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-poppins text-sm transition-colors duration-150
-            {{ request()->routeIs('dashboard')
-                ? 'bg-[#e5f2ee] text-[#006a4f] font-semibold'
-                : 'text-[#434343] hover:bg-[#e5f2ee] hover:text-[#006a4f]' }}"
-            :class="collapsed ? 'lg:justify-center lg:px-0' : ''"
-        >
+                <div>
 
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                      d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10" />
-            </svg>
+                    <p class="font-poppins text-xs font-medium uppercase tracking-wide text-[#6b7280]">
+                        Campagne actuelle
+                    </p>
 
-            <span x-show="!collapsed" x-cloak.lg>Tableau de bord</span>
+                    <h2 class="mt-2 font-poppins text-lg font-semibold text-[#212529]">
+                        {{ $campagne->libelle }}
+                    </h2>
 
-        </a>
+                    @if($campagne->codeCampagne)
 
+                        <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                            {{ $campagne->codeCampagne }}
+                        </p>
 
-        {{-- =====================================================
-             ADMINISTRATEUR
-        ====================================================== --}}
-
-        @if($user->isAdmin())
-
-            <div class="mt-7">
-
-                <p class="px-4 mb-3 font-poppins text-xs font-semibold uppercase tracking-widest text-[#374151]"
-                   x-show="!collapsed" x-cloak.lg>
-                    Administration
-                </p>
-
-
-                {{-- Utilisateurs --}}
-
-                
-                    href="{{ route('users.index') }}"
-                    title="Utilisateurs"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-poppins text-sm transition-colors duration-150
-                    {{ request()->routeIs('users.*')
-                        ? 'bg-[#e5f2ee] text-[#006a4f] font-semibold'
-                        : 'text-[#434343] hover:bg-[#e5f2ee] hover:text-[#006a4f]' }}"
-                    :class="collapsed ? 'lg:justify-center lg:px-0' : ''"
-                >
-
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                              d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2
-                                 M9 11a4 4 0 100-8 4 4 0 000 8
-                                 M22 21v-2a4 4 0 00-3-3.87
-                                 M16 3.13a4 4 0 010 7.75" />
-                    </svg>
-
-                    <span x-show="!collapsed" x-cloak.lg>Utilisateurs</span>
-
-                </a>
-
-
-                {{-- Campagnes --}}
-
-                
-                    href="{{ route('campagnes.index') }}"
-                    title="Campagnes"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-poppins text-sm transition-colors duration-150
-                    {{ request()->routeIs('campagnes.*')
-                        ? 'bg-[#e5f2ee] text-[#006a4f] font-semibold'
-                        : 'text-[#434343] hover:bg-[#e5f2ee] hover:text-[#006a4f]' }}"
-                    :class="collapsed ? 'lg:justify-center lg:px-0' : ''"
-                >
-
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                              d="M8 2v4
-                                 M16 2v4
-                                 M3 10h18
-                                 M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
-                    </svg>
-
-                    <span x-show="!collapsed" x-cloak.lg>Campagnes</span>
-
-                </a>
-
-            </div>
-
-
-            {{-- =================================================
-                 DONNÉES
-            ================================================== --}}
-
-            <div class="mt-7">
-
-                <p class="px-4 mb-3 font-poppins text-xs font-semibold uppercase tracking-widest text-[#374151]"
-                   x-show="!collapsed" x-cloak.lg>
-                    Données
-                </p>
-
-
-                {{-- Statistiques --}}
-                {{-- À activer lorsque la route statistiques.index sera créée --}}
-
-                <div
-                    title="Statistiques"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg font-poppins text-sm text-[#9ca3af] cursor-not-allowed"
-                    :class="collapsed ? 'lg:justify-center lg:px-0' : ''"
-                >
-
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                              d="M4 19V5
-                                 M4 19h16
-                                 M8 16v-5
-                                 M12 16V8
-                                 M16 16v-8" />
-                    </svg>
-
-                    <span x-show="!collapsed" x-cloak.lg>Statistiques</span>
+                    @endif
 
                 </div>
 
+                @if($campagne->statut === 'active')
+
+                    <span class="rounded-full bg-[#e5f2ee] px-3 py-1 font-poppins text-xs font-semibold text-[#006a4f]">
+                        Active
+                    </span>
+
+                @elseif($campagne->statut === 'cloturee')
+
+                    <span class="rounded-full bg-gray-100 px-3 py-1 font-poppins text-xs font-semibold text-gray-600">
+                        Clôturée
+                    </span>
+
+                @endif
+
             </div>
 
-        @endif
+        </div>
 
+    @else
 
-        {{-- =====================================================
-             DIRECTEUR PRÉFECTORAL
-        ====================================================== --}}
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
 
-        @if($user->isDPA())
+            <div class="flex items-start gap-3">
 
-            <div class="mt-7">
-
-                <p class="px-4 mb-3 font-poppins text-xs font-semibold uppercase tracking-widest text-[#374151]"
-                   x-show="!collapsed" x-cloak.lg>
-                    Gestion
-                </p>
-
-
-                {{-- Agents recenseurs --}}
-
-                
-                    href="{{ route('agents.index') }}"
-                    title="Agents recenseurs"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-poppins text-sm transition-colors duration-150
-                    {{ request()->routeIs('agents.*')
-                        ? 'bg-[#e5f2ee] text-[#006a4f] font-semibold'
-                        : 'text-[#434343] hover:bg-[#e5f2ee] hover:text-[#006a4f]' }}"
-                    :class="collapsed ? 'lg:justify-center lg:px-0' : ''"
+                <svg
+                    class="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                 >
-
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                              d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2
-                                 M9 11a4 4 0 100-8 4 4 0 000 8
-                                 M22 21v-2a4 4 0 00-3-3.87
-                                 M16 3.13a4 4 0 010 7.75" />
-                    </svg>
-
-                    <span x-show="!collapsed" x-cloak.lg>Agents recenseurs</span>
-
-                </a>
-
-
-                {{-- Campagnes --}}
-
-                
-                    href="{{ route('campagnes.index') }}"
-                    title="Campagnes"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg mb-2 font-poppins text-sm transition-colors duration-150
-                    {{ request()->routeIs('campagnes.*')
-                        ? 'bg-[#e5f2ee] text-[#006a4f] font-semibold'
-                        : 'text-[#434343] hover:bg-[#e5f2ee] hover:text-[#006a4f]' }}"
-                    :class="collapsed ? 'lg:justify-center lg:px-0' : ''"
-                >
-
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                              d="M8 2v4
-                                 M16 2v4
-                                 M3 10h18
-                                 M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
-                    </svg>
-
-                    <span x-show="!collapsed" x-cloak.lg>Campagnes</span>
-
-                </a>
-
-            </div>
-
-
-            {{-- =================================================
-                 DONNÉES
-            ================================================== --}}
-
-            <div class="mt-7">
-
-                <p class="px-4 mb-3 font-poppins text-xs font-semibold uppercase tracking-widest text-[#374151]"
-                   x-show="!collapsed" x-cloak.lg>
-                    Données
-                </p>
-
-
-                {{-- Statistiques --}}
-
-                <div
-                    title="Statistiques"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg font-poppins text-sm text-[#9ca3af] cursor-not-allowed"
-                    :class="collapsed ? 'lg:justify-center lg:px-0' : ''"
-                >
-
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                              d="M4 19V5
-                                 M4 19h16
-                                 M8 16v-5
-                                 M12 16V8
-                                 M16 16v-8" />
-                    </svg>
-
-                    <span x-show="!collapsed" x-cloak.lg>Statistiques</span>
-
-                </div>
-
-            </div>
-
-        @endif
-
-
-        {{-- =====================================================
-             AGENT RECENSEUR
-        ====================================================== --}}
-
-        @if($user->isAgent())
-
-            <div class="mt-7">
-
-                <p class="px-4 mb-3 font-poppins text-xs font-semibold uppercase tracking-widest text-[#374151]"
-                   x-show="!collapsed" x-cloak.lg>
-                    Recensement
-                </p>
-
-
-                {{-- Mes affectations --}}
-
-                
-                    href="{{ route('agent.affectations') }}"
-                    title="Mes affectations"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg font-poppins text-sm transition-colors duration-150
-                    {{ request()->routeIs('agent.affectations*')
-                        ? 'bg-[#e5f2ee] text-[#006a4f] font-semibold'
-                        : 'text-[#434343] hover:bg-[#e5f2ee] hover:text-[#006a4f]' }}"
-                    :class="collapsed ? 'lg:justify-center lg:px-0' : ''"
-                >
-
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2
-                                 M9 5a3 3 0 006 0
-                                 M9 12h6
-                                 M9 16h4" />
-                    </svg>
-
-                    <span x-show="!collapsed" x-cloak.lg>Mes affectations</span>
-
-                </a>
-
-            </div>
-
-        @endif
-
-    </nav>
-
-
-    {{-- =========================================================
-         UTILISATEUR CONNECTÉ
-    ========================================================== --}}
-
-    <div
-        class="border-t border-[#e5e7eb] p-3 shrink-0 relative"
-        x-data="{ accountMenu: false }"
-        @click.outside="accountMenu = false"
-    >
-
-        {{-- Déclencheur --}}
-
-        <button
-            type="button"
-            @click="accountMenu = !accountMenu"
-            class="w-full flex items-center gap-3 p-2 rounded-lg
-                   hover:bg-[#e5f2ee] transition-colors duration-150"
-            :class="collapsed ? 'lg:justify-center' : ''"
-        >
-
-            {{-- Avatar --}}
-
-            <div
-                class="w-10 h-10 rounded-full bg-[#006a4f] text-white
-                       flex items-center justify-center font-poppins font-semibold text-sm shrink-0"
-            >
-                {{ strtoupper(substr($user->name, 0, 1)) }}
-            </div>
-
-
-            {{-- Infos --}}
-
-            <div class="min-w-0 flex-1 text-left" x-show="!collapsed" x-cloak.lg>
-
-                <p class="font-poppins text-sm font-semibold text-[#212529] truncate">
-                    {{ $user->name }}
-                </p>
-
-                <p class="font-poppins text-xs text-[#374151] truncate">
-                    {{ $user->role->nom ?? '' }}
-                </p>
-
-            </div>
-
-
-            {{-- Chevron --}}
-
-            <svg
-                class="w-4 h-4 text-[#374151] shrink-0 transition-transform duration-150"
-                x-show="!collapsed"
-                x-cloak.lg
-                :class="accountMenu ? 'rotate-180' : ''"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 9l6 6 6-6" />
-            </svg>
-
-        </button>
-
-
-        {{-- Menu déroulant --}}
-
-        <div
-            x-show="accountMenu"
-            x-transition
-            x-cloak
-            class="absolute bottom-full mb-2 bg-white rounded-lg border border-[#e5e7eb]
-                   shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] py-2 z-50"
-            :class="collapsed ? 'lg:left-full lg:ml-2 lg:bottom-3 left-3 right-3 lg:right-auto lg:w-56' : 'left-3 right-3'"
-        >
-
-            <div class="px-4 py-2 border-b border-[#e5e7eb]">
-                <p class="font-poppins text-sm font-semibold text-[#212529] truncate">
-                    {{ $user->name }}
-                </p>
-                <p class="font-poppins text-xs text-[#374151] truncate">
-                    {{ $user->role->nom ?? '' }}
-                </p>
-            </div>
-
-            
-                href="{{ route('profile.edit') }}"
-                class="flex items-center gap-2 px-4 py-2 font-poppins text-sm text-[#434343]
-                       hover:bg-[#e5f2ee] hover:text-[#006a4f] transition-colors duration-150"
-            >
-                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                          d="M20 21a8 8 0 00-16 0 M12 13a4 4 0 100-8 4 4 0 000 8z" />
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v3m0 4h.01M10.29 3.86l-8.2 14A2 2 0 003.82 21h16.36a2 2 0 001.73-3.14l-8.2-14a2 2 0 00-3.42 0z"
+                    />
                 </svg>
-                Modifier mon compte
-            </a>
 
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button
-                    type="submit"
-                    class="w-full flex items-center gap-2 px-4 py-2 font-poppins text-sm
-                           text-[#ab1717] hover:bg-red-50 transition-colors duration-150"
-                >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                              d="M15 12H3 M7 8l-4 4 4 4 M21 5v14a2 2 0 01-2 2h-6 M15 7V5a2 2 0 00-2-2H7" />
+                <div>
+
+                    <p class="font-poppins text-sm font-semibold text-amber-800">
+                        Aucune campagne active
+                    </p>
+
+                    <p class="mt-1 font-poppins text-sm text-amber-700">
+                        Vous n'avez actuellement aucune campagne active.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    @endif
+
+
+    {{-- =====================================================
+         MON ÉQUIPE
+    ====================================================== --}}
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+        {{-- Équipe --}}
+
+        <div class="rounded-xl border border-[#e5e7eb] bg-white p-6 lg:col-span-2">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h2 class="font-poppins text-base font-semibold text-[#212529]">
+                        Mon équipe
+                    </h2>
+
+                    <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                        Équipe avec laquelle vous intervenez sur le terrain.
+                    </p>
+
+                </div>
+
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#e5f2ee] text-[#006a4f]">
+
+                    <svg
+                        class="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M17 20h5v-2a4 4 0 00-4-4h-1
+                               M9 20H4v-2a4 4 0 014-4h1
+                               M12 14a4 4 0 100-8 4 4 0 000 8"
+                        />
                     </svg>
-                    Déconnexion
-                </button>
-            </form>
+
+                </div>
+
+            </div>
+
+
+            @if($equipe)
+
+                <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+
+                    <div class="rounded-lg bg-[#f9fafb] p-4">
+
+                        <p class="font-poppins text-xs text-[#6b7280]">
+                            Équipe
+                        </p>
+
+                        <p class="mt-1 font-poppins text-base font-semibold text-[#212529]">
+                            {{ $equipe->nom }}
+                        </p>
+
+                        @if($equipe->reference)
+
+                            <p class="mt-1 font-poppins text-xs text-[#6b7280]">
+                                {{ $equipe->reference }}
+                            </p>
+
+                        @endif
+
+                    </div>
+
+
+                    <div class="rounded-lg bg-[#f9fafb] p-4">
+
+                        <p class="font-poppins text-xs text-[#6b7280]">
+                            Superviseur
+                        </p>
+
+                        <p class="mt-1 font-poppins text-base font-semibold text-[#212529]">
+
+                            {{ $equipe->superviseur?->name ?? 'Non défini' }}
+
+                        </p>
+
+                    </div>
+
+
+                    <div class="rounded-lg bg-[#f9fafb] p-4">
+
+                        <p class="font-poppins text-xs text-[#6b7280]">
+                            Membres de l'équipe
+                        </p>
+
+                        <p class="mt-1 font-poppins text-xl font-semibold text-[#212529]">
+                            {{ $equipe->membres->count() }}
+                        </p>
+
+                    </div>
+
+
+                    <div class="rounded-lg bg-[#f9fafb] p-4">
+
+                        <p class="font-poppins text-xs text-[#6b7280]">
+                            Statut
+                        </p>
+
+                        <p class="mt-1 font-poppins text-sm font-semibold text-[#006a4f]">
+                            {{ ucfirst($equipe->statut ?? 'Non défini') }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            @else
+
+                <div class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+
+                    <p class="font-poppins text-sm font-semibold text-amber-800">
+                        Aucune équipe affectée
+                    </p>
+
+                    <p class="mt-1 font-poppins text-sm text-amber-700">
+                        Vous n'êtes actuellement membre d'aucune équipe.
+                    </p>
+
+                </div>
+
+            @endif
+
+        </div>
+
+
+        {{-- Statistiques terrain --}}
+
+        <div class="rounded-xl border border-[#e5e7eb] bg-white p-6">
+
+            <h2 class="font-poppins text-base font-semibold text-[#212529]">
+                Mon terrain
+            </h2>
+
+            <div class="mt-6 space-y-5">
+
+                <div class="flex items-center justify-between">
+
+                    <span class="font-poppins text-sm text-[#6b7280]">
+                        Affectations
+                    </span>
+
+                    <span class="font-poppins text-xl font-semibold text-[#212529]">
+                        {{ $nombreAffectations }}
+                    </span>
+
+                </div>
+
+
+                <div class="flex items-center justify-between">
+
+                    <span class="font-poppins text-sm text-[#6b7280]">
+                        Affectations actives
+                    </span>
+
+                    <span class="font-poppins text-xl font-semibold text-[#006a4f]">
+                        {{ $affectationsActives }}
+                    </span>
+
+                </div>
+
+
+                <div class="flex items-center justify-between">
+
+                    <span class="font-poppins text-sm text-[#6b7280]">
+                        Villages
+                    </span>
+
+                    <span class="font-poppins text-xl font-semibold text-[#212529]">
+                        {{ $nombreVillages }}
+                    </span>
+
+                </div>
+
+            </div>
 
         </div>
 
     </div>
 
-</aside>
+
+    {{-- =====================================================
+         MES ZONES DE TRAVAIL
+    ====================================================== --}}
+
+    <div class="rounded-xl border border-[#e5e7eb] bg-white">
+
+        <div class="border-b border-[#e5e7eb] px-6 py-5">
+
+            <h2 class="font-poppins text-base font-semibold text-[#212529]">
+                Mes zones de travail
+            </h2>
+
+            <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                Villages affectés à votre équipe pour la campagne actuelle.
+            </p>
+
+        </div>
+
+
+        <div class="overflow-x-auto">
+
+            <table class="min-w-full">
+
+                <thead class="bg-[#f9fafb]">
+
+                    <tr>
+
+                        <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                            Village
+                        </th>
+
+                        <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                            Canton
+                        </th>
+
+                        <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                            Commune
+                        </th>
+
+                        <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+                            Statut
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-[#e5e7eb]">
+
+                    @forelse($mesAffectations as $affectation)
+
+                        <tr class="hover:bg-[#f9fafb]">
+
+                            <td class="px-6 py-4">
+
+                                <p class="font-poppins text-sm font-medium text-[#212529]">
+                                    {{ $affectation->village?->nom ?? 'Village non défini' }}
+                                </p>
+
+                                @if($affectation->village?->code)
+
+                                    <p class="mt-1 font-poppins text-xs text-[#6b7280]">
+                                        {{ $affectation->village->code }}
+                                    </p>
+
+                                @endif
+
+                            </td>
+
+
+                            <td class="px-6 py-4 font-poppins text-sm text-[#434343]">
+
+                                {{ $affectation->village?->canton?->nom ?? '—' }}
+
+                            </td>
+
+
+                            <td class="px-6 py-4 font-poppins text-sm text-[#434343]">
+
+                                {{ $affectation->village?->canton?->commune?->nom ?? '—' }}
+
+                            </td>
+
+
+                            <td class="px-6 py-4">
+
+                                @if($affectation->statut === 'active')
+
+                                    <span class="rounded-full bg-[#e5f2ee] px-2.5 py-1 font-poppins text-xs font-semibold text-[#006a4f]">
+                                        Active
+                                    </span>
+
+                                @elseif($affectation->statut === 'terminee')
+
+                                    <span class="rounded-full bg-gray-100 px-2.5 py-1 font-poppins text-xs font-semibold text-gray-600">
+                                        Terminée
+                                    </span>
+
+                                @elseif($affectation->statut === 'annulee')
+
+                                    <span class="rounded-full bg-red-50 px-2.5 py-1 font-poppins text-xs font-semibold text-red-600">
+                                        Annulée
+                                    </span>
+
+                                @else
+
+                                    <span class="rounded-full bg-gray-100 px-2.5 py-1 font-poppins text-xs font-semibold text-gray-600">
+                                        {{ ucfirst($affectation->statut ?? 'Non défini') }}
+                                    </span>
+
+                                @endif
+
+                            </td>
+
+                        </tr>
+
+                    @empty
+
+                        <tr>
+
+                            <td
+                                colspan="4"
+                                class="px-6 py-10 text-center font-poppins text-sm text-[#6b7280]"
+                            >
+                                Aucune zone de travail ne vous est actuellement affectée.
+                            </td>
+
+                        </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    {{-- =====================================================
+         HISTORIQUE DES CAMPAGNES
+    ====================================================== --}}
+
+    <div class="rounded-xl border border-[#e5e7eb] bg-white">
+
+        <div class="border-b border-[#e5e7eb] px-6 py-5">
+
+            <h2 class="font-poppins text-base font-semibold text-[#212529]">
+                Mes campagnes
+            </h2>
+
+            <p class="mt-1 font-poppins text-sm text-[#6b7280]">
+                Historique des campagnes auxquelles vous avez participé.
+            </p>
+
+        </div>
+
+
+        <div class="divide-y divide-[#e5e7eb]">
+
+            @forelse($mesCampagnes as $campagneAgent)
+
+                <div class="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div>
+
+                        <p class="font-poppins text-sm font-semibold text-[#212529]">
+                            {{ $campagneAgent->libelle }}
+                        </p>
+
+                        @if($campagneAgent->codeCampagne)
+
+                            <p class="mt-1 font-poppins text-xs text-[#6b7280]">
+                                {{ $campagneAgent->codeCampagne }}
+                            </p>
+
+                        @endif
+
+                    </div>
+
+
+                    <div>
+
+                        @if($campagneAgent->statut === 'active')
+
+                            <span class="rounded-full bg-[#e5f2ee] px-2.5 py-1 font-poppins text-xs font-semibold text-[#006a4f]">
+                                Active
+                            </span>
+
+                        @elseif($campagneAgent->statut === 'cloturee')
+
+                            <span class="rounded-full bg-gray-100 px-2.5 py-1 font-poppins text-xs font-semibold text-gray-600">
+                                Clôturée
+                            </span>
+
+                        @elseif($campagneAgent->statut === 'archivee')
+
+                            <span class="rounded-full bg-gray-100 px-2.5 py-1 font-poppins text-xs font-semibold text-gray-500">
+                                Archivée
+                            </span>
+
+                        @else
+
+                            <span class="rounded-full bg-amber-50 px-2.5 py-1 font-poppins text-xs font-semibold text-amber-700">
+                                {{ ucfirst($campagneAgent->statut ?? 'Non défini') }}
+                            </span>
+
+                        @endif
+
+                    </div>
+
+                </div>
+
+            @empty
+
+                <div class="px-6 py-10 text-center">
+
+                    <p class="font-poppins text-sm text-[#6b7280]">
+                        Aucun historique de campagne disponible.
+                    </p>
+
+                </div>
+
+            @endforelse
+
+        </div>
+
+    </div>
+
+    @else
+
+        {{-- =====================================================
+             DASHBOARD STANDARD
+        ====================================================== --}}
+
+        <div class="rounded-xl border border-[#e5e7eb] bg-white p-8">
+
+            <h2 class="font-poppins text-lg font-semibold text-[#212529]">
+                Bienvenue sur SIRA-Mô
+            </h2>
+
+            <p class="mt-2 font-poppins text-sm text-[#6b7280]">
+                Votre tableau de bord est prêt.
+            </p>
+
+        </div>
+
+    @endif
+
+</div>
+
+@endsection

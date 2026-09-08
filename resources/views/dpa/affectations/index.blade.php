@@ -527,7 +527,7 @@
                                             <div class="mt-1 font-mono text-xs
                                                         font-medium text-[#006a4f]">
 
-                                                {{ $affectation->equipe->reference }}
+                                                {{ $affectation->equipe->nom }}
 
                                             </div>
 
@@ -577,7 +577,7 @@
                                         </div>
 
 
-                                        @if($affectation->campagne->codeCampagne)
+                                        {{-- @if($affectation->campagne->codeCampagne)
 
                                             <div class="mt-1 font-mono text-xs
                                                         font-medium text-[#006a4f]">
@@ -587,7 +587,7 @@
                                             </div>
 
                                         @endif
-
+ --}}
                                     </div>
 
                                 @else

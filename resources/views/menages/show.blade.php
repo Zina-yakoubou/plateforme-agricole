@@ -15,7 +15,7 @@
         </h1>
 
         <p class="text-sm text-slate-500 mt-1">
-            Informations et rattachement administratif du ménage.
+            Informations et rattachement du ménage.
         </p>
 
     </div>
@@ -55,14 +55,14 @@
 
 @if(session('success'))
 
-    <div class="mb-6 rounded-lg
-                bg-green-50
-                border border-green-200
-                px-5 py-4
-                text-sm text-green-700">
-
+    <div
+        class="mb-6 rounded-lg
+               bg-green-50
+               border border-green-200
+               px-5 py-4
+               text-sm text-green-700"
+    >
         {{ session('success') }}
-
     </div>
 
 @endif
@@ -79,11 +79,13 @@
     {{-- IDENTIFICATION --}}
     {{-- ================================================= --}}
 
-    <div class="lg:col-span-2
-                bg-white
-                rounded-xl
-                shadow
-                p-6">
+    <div
+        class="lg:col-span-2
+               bg-white
+               rounded-xl
+               shadow
+               p-6"
+    >
 
         <h2 class="text-lg font-bold text-slate-800 mb-5">
             Identification du ménage
@@ -100,45 +102,143 @@
                     Numéro du ménage
                 </p>
 
-                <p class="mt-1
-                          font-semibold
-                          text-slate-800">
-
+                <p class="mt-1 font-semibold text-slate-800">
                     {{ $menage->numeroMenage }}
-
                 </p>
 
             </div>
 
 
-            {{-- Chef de ménage --}}
+            {{-- Statut --}}
             <div>
 
                 <p class="text-sm text-gray-500">
-                    Chef de ménage
+                    Statut
                 </p>
 
-                <p class="mt-1
-                          font-semibold
-                          text-slate-800">
+                @switch($menage->statut)
 
+                    @case('brouillon')
+
+                        <span
+                            class="inline-flex mt-1
+                                   px-3 py-1
+                                   rounded-full
+                                   bg-gray-100
+                                   text-gray-700
+                                   text-sm font-medium"
+                        >
+                            Brouillon
+                        </span>
+
+                        @break
+
+                    @case('en_cours')
+
+                        <span
+                            class="inline-flex mt-1
+                                   px-3 py-1
+                                   rounded-full
+                                   bg-blue-100
+                                   text-blue-700
+                                   text-sm font-medium"
+                        >
+                            En cours
+                        </span>
+
+                        @break
+
+                    @case('terminee')
+
+                        <span
+                            class="inline-flex mt-1
+                                   px-3 py-1
+                                   rounded-full
+                                   bg-green-100
+                                   text-green-700
+                                   text-sm font-medium"
+                        >
+                            Terminée
+                        </span>
+
+                        @break
+
+                    @default
+
+                        <span
+                            class="inline-flex mt-1
+                                   px-3 py-1
+                                   rounded-full
+                                   bg-gray-100
+                                   text-gray-700
+                                   text-sm font-medium"
+                        >
+                            {{ $menage->statut }}
+                        </span>
+
+                @endswitch
+
+            </div>
+
+
+            {{-- Nom --}}
+            <div>
+
+                <p class="text-sm text-gray-500">
+                    Nom du chef de ménage
+                </p>
+
+                <p class="mt-1 font-semibold text-slate-800">
                     {{ $menage->nomChef }}
+                </p>
+
+            </div>
+
+
+            {{-- Prénom --}}
+            <div>
+
+                <p class="text-sm text-gray-500">
+                    Prénom du chef de ménage
+                </p>
+
+                <p class="mt-1 font-semibold text-slate-800">
+                    {{ $menage->prenomChef ?: '-' }}
+                </p>
+
+            </div>
+
+
+            {{-- Sexe --}}
+            <div>
+
+                <p class="text-sm text-gray-500">
+                    Sexe du chef de ménage
+                </p>
+
+                <p class="mt-1 font-semibold text-slate-800">
+
+                    @if($menage->sexeChef === 'M')
+                        Homme
+                    @elseif($menage->sexeChef === 'F')
+                        Femme
+                    @else
+                        -
+                    @endif
 
                 </p>
 
             </div>
 
 
-            {{-- Nombre de personnes --}}
+            {{-- Nombre total --}}
             <div>
 
                 <p class="text-sm text-gray-500">
-                    Nombre de personnes
+                    Nombre total de personnes
                 </p>
 
-                <p class="mt-1
-                          font-semibold
-                          text-slate-800">
+                <p class="mt-1 font-semibold text-slate-800">
 
                     {{ $menage->nombrePersonnes }}
 
@@ -147,44 +247,6 @@
                     </span>
 
                 </p>
-
-            </div>
-
-
-            {{-- Champ --}}
-            <div>
-
-                <p class="text-sm text-gray-500">
-                    Possède un champ
-                </p>
-
-                @if($menage->aChamp)
-
-                    <span class="inline-flex mt-1
-                                 px-3 py-1
-                                 rounded-full
-                                 bg-green-100
-                                 text-green-700
-                                 text-sm font-medium">
-
-                        Oui
-
-                    </span>
-
-                @else
-
-                    <span class="inline-flex mt-1
-                                 px-3 py-1
-                                 rounded-full
-                                 bg-slate-100
-                                 text-slate-600
-                                 text-sm font-medium">
-
-                        Non
-
-                    </span>
-
-                @endif
 
             </div>
 
@@ -197,10 +259,12 @@
     {{-- MAISON --}}
     {{-- ================================================= --}}
 
-    <div class="bg-white
-                rounded-xl
-                shadow
-                p-6">
+    <div
+        class="bg-white
+               rounded-xl
+               shadow
+               p-6"
+    >
 
         <h2 class="text-lg font-bold text-slate-800 mb-5">
             Maison
@@ -217,9 +281,7 @@
                     Numéro de maison
                 </p>
 
-                <p class="mt-1
-                          font-semibold
-                          text-slate-800">
+                <p class="mt-1 font-semibold text-slate-800">
 
                     {{ $menage->maison->numeroMaison ?? '-' }}
 
@@ -235,19 +297,17 @@
                     Adresse / indication
                 </p>
 
-                <p class="mt-1
-                          font-semibold
-                          text-slate-800">
+                <p class="mt-1 font-semibold text-slate-800">
 
                     {{ $menage->maison->adresse
-                        ?: 'Aucune indication renseignée' }}
+                        ?: 'Aucune indication renseignée'
+                    }}
 
                 </p>
 
             </div>
 
 
-            {{-- Lien maison --}}
             <div class="pt-2">
 
                 <a
@@ -259,9 +319,7 @@
                            text-blue-600
                            hover:text-blue-800"
                 >
-
                     Voir la maison →
-
                 </a>
 
             </div>
@@ -274,91 +332,133 @@
 
 
 {{-- ================================================= --}}
-{{-- RATTACHEMENT ADMINISTRATIF --}}
+{{-- COMPOSITION DU MÉNAGE --}}
 {{-- ================================================= --}}
 
-<div class="mt-6
-            bg-white
-            rounded-xl
-            shadow
-            p-6">
+<div
+    class="mt-6
+           bg-white
+           rounded-xl
+           shadow
+           p-6"
+>
 
-    <h2 class="text-lg font-bold text-slate-800 mb-5">
-        Rattachement administratif
-    </h2>
+    <div class="mb-5">
+
+        <h2 class="text-lg font-bold text-slate-800">
+            Composition du ménage
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-1">
+            Répartition des personnes composant le ménage.
+        </p>
+
+    </div>
 
 
-    <div class="grid grid-cols-1
-                md:grid-cols-4
-                gap-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
 
 
-        {{-- Commune --}}
-        <div>
+        {{-- Hommes --}}
+        <div
+            class="rounded-lg
+                   bg-slate-50
+                   border border-slate-200
+                   p-4"
+        >
 
             <p class="text-sm text-gray-500">
-                Commune
+                Hommes
             </p>
 
-            <p class="mt-1
-                      font-semibold
-                      text-slate-800">
-
-                {{ $menage->maison->village->canton->commune->nom ?? '-' }}
-
+            <p class="mt-1 text-2xl font-bold text-slate-800">
+                {{ $menage->nombreHommes }}
             </p>
 
         </div>
 
 
-        {{-- Canton --}}
-        <div>
+        {{-- Femmes --}}
+        <div
+            class="rounded-lg
+                   bg-slate-50
+                   border border-slate-200
+                   p-4"
+        >
 
             <p class="text-sm text-gray-500">
-                Canton
+                Femmes
             </p>
 
-            <p class="mt-1
-                      font-semibold
-                      text-slate-800">
-
-                {{ $menage->maison->village->canton->nom ?? '-' }}
-
+            <p class="mt-1 text-2xl font-bold text-slate-800">
+                {{ $menage->nombreFemmes }}
             </p>
 
         </div>
 
 
-        {{-- Village --}}
-        <div>
+        {{-- Garçons --}}
+        <div
+            class="rounded-lg
+                   bg-slate-50
+                   border border-slate-200
+                   p-4"
+        >
 
             <p class="text-sm text-gray-500">
-                Village
+                Garçons
             </p>
 
-            <p class="mt-1
-                      font-semibold
-                      text-slate-800">
-
-                {{ $menage->maison->village->nom ?? '-' }}
-
+            <p class="mt-1 text-2xl font-bold text-slate-800">
+                {{ $menage->nombreGarcons }}
             </p>
 
         </div>
 
 
-        {{-- Maison --}}
-        <div>
+        {{-- Filles --}}
+        <div
+            class="rounded-lg
+                   bg-slate-50
+                   border border-slate-200
+                   p-4"
+        >
 
             <p class="text-sm text-gray-500">
-                Maison
+                Filles
             </p>
 
-            <p class="mt-1
-                      font-semibold
-                      text-slate-800">
+            <p class="mt-1 text-2xl font-bold text-slate-800">
+                {{ $menage->nombreFilles }}
+            </p>
 
-                {{ $menage->maison->numeroMaison ?? '-' }}
+        </div>
+
+    </div>
+
+
+    {{-- Total --}}
+    <div
+        class="mt-5
+               rounded-lg
+               bg-green-50
+               border border-green-200
+               px-5 py-4"
+    >
+
+        <div class="flex items-center justify-between">
+
+            <p class="font-semibold text-green-800">
+                Total du ménage
+            </p>
+
+            <p class="text-xl font-bold text-green-800">
+
+                {{ $menage->nombrePersonnes }}
+
+                <span class="text-sm font-normal">
+                    personne(s)
+                </span>
 
             </p>
 
@@ -373,11 +473,13 @@
 {{-- INFORMATIONS AGRICOLES --}}
 {{-- ================================================= --}}
 
-<div class="mt-6
-            bg-white
-            rounded-xl
-            shadow
-            p-6">
+<div
+    class="mt-6
+           bg-white
+           rounded-xl
+           shadow
+           p-6"
+>
 
     <div class="flex items-center justify-between mb-5">
 
@@ -396,51 +498,52 @@
     </div>
 
 
-    @if($menage->aChamp)
+    @if($menage->possedeExploitation)
 
-        {{-- Ménage agricole --}}
-        <div class="p-4 rounded-lg
-                    bg-green-50
-                    border border-green-200">
+        <div
+            class="p-4 rounded-lg
+                   bg-green-50
+                   border border-green-200"
+        >
 
-            <div class="flex items-center justify-between gap-4">
+            <div
+                class="flex flex-col
+                       sm:flex-row
+                       sm:items-center
+                       sm:justify-between
+                       gap-4"
+            >
 
                 <div>
 
                     <p class="font-semibold text-green-800">
-                        Ménage agricole
+                        Exploitation agricole déclarée
                     </p>
 
                     <p class="text-sm text-green-700 mt-1">
-                        Ce ménage possède ou exploite un champ.
-                        Vous pouvez maintenant enregistrer l'exploitant.
+                        Ce ménage a déclaré posséder une exploitation agricole.
+                        Vous pouvez enregistrer son ou ses exploitants.
                     </p>
 
                 </div>
 
 
-                {{-- Enregistrer exploitant --}}
-                {{-- <a
-                    href="{{ route('menages.exploitants.create', $menage) }}"
-                    class="shrink-0
-                           px-5 py-2
-                           rounded-lg
-                           bg-green-600
-                           text-white
-                           font-medium
-                           hover:bg-green-700"
-                >
-                    + Ajouter un exploitant
-                </a> --}}
-                <button class="shrink-0
+                @if(Route::has('menages.exploitants.create'))
+
+                    <a
+                        href="{{ route('menages.exploitants.create', $menage) }}"
+                        class="shrink-0
                                px-5 py-2
                                rounded-lg
                                bg-green-600
                                text-white
                                font-medium
-                               hover:bg-green-700">
-                    + Ajouter un exploitant
-                </button>
+                               hover:bg-green-700"
+                    >
+                        + Ajouter un exploitant
+                    </a>
+
+                @endif
 
             </div>
 
@@ -448,26 +551,27 @@
 
     @else
 
-        {{-- Ménage non agricole --}}
-        <div class="p-4 rounded-lg
-                    bg-slate-50
-                    border border-slate-200">
+        <div
+            class="p-4 rounded-lg
+                   bg-slate-50
+                   border border-slate-200"
+        >
 
             <div class="flex items-center gap-3">
 
-                <span class="inline-flex
-                             px-3 py-1
-                             rounded-full
-                             bg-slate-200
-                             text-slate-700
-                             text-sm font-medium">
-
-                    Aucun champ déclaré
-
+                <span
+                    class="inline-flex
+                           px-3 py-1
+                           rounded-full
+                           bg-slate-200
+                           text-slate-700
+                           text-sm font-medium"
+                >
+                    Aucune exploitation déclarée
                 </span>
 
                 <p class="text-sm text-slate-600">
-                    Aucun exploitant agricole n'est à enregistrer
+                    Aucune exploitation agricole n'a été déclarée
                     pour ce ménage.
                 </p>
 
@@ -481,30 +585,148 @@
 
 
 {{-- ================================================= --}}
-{{-- INFORMATIONS D'ENREGISTREMENT --}}
+{{-- OBSERVATIONS --}}
 {{-- ================================================= --}}
 
-<div class="mt-6
-            bg-slate-50
-            border border-slate-200
-            rounded-xl
-            p-5">
+@if($menage->observations)
 
-    <h2 class="text-sm
-               font-semibold
-               text-slate-700
-               mb-3">
+    <div
+        class="mt-6
+               bg-white
+               rounded-xl
+               shadow
+               p-6"
+    >
 
-        Informations d'enregistrement
+        <h2 class="text-lg font-bold text-slate-800 mb-4">
+            Observations
+        </h2>
 
+        <p class="text-sm text-slate-700 whitespace-pre-line">
+            {{ $menage->observations }}
+        </p>
+
+    </div>
+
+@endif
+
+
+{{-- ================================================= --}}
+{{-- RATTACHEMENT --}}
+{{-- ================================================= --}}
+
+<div
+    class="mt-6
+           bg-white
+           rounded-xl
+           shadow
+           p-6"
+>
+
+    <h2 class="text-lg font-bold text-slate-800 mb-5">
+        Rattachement administratif
     </h2>
 
 
-    <div class="grid grid-cols-1
-                md:grid-cols-2
-                gap-4
-                text-sm">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 
+
+        {{-- Commune --}}
+        <div>
+
+            <p class="text-sm text-gray-500">
+                Commune
+            </p>
+
+            <p class="mt-1 font-semibold text-slate-800">
+
+                {{ $menage->maison->village->canton->commune->nom ?? '-' }}
+
+            </p>
+
+        </div>
+
+
+        {{-- Canton --}}
+        <div>
+
+            <p class="text-sm text-gray-500">
+                Canton
+            </p>
+
+            <p class="mt-1 font-semibold text-slate-800">
+
+                {{ $menage->maison->village->canton->nom ?? '-' }}
+
+            </p>
+
+        </div>
+
+
+        {{-- Village --}}
+        <div>
+
+            <p class="text-sm text-gray-500">
+                Village
+            </p>
+
+            <p class="mt-1 font-semibold text-slate-800">
+
+                {{ $menage->maison->village->nom ?? '-' }}
+
+            </p>
+
+        </div>
+
+
+        {{-- Maison --}}
+        <div>
+
+            <p class="text-sm text-gray-500">
+                Maison
+            </p>
+
+            <p class="mt-1 font-semibold text-slate-800">
+
+                {{ $menage->maison->numeroMaison ?? '-' }}
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{{-- ================================================= --}}
+{{-- INFORMATIONS D'ENREGISTREMENT --}}
+{{-- ================================================= --}}
+
+<div
+    class="mt-6
+           bg-slate-50
+           border border-slate-200
+           rounded-xl
+           p-5"
+>
+
+    <h2
+        class="text-sm
+               font-semibold
+               text-slate-700
+               mb-3"
+    >
+        Informations d'enregistrement
+    </h2>
+
+
+    <div
+        class="grid grid-cols-1
+               md:grid-cols-2
+               gap-4
+               text-sm"
+    >
 
         <div>
 

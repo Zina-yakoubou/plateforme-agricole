@@ -19,23 +19,23 @@ class UpdateEquipeRequest extends FormRequest
     {
         return [
 
+            /*
+            |--------------------------------------------------------------------------
+            | NOM DE L'ÉQUIPE
+            |--------------------------------------------------------------------------
+            */
+
             'nom' => [
                 'required',
                 'string',
                 'max:255',
             ],
 
-            'campagne_id' => [
-                'required',
-                'integer',
-                'exists:campagne_recensements,idCampagne',
-            ],
-
-            'prefecture_id' => [
-                'required',
-                'integer',
-                'exists:prefectures,idPrefecture',
-            ],
+            /*
+            |--------------------------------------------------------------------------
+            | SUPERVISEUR
+            |--------------------------------------------------------------------------
+            */
 
             'superviseur_id' => [
                 'required',
@@ -43,13 +43,11 @@ class UpdateEquipeRequest extends FormRequest
                 'exists:users,id',
             ],
 
-            'mode' => [
-                'required',
-                Rule::in([
-                    'individuel',
-                    'groupe',
-                ]),
-            ],
+            /*
+            |--------------------------------------------------------------------------
+            | MEMBRES
+            |--------------------------------------------------------------------------
+            */
 
             'membres' => [
                 'required',
@@ -61,6 +59,20 @@ class UpdateEquipeRequest extends FormRequest
                 'integer',
                 'distinct',
                 'exists:users,id',
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | STATUT
+            |--------------------------------------------------------------------------
+            */
+
+            'statut' => [
+                'nullable',
+                Rule::in([
+                    'ACTIVE',
+                    'INACTIVE',
+                ]),
             ],
         ];
     }
@@ -104,24 +116,7 @@ class UpdateEquipeRequest extends FormRequest
 
             /*
             |--------------------------------------------------------------------------
-            | MODE INDIVIDUEL
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                $this->mode === 'individuel'
-                && is_array($this->membres)
-                && count($this->membres) !== 1
-            ) {
-                $validator->errors()->add(
-                    'membres',
-                    'Une équipe individuelle doit avoir exactement un enquêteur.'
-                );
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | SUPERVISEUR
+            | VÉRIFICATION DU SUPERVISEUR
             |--------------------------------------------------------------------------
             */
 
@@ -140,7 +135,7 @@ class UpdateEquipeRequest extends FormRequest
 
             /*
             |--------------------------------------------------------------------------
-            | ENQUÊTEURS
+            | VÉRIFICATION DES AGENTS RECENSEURS
             |--------------------------------------------------------------------------
             */
 
@@ -150,11 +145,11 @@ class UpdateEquipeRequest extends FormRequest
 
                 foreach ($membres as $membre) {
 
-                    if (!$membre->isEnqueteur()) {
+                    if (!$membre->isAgent()) {
 
                         $validator->errors()->add(
                             'membres',
-                            "L'utilisateur {$membre->name} ne possède pas le rôle d'enquêteur."
+                            "L'utilisateur {$membre->name} ne possède pas le rôle d'agent recenseur."
                         );
                     }
                 }
@@ -165,16 +160,30 @@ class UpdateEquipeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nom.required' => 'Le nom de l’équipe est obligatoire.',
-            'campagne_id.required' => 'La campagne est obligatoire.',
-            'prefecture_id.required' => 'La préfecture est obligatoire.',
-            'superviseur_id.required' => 'Le superviseur est obligatoire.',
-            'mode.required' => 'Le mode de travail est obligatoire.',
-            'mode.in' => 'Le mode de travail sélectionné est invalide.',
-            'membres.required' => 'Veuillez sélectionner au moins un enquêteur.',
-            'membres.min' => 'Une équipe doit avoir au moins un enquêteur.',
-            'membres.*.distinct' => 'Un enquêteur ne peut pas être sélectionné plusieurs fois.',
-            'membres.*.exists' => 'Un des enquêteurs sélectionnés est invalide.',
+
+            'nom.required' =>
+                'Le nom de l’équipe est obligatoire.',
+
+            'superviseur_id.required' =>
+                'Le superviseur est obligatoire.',
+
+            'superviseur_id.exists' =>
+                'Le superviseur sélectionné est invalide.',
+
+            'membres.required' =>
+                'Veuillez sélectionner au moins un agent recenseur.',
+
+            'membres.min' =>
+                'Une équipe doit avoir au moins un agent recenseur.',
+
+            'membres.*.distinct' =>
+                'Un agent recenseur ne peut pas être sélectionné plusieurs fois.',
+
+            'membres.*.exists' =>
+                'Un des agents recenseurs sélectionnés est invalide.',
+
+            'statut.in' =>
+                'Le statut sélectionné est invalide.',
         ];
     }
 }
