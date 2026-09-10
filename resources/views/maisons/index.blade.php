@@ -42,6 +42,8 @@
     </div>
 
 
+    {{-- AJOUTER UNE MAISON --}}
+
     <a
         href="{{ route('villages.maisons.create', $village->idVillage) }}"
         class="inline-flex items-center justify-center gap-2
@@ -84,9 +86,11 @@
 
     {{-- VILLAGE --}}
 
-    <div class="rounded-lg border border-[#e5e7eb]
-                bg-white p-5
-                shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+    <div
+        class="rounded-lg border border-[#e5e7eb]
+               bg-white p-5
+               shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+    >
 
         <div class="flex items-center gap-4">
 
@@ -132,9 +136,11 @@
 
     {{-- CANTON --}}
 
-    <div class="rounded-lg border border-[#e5e7eb]
-                bg-white p-5
-                shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+    <div
+        class="rounded-lg border border-[#e5e7eb]
+               bg-white p-5
+               shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+    >
 
         <div class="flex items-center gap-4">
 
@@ -187,9 +193,11 @@
 
     {{-- NOMBRE DE MAISONS --}}
 
-    <div class="rounded-lg border border-[#e5e7eb]
-                bg-white p-5
-                shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+    <div
+        class="rounded-lg border border-[#e5e7eb]
+               bg-white p-5
+               shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+    >
 
         <div class="flex items-center gap-4">
 
@@ -411,58 +419,80 @@
 
     <div class="overflow-x-auto">
 
-        <table class="w-full min-w-[950px] text-sm">
+        <table class="w-full min-w-[850px] text-sm">
 
             <thead class="bg-[#f8faf9]">
 
                 <tr class="border-b border-[#e5e7eb]">
 
-                    <th class="px-6 py-4 text-left
+                    {{-- N° --}}
+
+                    <th
+                        class="px-6 py-4 text-left
                                text-xs font-semibold
                                uppercase tracking-wide
-                               text-gray-500">
+                               text-gray-500"
+                    >
                         N°
                     </th>
 
-                    <th class="px-6 py-4 text-left
+
+                    {{-- MAISON --}}
+
+                    <th
+                        class="px-6 py-4 text-left
                                text-xs font-semibold
                                uppercase tracking-wide
-                               text-gray-500">
+                               text-gray-500"
+                    >
                         Maison
                     </th>
 
-                    <th class="px-6 py-4 text-left
-                               text-xs font-semibold
-                               uppercase tracking-wide
-                               text-gray-500">
-                        Chef de maison
-                    </th>
 
-                    <th class="px-6 py-4 text-left
+                    {{-- ADRESSE --}}
+
+                    <th
+                        class="px-6 py-4 text-left
                                text-xs font-semibold
                                uppercase tracking-wide
-                               text-gray-500">
+                               text-gray-500"
+                    >
                         Adresse
                     </th>
 
-                    <th class="px-6 py-4 text-center
+
+                    {{-- LOCALISATION --}}
+
+                    <th
+                        class="px-6 py-4 text-center
                                text-xs font-semibold
                                uppercase tracking-wide
-                               text-gray-500">
+                               text-gray-500"
+                    >
                         Localisation
                     </th>
 
-                    <th class="px-6 py-4 text-center
+
+                    {{-- MÉNAGES --}}
+
+                    <th
+                        class="px-6 py-4 text-center
                                text-xs font-semibold
                                uppercase tracking-wide
-                               text-gray-500">
+                               text-gray-500"
+                    >
                         Ménages
                     </th>
 
-                    <th class="px-6 py-4 text-right
+
+                    {{-- ACTIONS --}}
+
+                    <th
+                        class="px-6 py-4 text-right
                                text-xs font-semibold
                                uppercase tracking-wide
-                               text-gray-500">
+                               text-gray-500"
+                    >
                         Actions
                     </th>
 
@@ -535,27 +565,6 @@
                                 </div>
 
                             </div>
-
-                        </td>
-
-
-                        {{-- CHEF DE MAISON --}}
-
-                        <td class="px-6 py-4">
-
-                            @if($maison->chefMaison)
-
-                                <span class="font-medium text-[#434343]">
-                                    {{ $maison->chefMaison }}
-                                </span>
-
-                            @else
-
-                                <span class="text-gray-400">
-                                    Non renseigné
-                                </span>
-
-                            @endif
 
                         </td>
 
@@ -745,7 +754,7 @@
                     <tr>
 
                         <td
-                            colspan="7"
+                            colspan="6"
                             class="px-6 py-16 text-center"
                         >
 
@@ -847,4 +856,3 @@
 </div>
 
 @endsection
-

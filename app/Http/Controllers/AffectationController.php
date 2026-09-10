@@ -1862,7 +1862,7 @@ public function mesZonesSupervision(
 
                     $campagne
                         ->where(
-                            'libelle',
+                            'nom',
                             'like',
                             "%{$search}%"
                         )
@@ -1888,7 +1888,7 @@ public function mesZonesSupervision(
                             "%{$search}%"
                         )
                         ->orWhere(
-                            'libelle',
+                            'nom',
                             'like',
                             "%{$search}%"
                         );

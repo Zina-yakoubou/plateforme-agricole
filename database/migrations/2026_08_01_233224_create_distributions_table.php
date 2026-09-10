@@ -6,27 +6,36 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('distributions', function (Blueprint $table) {
+
             $table->id('idDistribution');
-            $table->float('quantiteDistribuee');
+
+            $table->foreignId('allocation_id')
+                ->constrained('allocations','idAllocation')
+                ->cascadeOnDelete();
+
+            $table->foreignId('agentDistributeur_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+
+            $table->decimal('quantiteDistribuee',10,2);
+
             $table->timestamp('dateDistribution');
+
             $table->string('lieuDistribution');
+
+            $table->string('numeroBon')->nullable();
+
             $table->boolean('signatureExploitant')->default(false);
-            $table->foreignId('agentDistributeur_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('allocation_id')->constrained('allocations', 'idAllocation')->onDelete('cascade');
+
+            $table->text('observations')->nullable();
+
             $table->timestamps();
-            
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('distributions');

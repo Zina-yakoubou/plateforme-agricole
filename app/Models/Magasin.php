@@ -9,11 +9,35 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Magasin extends Model
 {
     protected $primaryKey = 'idMagasin';
-    protected $fillable = ['nom', 'localisation', 'capacite', 'responsable_id'];
+
+    protected $fillable = [
+        'nom',
+        'code',
+        'localisation',
+        'capacite',
+        'uniteCapacite',
+        'prefecture_id',
+        'responsable_id',
+        'actif',
+    ];
+
+    protected $casts = [
+        'capacite' => 'decimal:2',
+        'actif' => 'boolean',
+    ];
+
+    /* ============================
+     | RELATIONS
+     * ============================ */
+
+    public function prefecture(): BelongsTo
+    {
+        return $this->belongsTo(Prefecture::class, 'prefecture_id', 'idPrefecture');
+    }
 
     public function responsable(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'responsable_id', 'idUser');
+        return $this->belongsTo(User::class, 'responsable_id');
     }
 
     public function mouvementsStock(): HasMany

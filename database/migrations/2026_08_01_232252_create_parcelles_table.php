@@ -12,21 +12,23 @@ return new class extends Migration
 
             $table->id('idParcelle');
 
+            // Identifiant technique permanent
             $table->uuid('uid')->unique();
 
+            // Exploitant auquel appartient la parcelle
             $table->foreignId('exploitant_id')
-                ->constrained('exploitants','idExploitant')
+                ->constrained('exploitants', 'idExploitant')
                 ->cascadeOnDelete();
 
             // Identification
             $table->string('numeroParcelle');
 
             // Caractéristiques
-            $table->decimal('superficie',8,2);
+            $table->decimal('superficie', 8, 2);
 
             $table->string('typeSol')->nullable();
 
-            $table->enum('modeFaireValoir',[
+            $table->enum('modeFaireValoir', [
                 'proprietaire',
                 'location',
                 'pret',
@@ -34,7 +36,7 @@ return new class extends Migration
                 'autre'
             ]);
 
-            $table->enum('modeIrrigation',[
+            $table->enum('modeIrrigation', [
                 'pluvial',
                 'gravitaire',
                 'pompage',
@@ -52,16 +54,14 @@ return new class extends Migration
             // Observations
             $table->text('observations')->nullable();
 
-            // Suivi
-            $table->enum('statut',[
-                'brouillon',
-                'en_cours',
-                'terminee'
-            ])->default('brouillon');
-
             $table->timestamps();
 
-            $table->unique(['exploitant_id','numeroParcelle']);
+            // Un exploitant ne peut pas avoir deux fois
+            // le même numéro de parcelle.
+            $table->unique([
+                'exploitant_id',
+                'numeroParcelle'
+            ]);
         });
     }
 

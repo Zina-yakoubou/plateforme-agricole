@@ -8,25 +8,99 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Recensement extends Model
 {
     protected $primaryKey = 'idRecensement';
-    protected $fillable = ['dateSaisie', 'estNouveauProducteur', 'donneesModifiees', 'campagne_id', 'exploitant_id', 'agent_id', 'alerte_id'];
+
+    protected $fillable = [
+        'uid',
+        'campagne_id',
+        'affectation_id',
+        'agent_id',
+        'maison_id',
+        'statut',
+        'dateDebut',
+        'dateDerniereModification',
+        'dateTerminaison',
+        'validateur_id',
+        'dateValidation',
+        'observations',
+    ];
+
+    protected $casts = [
+        'dateDebut' => 'datetime',
+        'dateDerniereModification' => 'datetime',
+        'dateTerminaison' => 'datetime',
+        'dateValidation' => 'datetime',
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Campagne
+    |--------------------------------------------------------------------------
+    */
 
     public function campagne(): BelongsTo
     {
-        return $this->belongsTo(CampagneRecensement::class, 'campagne_id', 'idCampagne');
+        return $this->belongsTo(
+            CampagneRecensement::class,
+            'campagne_id',
+            'idCampagne'
+        );
     }
 
-    public function exploitant(): BelongsTo
+    /*
+    |--------------------------------------------------------------------------
+    | Affectation
+    |--------------------------------------------------------------------------
+    */
+
+    public function affectation(): BelongsTo
     {
-        return $this->belongsTo(Exploitant::class, 'exploitant_id', 'idExploitant');
+        return $this->belongsTo(
+            Affectation::class,
+            'affectation_id',
+            'idAffectation'
+        );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Agent ayant effectué le recensement
+    |--------------------------------------------------------------------------
+    */
 
     public function agent(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'agent_id', 'idUser');
+        return $this->belongsTo(
+            User::class,
+            'agent_id'
+        );
     }
 
-    public function alerte(): BelongsTo
+    /*
+    |--------------------------------------------------------------------------
+    | Maison recensée
+    |--------------------------------------------------------------------------
+    */
+
+    public function maison(): BelongsTo
     {
-        return $this->belongsTo(Alerte::class, 'alerte_id', 'idAlerte');
+        return $this->belongsTo(
+            Maison::class,
+            'maison_id',
+            'idMaison'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Utilisateur ayant validé
+    |--------------------------------------------------------------------------
+    */
+
+    public function validateur(): BelongsTo
+    {
+        return $this->belongsTo(
+            User::class,
+            'validateur_id'
+        );
     }
 }

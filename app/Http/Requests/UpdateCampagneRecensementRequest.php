@@ -5,10 +5,9 @@ namespace App\Http\Requests;
 use App\Models\Canton;
 use App\Models\Commune;
 use App\Models\Prefecture;
-use App\Models\Region;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Village;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class UpdateCampagneRecensementRequest extends FormRequest
@@ -20,7 +19,6 @@ class UpdateCampagneRecensementRequest extends FormRequest
     {
         return Auth::check();
     }
-
 
     /**
      * Règles de validation.
@@ -46,7 +44,6 @@ class UpdateCampagneRecensementRequest extends FormRequest
                 'string',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
             | CADRE DU RECENSEMENT
@@ -64,7 +61,7 @@ class UpdateCampagneRecensementRequest extends FormRequest
             ],
 
             'resultatsAttendus' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
@@ -78,10 +75,9 @@ class UpdateCampagneRecensementRequest extends FormRequest
                 'string',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
-            | PORTÉE TERRITORIALE
+            | PORTÉE
             |--------------------------------------------------------------------------
             */
 
@@ -94,10 +90,9 @@ class UpdateCampagneRecensementRequest extends FormRequest
                 ]),
             ],
 
-
             /*
             |--------------------------------------------------------------------------
-            | PÉRIODE GÉNÉRALE
+            | DATES
             |--------------------------------------------------------------------------
             */
 
@@ -112,126 +107,153 @@ class UpdateCampagneRecensementRequest extends FormRequest
                 'after_or_equal:dateDebut',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
-            | CARACTÈRE OFFICIEL
+            | QUESTIONNAIRES
             |--------------------------------------------------------------------------
             */
 
-            // 'estOfficielle' => [
-            //     'required',
-            //     'boolean',
-            // ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | STRUCTURE PORTEUSE
-            |--------------------------------------------------------------------------
-            */
-
-            // 'structure_id' => [
-            //     'nullable',
-            //     'integer',
-            //     'exists:structures,idStructure',
-            // ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | ZONES
-            |--------------------------------------------------------------------------
-            |
-            | Structure attendue :
-            |
-            | zones[0][region_id]
-            | zones[0][prefecture_id]
-            | zones[0][commune_id]
-            | zones[0][canton_id]
-            | zones[0][village_id]
-            |
-            | Les niveaux inférieurs sont facultatifs.
-            |
-            */
-
-            'zones' => [
+            'questionnaire_ids' => [
                 'nullable',
                 'array',
             ],
 
-            'zones.*' => [
+            'questionnaire_ids.*' => [
+                'integer',
+                'exists:questionnaires,idQuestionnaire',
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | RÉGIONS
+            |--------------------------------------------------------------------------
+            */
+
+            'region_ids' => [
+                'nullable',
                 'array',
             ],
 
-            'zones.*.region_id' => [
-                'nullable',
+            'region_ids.*' => [
                 'integer',
                 'exists:regions,idRegion',
             ],
 
-            'zones.*.prefecture_id' => [
+            /*
+            |--------------------------------------------------------------------------
+            | PRÉFECTURES
+            |--------------------------------------------------------------------------
+            */
+
+            'prefecture_ids' => [
                 'nullable',
+                'array',
+            ],
+
+            'prefecture_ids.*' => [
                 'integer',
                 'exists:prefectures,idPrefecture',
             ],
 
-            'zones.*.commune_id' => [
+            /*
+            |--------------------------------------------------------------------------
+            | COMMUNES
+            |--------------------------------------------------------------------------
+            */
+
+            'commune_ids' => [
                 'nullable',
+                'array',
+            ],
+
+            'commune_ids.*' => [
                 'integer',
                 'exists:communes,idCommune',
             ],
 
-            'zones.*.canton_id' => [
+            /*
+            |--------------------------------------------------------------------------
+            | CANTONS
+            |--------------------------------------------------------------------------
+            */
+
+            'canton_ids' => [
                 'nullable',
+                'array',
+            ],
+
+            'canton_ids.*' => [
                 'integer',
                 'exists:cantons,idCanton',
             ],
 
-            'zones.*.village_id' => [
+            /*
+            |--------------------------------------------------------------------------
+            | VILLAGES
+            |--------------------------------------------------------------------------
+            */
+
+            'village_ids' => [
                 'nullable',
+                'array',
+            ],
+
+            'village_ids.*' => [
                 'integer',
                 'exists:villages,idVillage',
             ],
         ];
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDATION MÉTIER
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Validation métier complémentaire.
+     */
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
 
             $portee = $this->input('portee');
 
-            $zones = $this->input('zones', []);
+            $regionIds = collect(
+                $this->input('region_ids', [])
+            )->filter()->unique()->values();
+
+            $prefectureIds = collect(
+                $this->input('prefecture_ids', [])
+            )->filter()->unique()->values();
+
+            $communeIds = collect(
+                $this->input('commune_ids', [])
+            )->filter()->unique()->values();
+
+            $cantonIds = collect(
+                $this->input('canton_ids', [])
+            )->filter()->unique()->values();
+
+            $villageIds = collect(
+                $this->input('village_ids', [])
+            )->filter()->unique()->values();
 
 
             /*
             |--------------------------------------------------------------------------
             | CAMPAGNE NATIONALE
             |--------------------------------------------------------------------------
-            |
-            | Une campagne nationale couvre automatiquement
-            | toutes les régions et toutes les préfectures.
-            |
-            | Il n'est donc pas nécessaire de sélectionner
-            | des zones manuellement.
-            |
             */
 
             if ($portee === 'nationale') {
 
-                if (!empty($zones)) {
+                if (
+                    $regionIds->isNotEmpty() ||
+                    $prefectureIds->isNotEmpty() ||
+                    $communeIds->isNotEmpty() ||
+                    $cantonIds->isNotEmpty() ||
+                    $villageIds->isNotEmpty()
+                ) {
 
                     $validator->errors()->add(
-                        'zones',
-                        'Une campagne nationale couvre tout le territoire et ne doit pas contenir de zones spécifiques.'
+                        'portee',
+                        'Une campagne nationale couvre tout le territoire et ne doit pas contenir de sélection territoriale.'
                     );
                 }
 
@@ -243,64 +265,40 @@ class UpdateCampagneRecensementRequest extends FormRequest
             |--------------------------------------------------------------------------
             | CAMPAGNE RÉGIONALE
             |--------------------------------------------------------------------------
-            |
-            | Une campagne régionale doit comporter au moins
-            | une région.
-            |
             */
 
             if ($portee === 'regionale') {
 
-                if (empty($zones)) {
+                if ($regionIds->isEmpty()) {
 
                     $validator->errors()->add(
-                        'zones',
+                        'region_ids',
                         'Une campagne régionale doit comporter au moins une région.'
                     );
 
                     return;
                 }
 
-                foreach ($zones as $index => $zone) {
 
-                    $regionId = $zone['region_id'] ?? null;
+                /*
+                | Une campagne régionale est définie au niveau des régions.
+                | Les niveaux inférieurs ne sont pas nécessaires.
+                */
 
-                    /*
-                    |------------------------------------------------------------------
-                    | Une région est obligatoire
-                    |------------------------------------------------------------------
-                    */
+                if (
+                    $prefectureIds->isNotEmpty() ||
+                    $communeIds->isNotEmpty() ||
+                    $cantonIds->isNotEmpty() ||
+                    $villageIds->isNotEmpty()
+                ) {
 
-                    if (!$regionId) {
-
-                        $validator->errors()->add(
-                            "zones.$index.region_id",
-                            'Une région doit être sélectionnée.'
-                        );
-
-                        continue;
-                    }
-
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Une campagne régionale commence au niveau région
-                    |------------------------------------------------------------------
-                    */
-
-                    if (
-                        !empty($zone['prefecture_id']) ||
-                        !empty($zone['commune_id']) ||
-                        !empty($zone['canton_id']) ||
-                        !empty($zone['village_id'])
-                    ) {
-
-                        $validator->errors()->add(
-                            "zones.$index.region_id",
-                            'Une campagne régionale doit être définie au niveau régional. Les niveaux inférieurs ne sont pas nécessaires lors de la définition de la portée.'
-                        );
-                    }
+                    $validator->errors()->add(
+                        'region_ids',
+                        'Une campagne régionale doit être définie au niveau régional. Les niveaux inférieurs ne sont pas nécessaires.'
+                    );
                 }
+
+                return;
             }
 
 
@@ -308,51 +306,121 @@ class UpdateCampagneRecensementRequest extends FormRequest
             |--------------------------------------------------------------------------
             | CAMPAGNE PRÉFECTORALE
             |--------------------------------------------------------------------------
-            |
-            | Une campagne préfectorale doit comporter au moins
-            | une préfecture.
-            |
             */
 
             if ($portee === 'prefectorale') {
 
-                if (empty($zones)) {
+                if (
+                    $prefectureIds->isEmpty() &&
+                    $communeIds->isEmpty() &&
+                    $cantonIds->isEmpty() &&
+                    $villageIds->isEmpty()
+                ) {
 
                     $validator->errors()->add(
-                        'zones',
-                        'Une campagne préfectorale doit comporter au moins une préfecture.'
+                        'prefecture_ids',
+                        'Une campagne préfectorale doit comporter au moins une préfecture ou une zone située dans une préfecture.'
                     );
 
                     return;
                 }
 
-                foreach ($zones as $index => $zone) {
 
-                    $prefectureId = $zone['prefecture_id'] ?? null;
+                /*
+                |--------------------------------------------------------------------------
+                | COHÉRENCE COMMUNE → PRÉFECTURE
+                |--------------------------------------------------------------------------
+                */
 
+                foreach ($communeIds as $communeId) {
 
-                    /*
-                    |------------------------------------------------------------------
-                    | Préfecture obligatoire
-                    |------------------------------------------------------------------
-                    */
+                    $commune = Commune::find($communeId);
 
-                    if (!$prefectureId) {
-
-                        $validator->errors()->add(
-                            "zones.$index.prefecture_id",
-                            'Une préfecture doit être sélectionnée.'
-                        );
-
+                    if (!$commune) {
                         continue;
                     }
 
+                    if (
+                        $prefectureIds->isNotEmpty() &&
+                        !$prefectureIds->contains(
+                            $commune->prefecture_id
+                        )
+                    ) {
 
-                    /*
-                    |------------------------------------------------------------------
-                    | Vérification de la cohérence région / préfecture
-                    |------------------------------------------------------------------
-                    */
+                        $validator->errors()->add(
+                            'commune_ids',
+                            'Une commune sélectionnée n’appartient pas à une préfecture sélectionnée.'
+                        );
+                    }
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | COHÉRENCE CANTON → COMMUNE
+                |--------------------------------------------------------------------------
+                */
+
+                foreach ($cantonIds as $cantonId) {
+
+                    $canton = Canton::with('commune')
+                        ->find($cantonId);
+
+                    if (!$canton || !$canton->commune) {
+                        continue;
+                    }
+
+                    if (
+                        $communeIds->isNotEmpty() &&
+                        !$communeIds->contains(
+                            $canton->commune_id
+                        )
+                    ) {
+
+                        $validator->errors()->add(
+                            'canton_ids',
+                            'Un canton sélectionné n’appartient pas à une commune sélectionnée.'
+                        );
+                    }
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | COHÉRENCE VILLAGE → CANTON
+                |--------------------------------------------------------------------------
+                */
+
+                foreach ($villageIds as $villageId) {
+
+                    $village = Village::find($villageId);
+
+                    if (!$village) {
+                        continue;
+                    }
+
+                    if (
+                        $cantonIds->isNotEmpty() &&
+                        !$cantonIds->contains(
+                            $village->canton_id
+                        )
+                    ) {
+
+                        $validator->errors()->add(
+                            'village_ids',
+                            'Un village sélectionné n’appartient pas à un canton sélectionné.'
+                        );
+                    }
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | COHÉRENCE PRÉFECTURE → RÉGION
+                |--------------------------------------------------------------------------
+                */
+
+                foreach ($prefectureIds as $prefectureId) {
 
                     $prefecture = Prefecture::find(
                         $prefectureId
@@ -362,157 +430,26 @@ class UpdateCampagneRecensementRequest extends FormRequest
                         continue;
                     }
 
-
                     if (
-                        !empty($zone['region_id']) &&
-                        (int) $zone['region_id'] !== (int) $prefecture->region_id
+                        $regionIds->isNotEmpty() &&
+                        !$regionIds->contains(
+                            $prefecture->region_id
+                        )
                     ) {
 
                         $validator->errors()->add(
-                            "zones.$index.prefecture_id",
-                            'La préfecture sélectionnée n’appartient pas à la région indiquée.'
+                            'prefecture_ids',
+                            'Une préfecture sélectionnée n’appartient pas à une région sélectionnée.'
                         );
                     }
-
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Cohérence commune / préfecture
-                    |------------------------------------------------------------------
-                    */
-
-                    if (!empty($zone['commune_id'])) {
-
-                        $commune = Commune::find(
-                            $zone['commune_id']
-                        );
-
-                        if (
-                            $commune &&
-                            (int) $commune->prefecture_id !== (int) $prefectureId
-                        ) {
-
-                            $validator->errors()->add(
-                                "zones.$index.commune_id",
-                                'La commune sélectionnée n’appartient pas à la préfecture indiquée.'
-                            );
-                        }
-                    }
                 }
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | COHÉRENCE CANTON / COMMUNE
-            |--------------------------------------------------------------------------
-            */
-
-            foreach ($zones as $index => $zone) {
-
-                if (
-                    empty($zone['canton_id']) ||
-                    empty($zone['commune_id'])
-                ) {
-                    continue;
-                }
-
-                $canton = Canton::find(
-                    $zone['canton_id']
-                );
-
-                if (
-                    $canton &&
-                    (int) $canton->commune_id !==
-                    (int) $zone['commune_id']
-                ) {
-
-                    $validator->errors()->add(
-                        "zones.$index.canton_id",
-                        'Le canton sélectionné n’appartient pas à la commune indiquée.'
-                    );
-                }
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | COHÉRENCE VILLAGE / CANTON
-            |--------------------------------------------------------------------------
-            */
-
-            foreach ($zones as $index => $zone) {
-
-                if (
-                    empty($zone['village_id']) ||
-                    empty($zone['canton_id'])
-                ) {
-                    continue;
-                }
-
-                $village = Village::find(
-                    $zone['village_id']
-                );
-
-                if (
-                    $village &&
-                    (int) $village->canton_id !==
-                    (int) $zone['canton_id']
-                ) {
-
-                    $validator->errors()->add(
-                        "zones.$index.village_id",
-                        'Le village sélectionné n’appartient pas au canton indiqué.'
-                    );
-                }
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | DÉTECTION DES DOUBLONS
-            |--------------------------------------------------------------------------
-            |
-            | Deux lignes décrivant exactement le même périmètre
-            | ne doivent pas être enregistrées deux fois.
-            |
-            */
-
-            $zonesUniques = [];
-
-            foreach ($zones as $index => $zone) {
-
-                $cle = implode(':', [
-                    $zone['region_id'] ?? 'null',
-                    $zone['prefecture_id'] ?? 'null',
-                    $zone['commune_id'] ?? 'null',
-                    $zone['canton_id'] ?? 'null',
-                    $zone['village_id'] ?? 'null',
-                ]);
-
-
-                if (isset($zonesUniques[$cle])) {
-
-                    $validator->errors()->add(
-                        "zones.$index",
-                        'Cette zone a déjà été sélectionnée pour cette campagne.'
-                    );
-
-                    continue;
-                }
-
-                $zonesUniques[$cle] = true;
             }
         });
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | MESSAGES PERSONNALISÉS
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Messages personnalisés.
+     */
     public function messages(): array
     {
         return [
@@ -535,7 +472,6 @@ class UpdateCampagneRecensementRequest extends FormRequest
             'description.string' =>
                 'La description doit être une chaîne de caractères.',
 
-
             /*
             |--------------------------------------------------------------------------
             | CADRE
@@ -548,20 +484,17 @@ class UpdateCampagneRecensementRequest extends FormRequest
             'objectifs.string' =>
                 'Les objectifs doivent être une chaîne de caractères.',
 
-            'resultatsAttendus.required' =>
-                'Les résultats attendus sont obligatoires.',
-
             'resultatsAttendus.string' =>
                 'Les résultats attendus doivent être une chaîne de caractères.',
+
             'zoneConcerner.string' =>
-                'Les zones  attendus doivent être une chaîne de caractères.',
+                'La zone concernée doit être une chaîne de caractères.',
 
             'methodologie.string' =>
                 'La méthodologie doit être une chaîne de caractères.',
 
             'instructions.string' =>
                 'Les instructions doivent être une chaîne de caractères.',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -574,7 +507,6 @@ class UpdateCampagneRecensementRequest extends FormRequest
 
             'portee.in' =>
                 'La portée sélectionnée est invalide.',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -594,61 +526,70 @@ class UpdateCampagneRecensementRequest extends FormRequest
             'dateFin.after_or_equal' =>
                 'La date de fin doit être postérieure ou égale à la date de début.',
 
-
             /*
             |--------------------------------------------------------------------------
-            | OFFICIELLE
+            | QUESTIONNAIRES
             |--------------------------------------------------------------------------
             */
 
-            // 'estOfficielle.required' =>
-            //     'Veuillez préciser si la campagne est officielle.',
+            'questionnaire_ids.array' =>
+                'Le format des questionnaires sélectionnés est invalide.',
 
-            // 'estOfficielle.boolean' =>
-            //     'La valeur du caractère officiel est invalide.',
+            'questionnaire_ids.*.integer' =>
+                'L’identifiant du questionnaire est invalide.',
 
+            'questionnaire_ids.*.exists' =>
+                'Le questionnaire sélectionné n’existe pas.',
 
-            
             /*
             |--------------------------------------------------------------------------
-            | ZONES
+            | TERRITOIRES
             |--------------------------------------------------------------------------
             */
 
-            'zones.array' =>
-                'Le format des zones sélectionnées est invalide.',
+            'region_ids.array' =>
+                'Le format des régions sélectionnées est invalide.',
 
-            'zones.*.array' =>
-                'Le format de la zone sélectionnée est invalide.',
-
-            'zones.*.region_id.integer' =>
+            'region_ids.*.integer' =>
                 'L’identifiant de la région est invalide.',
 
-            'zones.*.region_id.exists' =>
+            'region_ids.*.exists' =>
                 'La région sélectionnée n’existe pas.',
 
-            'zones.*.prefecture_id.integer' =>
+            'prefecture_ids.array' =>
+                'Le format des préfectures sélectionnées est invalide.',
+
+            'prefecture_ids.*.integer' =>
                 'L’identifiant de la préfecture est invalide.',
 
-            'zones.*.prefecture_id.exists' =>
+            'prefecture_ids.*.exists' =>
                 'La préfecture sélectionnée n’existe pas.',
 
-            'zones.*.commune_id.integer' =>
+            'commune_ids.array' =>
+                'Le format des communes sélectionnées est invalide.',
+
+            'commune_ids.*.integer' =>
                 'L’identifiant de la commune est invalide.',
 
-            'zones.*.commune_id.exists' =>
+            'commune_ids.*.exists' =>
                 'La commune sélectionnée n’existe pas.',
 
-            'zones.*.canton_id.integer' =>
+            'canton_ids.array' =>
+                'Le format des cantons sélectionnés est invalide.',
+
+            'canton_ids.*.integer' =>
                 'L’identifiant du canton est invalide.',
 
-            'zones.*.canton_id.exists' =>
+            'canton_ids.*.exists' =>
                 'Le canton sélectionné n’existe pas.',
 
-            'zones.*.village_id.integer' =>
+            'village_ids.array' =>
+                'Le format des villages sélectionnés est invalide.',
+
+            'village_ids.*.integer' =>
                 'L’identifiant du village est invalide.',
 
-            'zones.*.village_id.exists' =>
+            'village_ids.*.exists' =>
                 'Le village sélectionné n’existe pas.',
         ];
     }

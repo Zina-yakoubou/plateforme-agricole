@@ -3,95 +3,71 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateMaisonRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true;
     }
 
     public function rules(): array
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Maison actuellement modifiée
+        |--------------------------------------------------------------------------
+        */
+        $maison = $this->route('maison');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Récupération de la clé primaire
+        |--------------------------------------------------------------------------
+        */
+        $idMaison = is_object($maison)
+            ? $maison->idMaison
+            : $maison;
+
         return [
-            /*
-            |--------------------------------------------------------------------------
-            | Informations de la maison
-            |--------------------------------------------------------------------------
-            */
-
-            'chefMaison' => [
-                'sometimes',
-                'nullable',
+            'numeroMaison' => [
+                'required',
                 'string',
-                'max:255',
+                'max:100',
+                Rule::unique('maisons', 'numeroMaison')
+                    ->ignore($idMaison, 'idMaison'),
             ],
 
-            'adresse' => [
-                'sometimes',
-                'nullable',
-                'string',
-                'max:255',
+            'village_id' => [
+                'required',
+                'integer',
+                'exists:villages,idVillage',
             ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | GPS
-            |--------------------------------------------------------------------------
-            */
 
             'latitude' => [
-                'sometimes',
                 'nullable',
                 'numeric',
                 'between:-90,90',
             ],
 
             'longitude' => [
-                'sometimes',
                 'nullable',
                 'numeric',
                 'between:-180,180',
             ],
 
             'precisionGPS' => [
-                'sometimes',
                 'nullable',
                 'numeric',
                 'min:0',
-                'max:100000',
+                'max:9999.99',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Photo
-            |--------------------------------------------------------------------------
-            */
-
-            'photoMaison' => [
-                'sometimes',
+            'adresse' => [
                 'nullable',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:5120',
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Suivi
-            |--------------------------------------------------------------------------
-            */
-
-            'statut' => [
-                'sometimes',
-                'required',
-                'in:brouillon,en_cours,terminee,verifiee',
-            ],
-
-            'dateIdentification' => [
-                'sometimes',
-                'nullable',
-                'date',
+                'string',
+                'max:255',
             ],
         ];
     }
@@ -99,56 +75,39 @@ class UpdateMaisonRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'chefMaison.string' =>
-                'Le nom de chef de maison doit être une chaîne de caractères.',
+            'numeroMaison.required' => 'Le numéro de maison est obligatoire.',
+            'numeroMaison.string' => 'Le numéro de maison doit être une chaîne de caractères.',
+            'numeroMaison.max' => 'Le numéro de maison ne peut pas dépasser 100 caractères.',
+            'numeroMaison.unique' => 'Ce numéro de maison est déjà utilisé.',
 
-            'chefMaison.max' =>
-                'Le nom du chef de maison ne peut pas dépasser 255 caractères.',
+            'village_id.required' => 'Le village est obligatoire.',
+            'village_id.integer' => 'Le village sélectionné est invalide.',
+            'village_id.exists' => 'Le village sélectionné n’existe pas.',
 
-            'adresse.string' =>
-                'L’adresse doit être une chaîne de caractères.',
+            'latitude.numeric' => 'La latitude doit être une valeur numérique.',
+            'latitude.between' => 'La latitude doit être comprise entre -90 et 90.',
 
-            'adresse.max' =>
-                'L’adresse ne peut pas dépasser 255 caractères.',
+            'longitude.numeric' => 'La longitude doit être une valeur numérique.',
+            'longitude.between' => 'La longitude doit être comprise entre -180 et 180.',
 
-            'latitude.numeric' =>
-                'La latitude doit être un nombre.',
+            'precisionGPS.numeric' => 'La précision GPS doit être une valeur numérique.',
+            'precisionGPS.min' => 'La précision GPS ne peut pas être négative.',
+            'precisionGPS.max' => 'La précision GPS est invalide.',
 
-            'latitude.between' =>
-                'La latitude doit être comprise entre -90 et 90.',
+            'adresse.string' => 'L’adresse doit être une chaîne de caractères.',
+            'adresse.max' => 'L’adresse ne peut pas dépasser 255 caractères.',
+        ];
+    }
 
-            'longitude.numeric' =>
-                'La longitude doit être un nombre.',
-
-            'longitude.between' =>
-                'La longitude doit être comprise entre -180 et 180.',
-
-            'precisionGPS.numeric' =>
-                'La précision GPS doit être un nombre.',
-
-            'precisionGPS.min' =>
-                'La précision GPS ne peut pas être négative.',
-
-            'precisionGPS.max' =>
-                'La précision GPS est invalide.',
-
-            'photoMaison.image' =>
-                'Le fichier sélectionné doit être une image.',
-
-            'photoMaison.mimes' =>
-                'La photo doit être au format JPG, JPEG, PNG ou WEBP.',
-
-            'photoMaison.max' =>
-                'La photo ne doit pas dépasser 5 Mo.',
-
-            'statut.required' =>
-                'Le statut de la maison est obligatoire.',
-
-            'statut.in' =>
-                'Le statut sélectionné est invalide.',
-
-            'dateIdentification.date' =>
-                'La date d’identification est invalide.',
+    public function attributes(): array
+    {
+        return [
+            'numeroMaison' => 'numéro de maison',
+            'village_id' => 'village',
+            'latitude' => 'latitude',
+            'longitude' => 'longitude',
+            'precisionGPS' => 'précision GPS',
+            'adresse' => 'adresse',
         ];
     }
 }

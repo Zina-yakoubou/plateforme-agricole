@@ -8,10 +8,28 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Production extends Model
 {
     protected $primaryKey = 'idProduction';
-    protected $fillable = ['quantiteProduite', 'dateRecolte', 'rendement', 'culture_id'];
 
-    public function culture(): BelongsTo
+    protected $fillable = [
+        'culture_parcelle_id',
+        'quantiteProduite',
+        'uniteProduction',
+        'rendement',
+        'dateRecolte',
+        'observations',
+    ];
+
+    protected $casts = [
+        'quantiteProduite' => 'decimal:2',
+        'rendement' => 'decimal:2',
+        'dateRecolte' => 'date',
+    ];
+
+    /* ============================
+     | RELATIONS
+     * ============================ */
+
+    public function cultureParcelle(): BelongsTo
     {
-        return $this->belongsTo(Culture::class, 'culture_id', 'idCulture');
+        return $this->belongsTo(CultureParcelle::class, 'culture_parcelle_id', 'idCultureParcelle');
     }
 }

@@ -8,7 +8,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Fournisseur extends Model
 {
     protected $primaryKey = 'idFournisseur';
-    protected $fillable = ['nom', 'contact', 'adresse', 'specialiteIntrants'];
+
+    protected $fillable = [
+        'nom',
+        'telephone',
+        'email',
+        'adresse',
+        'specialiteIntrants',
+        'actif',
+    ];
+
+    protected $casts = [
+        'actif' => 'boolean',
+    ];
+
+    /* ============================
+     | RELATIONS
+     * ============================ */
 
     public function mouvementsStock(): HasMany
     {

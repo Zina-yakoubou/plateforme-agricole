@@ -18,19 +18,17 @@
             Modifier la maison
         </h1>
 
-        <p class="text-sm text-slate-500 mt-1">
+        <p class="mt-1 text-sm text-slate-500">
             Modification de la maison
             <strong>{{ $maison->numeroMaison }}</strong>.
         </p>
 
     </div>
 
-
     {{-- ERREURS --}}
     @if($errors->any())
 
-        <div class="mb-5 rounded-lg bg-red-100
-                    text-red-700 px-4 py-3">
+        <div class="mb-5 rounded-lg bg-red-100 px-4 py-3 text-red-700">
 
             <ul class="list-disc list-inside">
 
@@ -46,18 +44,16 @@
 
     @endif
 
-
     {{-- FORMULAIRE --}}
-    <div class="bg-white rounded-xl shadow">
+    <div class="rounded-xl bg-white shadow">
 
-        <div class="px-6 py-4 border-b">
+        <div class="border-b px-6 py-4">
 
             <h2 class="font-semibold text-slate-800">
                 Informations de la maison
             </h2>
 
         </div>
-
 
         <form
             method="POST"

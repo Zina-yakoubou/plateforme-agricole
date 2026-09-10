@@ -279,10 +279,7 @@
             {{-- Aucun résultat --}}
             <div class="px-6 py-16 text-center">
 
-                <div class="text-5xl mb-4">
-                    📍
-                </div>
-
+               
                 <h3 class="text-lg font-semibold text-slate-800">
                     Aucune affectation
                 </h3>

@@ -9,44 +9,41 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('menages', function (Blueprint $table) {
-
             $table->id('idMenage');
 
+            // Identifiant technique permanent
             $table->uuid('uid')->unique();
 
+            // Une maison peut contenir plusieurs ménages
             $table->foreignId('maison_id')
-                ->constrained('maisons','idMaison')
+                ->constrained('maisons', 'idMaison')
                 ->cascadeOnDelete();
 
-            // Numéro du ménage dans la maison
+            // Identification du ménage dans la maison
             $table->string('numeroMenage');
 
             // Chef du ménage
             $table->string('nomChef');
             $table->string('prenomChef')->nullable();
-            $table->enum('sexeChef',['M','F']);
+            $table->enum('sexeChef', ['M', 'F']);
 
-            // Composition
+            // Composition du ménage
             $table->unsignedSmallInteger('nombreHommes')->default(0);
             $table->unsignedSmallInteger('nombreFemmes')->default(0);
             $table->unsignedSmallInteger('nombreGarcons')->default(0);
             $table->unsignedSmallInteger('nombreFilles')->default(0);
 
-            // Activité agricole
+            // Situation agricole du ménage
             $table->boolean('possedeExploitation')->default(false);
 
-            // Observation
+            // Informations complémentaires
             $table->text('observations')->nullable();
-
-            $table->enum('statut',[
-                'brouillon',
-                'en_cours',
-                'terminee'
-            ])->default('brouillon');
 
             $table->timestamps();
 
-            $table->unique(['maison_id','numeroMenage']);
+            // Deux ménages différents peuvent exister dans une même maison,
+            // mais chacun possède un numéro distinct.
+            $table->unique(['maison_id', 'numeroMenage']);
         });
     }
 

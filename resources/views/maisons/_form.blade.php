@@ -40,17 +40,29 @@
                         {{ $village->canton->commune->nom }}
                     @endif
                 </div>
+            @elseif(isset($maison) && $maison->village?->canton)
+                <div class="mt-1 text-xs text-slate-500">
+                    Canton :
+                    {{ $maison->village->canton->nom }}
+
+                    @if($maison->village->canton->commune)
+                        · Commune :
+                        {{ $maison->village->canton->commune->nom }}
+                    @endif
+                </div>
             @endif
         </div>
     </div>
 
     {{-- ========================================================
-        NUMÉRO DE MAISON
+        NUMÉRO ET IDENTIFIANT
     ========================================================= --}}
 
     @if(isset($maison))
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+            {{-- Numéro de maison --}}
 
             <div>
                 <label class="block text-sm font-medium text-slate-700">
@@ -64,6 +76,8 @@
                     class="mt-1 block w-full rounded-lg border-slate-300 bg-slate-100 text-slate-600 shadow-sm"
                 >
             </div>
+
+            {{-- UID --}}
 
             <div>
                 <label class="block text-sm font-medium text-slate-700">
@@ -81,35 +95,6 @@
         </div>
 
     @endif
-
-    {{-- ========================================================
-        CHEF DE MAISON
-    ========================================================= --}}
-
-    <div>
-        <label
-            for="chefMaison"
-            class="block text-sm font-medium text-slate-700"
-        >
-            Chef de maison
-        </label>
-
-        <input
-            type="text"
-            name="chefMaison"
-            id="chefMaison"
-            value="{{ old('chefMaison', $maison->chefMaison ?? '') }}"
-            maxlength="255"
-            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-green-600 focus:ring-green-600"
-            placeholder="Nom complet du chef de maison"
-        >
-
-        @error('chefMaison')
-            <p class="mt-1 text-sm text-red-600">
-                {{ $message }}
-            </p>
-        @enderror
-    </div>
 
     {{-- ========================================================
         ADRESSE
@@ -155,7 +140,9 @@
             </p>
         </div>
 
-        {{-- Champs GPS cachés --}}
+        {{-- ========================================================
+            CHAMPS GPS CACHÉS
+        ========================================================= --}}
 
         <input
             type="hidden"
@@ -178,42 +165,44 @@
             value="{{ old('precisionGPS', $maison->precisionGPS ?? '') }}"
         >
 
-        <input
-            type="hidden"
-            name="dateIdentification"
-            id="dateIdentification"
-            value="{{ old(
-                'dateIdentification',
-                isset($maison->dateIdentification)
-                    ? $maison->dateIdentification->format('Y-m-d H:i:s')
-                    : ''
-            ) }}"
-        >
-
-        {{-- Bouton de localisation --}}
+        {{-- ========================================================
+            BOUTON DE LOCALISATION
+        ========================================================= --}}
 
         <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
 
             <button
                 type="button"
                 id="btnLocaliser"
-                class="inline-flex items-center justify-center rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800"
+                class="inline-flex items-center justify-center rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-                📍 Localiser la maison
+                Localiser la maison
             </button>
 
             <span
                 id="gpsStatus"
                 class="text-sm text-slate-500"
             >
-                Aucune localisation effectuée.
+                @if(
+                    isset($maison) &&
+                    $maison->latitude !== null &&
+                    $maison->longitude !== null
+                )
+                    Localisation déjà enregistrée.
+                @else
+                    Aucune localisation effectuée.
+                @endif
             </span>
 
         </div>
 
-        {{-- Informations GPS --}}
+        {{-- ========================================================
+            INFORMATIONS GPS
+        ========================================================= --}}
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+
+            {{-- Latitude --}}
 
             <div>
                 <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">
@@ -228,6 +217,8 @@
                 </div>
             </div>
 
+            {{-- Longitude --}}
+
             <div>
                 <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">
                     Longitude
@@ -240,6 +231,8 @@
                     {{ $maison->longitude ?? '—' }}
                 </div>
             </div>
+
+            {{-- Précision --}}
 
             <div>
                 <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">
@@ -260,7 +253,9 @@
 
         </div>
 
-        {{-- Carte --}}
+        {{-- ========================================================
+            CARTE
+        ========================================================= --}}
 
         <div class="mt-4 overflow-hidden rounded-xl border border-slate-200">
 
@@ -270,6 +265,10 @@
             ></div>
 
         </div>
+
+        {{-- ========================================================
+            ERREURS GPS
+        ========================================================= --}}
 
         @error('latitude')
             <p class="mt-1 text-sm text-red-600">
@@ -284,120 +283,6 @@
         @enderror
 
         @error('precisionGPS')
-            <p class="mt-1 text-sm text-red-600">
-                {{ $message }}
-            </p>
-        @enderror
-
-    </div>
-
-    {{-- ============================================================
-        PHOTO
-    ============================================================= --}}
-
-    <div class="border-t border-slate-200 pt-6">
-
-        <div class="mb-4">
-            <h2 class="text-lg font-semibold text-slate-800">
-                Photo de la maison
-            </h2>
-
-            <p class="mt-1 text-sm text-slate-500">
-                Vous pouvez joindre une photo permettant d'identifier la maison.
-            </p>
-        </div>
-
-        <input
-            type="file"
-            name="photoMaison"
-            id="photoMaison"
-            accept="image/jpeg,image/png,image/webp"
-            class="block w-full rounded-lg border border-slate-300 bg-white text-sm text-slate-700 file:mr-4 file:border-0 file:bg-slate-100 file:px-4 file:py-2.5 file:text-sm file:font-medium hover:file:bg-slate-200"
-        >
-
-        @if(isset($maison) && $maison->photoMaison)
-
-            <div class="mt-4">
-
-                <p class="mb-2 text-sm font-medium text-slate-700">
-                    Photo actuelle
-                </p>
-
-                <img
-                    src="{{ Storage::url($maison->photoMaison) }}"
-                    alt="Photo de la maison"
-                    class="max-h-64 rounded-xl border border-slate-200 object-cover shadow-sm"
-                >
-
-            </div>
-
-        @endif
-
-        @error('photoMaison')
-            <p class="mt-1 text-sm text-red-600">
-                {{ $message }}
-            </p>
-        @enderror
-
-    </div>
-
-    {{-- ============================================================
-        STATUT
-    ============================================================= --}}
-
-    <div class="border-t border-slate-200 pt-6">
-
-        <label
-            for="statut"
-            class="block text-sm font-medium text-slate-700"
-        >
-            Statut
-        </label>
-
-        <select
-            name="statut"
-            id="statut"
-            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-green-600 focus:ring-green-600"
-        >
-
-            @php
-                $statutActuel = old(
-                    'statut',
-                    $maison->statut ?? 'brouillon'
-                );
-            @endphp
-
-            <option
-                value="brouillon"
-                @selected($statutActuel === 'brouillon')
-            >
-                Brouillon
-            </option>
-
-            <option
-                value="en_cours"
-                @selected($statutActuel === 'en_cours')
-            >
-                En cours
-            </option>
-
-            <option
-                value="terminee"
-                @selected($statutActuel === 'terminee')
-            >
-                Terminée
-            </option>
-
-            <option
-                value="verifiee"
-                @selected($statutActuel === 'verifiee')
-            >
-                Vérifiée
-            </option>
-
-        </select>
-
-        @error('statut')
             <p class="mt-1 text-sm text-red-600">
                 {{ $message }}
             </p>
@@ -442,7 +327,7 @@
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
+    >
 
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -456,7 +341,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const latitudeInput = document.getElementById('latitude');
     const longitudeInput = document.getElementById('longitude');
     const precisionInput = document.getElementById('precisionGPS');
-    const dateInput = document.getElementById('dateIdentification');
 
     const latitudeDisplay = document.getElementById('latitudeDisplay');
     const longitudeDisplay = document.getElementById('longitudeDisplay');
@@ -465,11 +349,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnLocaliser = document.getElementById('btnLocaliser');
     const gpsStatus = document.getElementById('gpsStatus');
 
-    const latitudeInitiale = parseFloat(latitudeInput.value);
-    const longitudeInitiale = parseFloat(longitudeInput.value);
+    const latitudeInitiale =
+        parseFloat(latitudeInput.value);
 
-    const latitudeValide = Number.isFinite(latitudeInitiale);
-    const longitudeValide = Number.isFinite(longitudeInitiale);
+    const longitudeInitiale =
+        parseFloat(longitudeInput.value);
+
+    const latitudeValide =
+        Number.isFinite(latitudeInitiale);
+
+    const longitudeValide =
+        Number.isFinite(longitudeInitiale);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Position initiale
+    |--------------------------------------------------------------------------
+    */
 
     let latitudeCentre = latitudeValide
         ? latitudeInitiale
@@ -478,6 +374,12 @@ document.addEventListener('DOMContentLoaded', function () {
     let longitudeCentre = longitudeValide
         ? longitudeInitiale
         : 0.8248;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Carte
+    |--------------------------------------------------------------------------
+    */
 
     const map = L.map('map').setView(
         [latitudeCentre, longitudeCentre],
@@ -494,13 +396,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let marqueur = null;
 
+    /*
+    |--------------------------------------------------------------------------
+    | Marqueur existant
+    |--------------------------------------------------------------------------
+    */
+
     if (latitudeValide && longitudeValide) {
 
         marqueur = L.marker([
             latitudeInitiale,
             longitudeInitiale
-        ]).addTo(map);
+        ])
+            .addTo(map)
+            .bindPopup('Position de la maison');
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mise à jour de l'affichage
+    |--------------------------------------------------------------------------
+    */
 
     function mettreAJourAffichage(
         latitude,
@@ -520,165 +436,175 @@ document.addEventListener('DOMContentLoaded', function () {
                 : '—';
     }
 
-    btnLocaliser.addEventListener('click', function () {
+    /*
+    |--------------------------------------------------------------------------
+    | Géolocalisation
+    |--------------------------------------------------------------------------
+    */
 
-        if (!navigator.geolocation) {
+    btnLocaliser.addEventListener(
+        'click',
+        function () {
 
-            gpsStatus.textContent =
-                'La géolocalisation n’est pas disponible sur cet appareil.';
-
-            gpsStatus.classList.add('text-red-600');
-
-            return;
-        }
-
-        btnLocaliser.disabled = true;
-
-        btnLocaliser.textContent =
-            'Localisation en cours...';
-
-        gpsStatus.textContent =
-            'Recherche de votre position GPS...';
-
-        gpsStatus.classList.remove(
-            'text-red-600',
-            'text-green-600'
-        );
-
-        navigator.geolocation.getCurrentPosition(
-
-            function (position) {
-
-                const latitude =
-                    position.coords.latitude;
-
-                const longitude =
-                    position.coords.longitude;
-
-                const precision =
-                    position.coords.accuracy;
-
-                latitudeInput.value =
-                    latitude.toFixed(7);
-
-                longitudeInput.value =
-                    longitude.toFixed(7);
-
-                precisionInput.value =
-                    precision.toFixed(2);
-
-                const maintenant =
-                    new Date();
-
-                const annee =
-                    maintenant.getFullYear();
-
-                const mois =
-                    String(
-                        maintenant.getMonth() + 1
-                    ).padStart(2, '0');
-
-                const jour =
-                    String(
-                        maintenant.getDate()
-                    ).padStart(2, '0');
-
-                const heures =
-                    String(
-                        maintenant.getHours()
-                    ).padStart(2, '0');
-
-                const minutes =
-                    String(
-                        maintenant.getMinutes()
-                    ).padStart(2, '0');
-
-                const secondes =
-                    String(
-                        maintenant.getSeconds()
-                    ).padStart(2, '0');
-
-                dateInput.value =
-                    `${annee}-${mois}-${jour} ${heures}:${minutes}:${secondes}`;
-
-                mettreAJourAffichage(
-                    latitude.toFixed(7),
-                    longitude.toFixed(7),
-                    precision.toFixed(2)
-                );
-
-                if (marqueur) {
-                    map.removeLayer(marqueur);
-                }
-
-                marqueur = L.marker([
-                    latitude,
-                    longitude
-                ])
-                    .addTo(map)
-                    .bindPopup(
-                        'Position de la maison'
-                    )
-                    .openPopup();
-
-                map.setView(
-                    [latitude, longitude],
-                    18
-                );
+            if (!navigator.geolocation) {
 
                 gpsStatus.textContent =
-                    'Maison localisée avec succès.';
-
-                gpsStatus.classList.add(
-                    'text-green-600'
-                );
-
-                btnLocaliser.disabled = false;
-
-                btnLocaliser.textContent =
-                    'Actualiser la localisation';
-            },
-
-            function (error) {
-
-                let message =
-                    'Impossible de récupérer la position GPS.';
-
-                if (error.code === 1) {
-                    message =
-                        'L’accès à la localisation a été refusé.';
-                }
-
-                if (error.code === 2) {
-                    message =
-                        'La position GPS est indisponible.';
-                }
-
-                if (error.code === 3) {
-                    message =
-                        'La récupération de la position a expiré.';
-                }
-
-                gpsStatus.textContent =
-                    message;
+                    'La géolocalisation n’est pas disponible sur cet appareil.';
 
                 gpsStatus.classList.add(
                     'text-red-600'
                 );
 
-                btnLocaliser.disabled = false;
-
-                btnLocaliser.textContent =
-                    'Réessayer la localisation';
-            },
-
-            {
-                enableHighAccuracy: true,
-                timeout: 15000,
-                maximumAge: 0
+                return;
             }
-        );
-    });
+
+            btnLocaliser.disabled = true;
+
+            btnLocaliser.textContent =
+                'Localisation en cours...';
+
+            gpsStatus.textContent =
+                'Recherche de votre position GPS...';
+
+            gpsStatus.classList.remove(
+                'text-red-600',
+                'text-green-600'
+            );
+
+            navigator.geolocation.getCurrentPosition(
+
+                function (position) {
+
+                    const latitude =
+                        position.coords.latitude;
+
+                    const longitude =
+                        position.coords.longitude;
+
+                    const precision =
+                        position.coords.accuracy;
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Remplissage des champs
+                    |--------------------------------------------------------------------------
+                    */
+
+                    latitudeInput.value =
+                        latitude.toFixed(7);
+
+                    longitudeInput.value =
+                        longitude.toFixed(7);
+
+                    precisionInput.value =
+                        precision.toFixed(2);
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Affichage
+                    |--------------------------------------------------------------------------
+                    */
+
+                    mettreAJourAffichage(
+                        latitude.toFixed(7),
+                        longitude.toFixed(7),
+                        precision.toFixed(2)
+                    );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Mise à jour du marqueur
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (marqueur) {
+                        map.removeLayer(marqueur);
+                    }
+
+                    marqueur = L.marker([
+                        latitude,
+                        longitude
+                    ])
+                        .addTo(map)
+                        .bindPopup(
+                            'Position de la maison'
+                        )
+                        .openPopup();
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Centrage de la carte
+                    |--------------------------------------------------------------------------
+                    */
+
+                    map.setView(
+                        [latitude, longitude],
+                        18
+                    );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Message
+                    |--------------------------------------------------------------------------
+                    */
+
+                    gpsStatus.textContent =
+                        'Maison localisée avec succès.';
+
+                    gpsStatus.classList.add(
+                        'text-green-600'
+                    );
+
+                    btnLocaliser.disabled = false;
+
+                    btnLocaliser.textContent =
+                        'Actualiser la localisation';
+                },
+
+                function (error) {
+
+                    let message =
+                        'Impossible de récupérer la position GPS.';
+
+                    if (error.code === 1) {
+
+                        message =
+                            'L’accès à la localisation a été refusé.';
+                    }
+
+                    if (error.code === 2) {
+
+                        message =
+                            'La position GPS est indisponible.';
+                    }
+
+                    if (error.code === 3) {
+
+                        message =
+                            'La récupération de la position a expiré.';
+                    }
+
+                    gpsStatus.textContent =
+                        message;
+
+                    gpsStatus.classList.add(
+                        'text-red-600'
+                    );
+
+                    btnLocaliser.disabled = false;
+
+                    btnLocaliser.textContent =
+                        'Réessayer la localisation';
+                },
+
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        }
+    );
 
 });
 </script>

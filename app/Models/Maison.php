@@ -12,40 +12,24 @@ class Maison extends Model
 
     protected $primaryKey = 'idMaison';
 
-    protected $keyType = 'int';
-
-    public $incrementing = true;
-
     protected $fillable = [
         'uid',
         'numeroMaison',
         'village_id',
-        'chefMaison',
-        'adresse',
-        'nombreMenages',
         'latitude',
         'longitude',
         'precisionGPS',
-        'photoMaison',
-        'statut',
-        'agent_id',
-        'dateIdentification',
+        'adresse',
     ];
 
     protected $casts = [
-        'nombreMenages' => 'integer',
-
         'latitude' => 'decimal:7',
-
         'longitude' => 'decimal:7',
-
         'precisionGPS' => 'decimal:2',
-
-        'dateIdentification' => 'datetime',
     ];
 
     /**
-     * Village auquel appartient la maison.
+     * Une maison appartient à un village.
      */
     public function village(): BelongsTo
     {
@@ -57,19 +41,7 @@ class Maison extends Model
     }
 
     /**
-     * Agent ayant identifié la maison.
-     */
-    public function agent(): BelongsTo
-    {
-        return $this->belongsTo(
-            User::class,
-            'agent_id',
-            'id'
-        );
-    }
-
-    /**
-     * Ménages vivant dans la maison.
+     * Une maison peut contenir plusieurs ménages.
      */
     public function menages(): HasMany
     {
@@ -81,27 +53,37 @@ class Maison extends Model
     }
 
     /**
-     * Vérifie si la maison possède une localisation GPS.
+     * Une maison possède plusieurs fiches de recensement
+     * au cours des différentes campagnes.
      */
-    public function estLocalisee(): bool
+    public function recensements(): HasMany
     {
-        return $this->latitude !== null
-            && $this->longitude !== null;
+        return $this->hasMany(
+            Recensement::class,
+            'maison_id',
+            'idMaison'
+        );
     }
 
     /**
-     * Vérifie si la maison est terminée.
+     * Récupère le recensement de cette maison
+     * pour une campagne donnée.
      */
-    public function estTerminee(): bool
+    public function recensementPourCampagne(int $campagneId): ?Recensement
     {
-        return $this->statut === 'terminee';
+        return $this->recensements()
+            ->where('campagne_id', $campagneId)
+            ->first();
     }
 
     /**
-     * Vérifie si la maison est vérifiée.
+     * Vérifie si cette maison possède déjà
+     * une fiche pour une campagne donnée.
      */
-    public function estVerifiee(): bool
+    public function aRecensementPourCampagne(int $campagneId): bool
     {
-        return $this->statut === 'verifiee';
+        return $this->recensements()
+            ->where('campagne_id', $campagneId)
+            ->exists();
     }
 }

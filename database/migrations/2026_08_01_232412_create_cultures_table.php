@@ -12,14 +12,10 @@ return new class extends Migration
 
             $table->id('idCulture');
 
-            $table->foreignId('parcelle_id')
-                ->constrained('parcelles','idParcelle')
-                ->cascadeOnDelete();
+            // Référentiel de la culture
+            $table->string('nomCulture')->unique();
 
-            // Culture
-            $table->string('nomCulture');
-
-            $table->enum('categorie',[
+            $table->enum('categorie', [
                 'vivriere',
                 'rente',
                 'maraichere',
@@ -28,45 +24,9 @@ return new class extends Migration
                 'autre'
             ]);
 
-            $table->enum('modeCulture',[
-                'principale',
-                'associee',
-                'rotation'
-            ]);
+            $table->text('description')->nullable();
 
-            // Campagne agricole
-            $table->string('campagneAgricole');
-
-            // Superficie occupée
-            $table->decimal('superficieCultivee',8,2);
-
-            // Calendrier agricole
-            $table->date('dateSemis')->nullable();
-
-            $table->date('dateRecoltePrevue')->nullable();
-
-            $table->date('dateRecolteEffective')->nullable();
-
-            // Production
-            $table->decimal('productionEstimee',10,2)->nullable();
-
-            $table->decimal('productionRecoltee',10,2)->nullable();
-
-            $table->string('uniteProduction')->default('kg');
-
-            // Irrigation
-            $table->boolean('irriguee')->default(false);
-
-            // État de la culture
-            $table->enum('etatCulture',[
-                'semis',
-                'croissance',
-                'floraison',
-                'recolte',
-                'terminee'
-            ])->default('semis');
-
-            $table->text('observations')->nullable();
+            $table->boolean('active')->default(true);
 
             $table->timestamps();
         });

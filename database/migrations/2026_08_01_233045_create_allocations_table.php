@@ -6,26 +6,42 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('allocations', function (Blueprint $table) {
-           $table->id('idAllocation');
-            $table->float('quantiteAllouee');
-            $table->string('statut');
+
+            $table->id('idAllocation');
+
+            $table->foreignId('besoin_id')
+                ->constrained('besoin_intrants','idBesoin')
+                ->cascadeOnDelete();
+
+            $table->foreignId('saison_id')
+                ->constrained('saison_distributions','idSaison')
+                ->cascadeOnDelete();
+
+            $table->decimal('quantiteAllouee',10,2);
+
             $table->date('dateAllocation');
-            $table->foreignId('exploitant_id')->constrained('exploitants', 'idExploitant')->onDelete('cascade');
-            $table->foreignId('intrant_id')->constrained('intrants', 'idIntrant')->onDelete('cascade');
-            $table->foreignId('saison_id')->constrained('saison_distributions', 'idSaison')->onDelete('cascade');
+
+            $table->foreignId('agentValidateur_id')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
+            $table->enum('statut',[
+                'en_attente',
+                'approuvee',
+                'partielle',
+                'rejetee'
+            ])->default('en_attente');
+
+            $table->text('motifRejet')->nullable();
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('allocations');

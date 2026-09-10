@@ -3,40 +3,42 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreMaisonRequest extends FormRequest
 {
+    /**
+     * Autoriser la requête.
+     */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true;
     }
 
+    /**
+     * Règles de validation.
+     */
     public function rules(): array
     {
         return [
-            /*
-            |--------------------------------------------------------------------------
-            | Informations de la maison
-            |--------------------------------------------------------------------------
-            */
-
-            'chefMaison' => [
-                'nullable',
-                'string',
-                'max:255',
+            'uid' => [
+                'required',
+                'uuid',
+                'unique:maisons,uid',
             ],
 
-            'adresse' => [
-                'nullable',
+            'numeroMaison' => [
+                'required',
                 'string',
-                'max:255',
+                'max:100',
+                'unique:maisons,numeroMaison',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Localisation GPS
-            |--------------------------------------------------------------------------
-            */
+            'village_id' => [
+                'required',
+                'integer',
+                'exists:villages,idVillage',
+            ],
 
             'latitude' => [
                 'nullable',
@@ -54,90 +56,60 @@ class StoreMaisonRequest extends FormRequest
                 'nullable',
                 'numeric',
                 'min:0',
-                'max:100000',
+                'max:9999.99',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Photo
-            |--------------------------------------------------------------------------
-            */
-
-            'photoMaison' => [
+            'adresse' => [
                 'nullable',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:5120',
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Suivi
-            |--------------------------------------------------------------------------
-            */
-
-            'statut' => [
-                'nullable',
-                'in:brouillon,en_cours,terminee,verifiee',
-            ],
-
-            'dateIdentification' => [
-                'nullable',
-                'date',
+                'string',
+                'max:255',
             ],
         ];
     }
 
+    /**
+     * Messages personnalisés.
+     */
     public function messages(): array
     {
         return [
-            'chefMaison.string' =>
-                'Le nom du chef de maison doit être une chaîne de caractères.',
+            'uid.required' => 'L’identifiant technique de la maison est obligatoire.',
+            'uid.uuid' => 'L’identifiant technique de la maison doit être un UUID valide.',
+            'uid.unique' => 'Cette maison existe déjà.',
 
-            'chefMaison.max' =>
-                'Le nom du chef de maison ne peut pas dépasser 255 caractères.',
+            'numeroMaison.required' => 'Le numéro de la maison est obligatoire.',
+            'numeroMaison.unique' => 'Ce numéro de maison existe déjà.',
+            'numeroMaison.max' => 'Le numéro de maison ne peut pas dépasser 100 caractères.',
 
-            'adresse.string' =>
-                'L’adresse doit être une chaîne de caractères.',
+            'village_id.required' => 'Le village est obligatoire.',
+            'village_id.exists' => 'Le village sélectionné n’existe pas.',
 
-            'adresse.max' =>
-                'L’adresse ne peut pas dépasser 255 caractères.',
+            'latitude.numeric' => 'La latitude doit être une valeur numérique.',
+            'latitude.between' => 'La latitude doit être comprise entre -90 et 90.',
 
-            'latitude.numeric' =>
-                'La latitude doit être un nombre.',
+            'longitude.numeric' => 'La longitude doit être une valeur numérique.',
+            'longitude.between' => 'La longitude doit être comprise entre -180 et 180.',
 
-            'latitude.between' =>
-                'La latitude doit être comprise entre -90 et 90.',
+            'precisionGPS.numeric' => 'La précision GPS doit être une valeur numérique.',
+            'precisionGPS.min' => 'La précision GPS ne peut pas être négative.',
 
-            'longitude.numeric' =>
-                'La longitude doit être un nombre.',
+            'adresse.max' => 'L’adresse ne peut pas dépasser 255 caractères.',
+        ];
+    }
 
-            'longitude.between' =>
-                'La longitude doit être comprise entre -180 et 180.',
-
-            'precisionGPS.numeric' =>
-                'La précision GPS doit être un nombre.',
-
-            'precisionGPS.min' =>
-                'La précision GPS ne peut pas être négative.',
-
-            'precisionGPS.max' =>
-                'La précision GPS est invalide.',
-
-            'photoMaison.image' =>
-                'Le fichier sélectionné doit être une image.',
-
-            'photoMaison.mimes' =>
-                'La photo doit être au format JPG, JPEG, PNG ou WEBP.',
-
-            'photoMaison.max' =>
-                'La photo ne doit pas dépasser 5 Mo.',
-
-            'statut.in' =>
-                'Le statut sélectionné est invalide.',
-
-            'dateIdentification.date' =>
-                'La date d’identification est invalide.',
+    /**
+     * Noms lisibles des champs.
+     */
+    public function attributes(): array
+    {
+        return [
+            'uid' => 'identifiant technique',
+            'numeroMaison' => 'numéro de maison',
+            'village_id' => 'village',
+            'latitude' => 'latitude',
+            'longitude' => 'longitude',
+            'precisionGPS' => 'précision GPS',
+            'adresse' => 'adresse',
         ];
     }
 }

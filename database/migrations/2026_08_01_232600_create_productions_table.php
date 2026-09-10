@@ -6,24 +6,33 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('productions', function (Blueprint $table) {
+
             $table->id('idProduction');
-            $table->float('quantiteProduite');
+
+            // Culture cultivée sur la parcelle
+            $table->foreignId('culture_parcelle_id')
+                ->constrained(
+                    'cultures_parcelles',
+                    'idCultureParcelle'
+                )
+                ->cascadeOnDelete();
+
+            // Quantité récoltée
+            $table->decimal('quantiteProduite', 10, 2);
+
+            // Date de récolte
             $table->date('dateRecolte');
-            $table->float('rendement');
-            $table->foreignId('culture_id')->constrained('cultures', 'idCulture')->onDelete('cascade');
+
+            // Rendement
+            $table->decimal('rendement', 10, 2);
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('productions');

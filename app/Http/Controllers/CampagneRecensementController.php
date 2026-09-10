@@ -1182,10 +1182,15 @@ class CampagneRecensementController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function update(
+   public function update(
         UpdateCampagneRecensementRequest $request,
         CampagneRecensement $campagne
     ) {
+        /*
+        |--------------------------------------------------------------------------
+        | AUTORISATION
+        |--------------------------------------------------------------------------
+        */
 
         if (!$this->dpaPeutVoirCampagne($campagne)) {
 
@@ -1196,12 +1201,18 @@ class CampagneRecensementController extends Controller
         }
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | SYNCHRONISATION DU STATUT
+        |--------------------------------------------------------------------------
+        */
+
         $campagne->synchroniserStatut();
 
 
         /*
         |--------------------------------------------------------------------------
-        | ARCHIVÉE
+        | CAMPAGNE ARCHIVÉE
         |--------------------------------------------------------------------------
         */
 
@@ -1215,18 +1226,30 @@ class CampagneRecensementController extends Controller
         }
 
 
-        $data = $request->validated();
+        /*
+        |--------------------------------------------------------------------------
+        | DONNÉES VALIDÉES
+        |--------------------------------------------------------------------------
+        */
+
+        $validated = $request->validated();
 
 
         /*
         |--------------------------------------------------------------------------
-        | ZONES
+        | TERRITOIRES
         |--------------------------------------------------------------------------
         */
 
-        $zones = $data['zones'] ?? [];
+        $regionIds = $validated['region_ids'] ?? [];
 
-        unset($data['zones']);
+        $prefectureIds = $validated['prefecture_ids'] ?? [];
+
+        $communeIds = $validated['commune_ids'] ?? [];
+
+        $cantonIds = $validated['canton_ids'] ?? [];
+
+        $villageIds = $validated['village_ids'] ?? [];
 
 
         /*
@@ -1236,74 +1259,173 @@ class CampagneRecensementController extends Controller
         */
 
         $questionnaireIds =
-            $data['questionnaire_ids'] ?? [];
-
-        unset($data['questionnaire_ids']);
+            $validated['questionnaire_ids'] ?? [];
 
 
-        DB::transaction(
-            function () use (
-                $campagne,
-                $data,
-                $zones,
-                $questionnaireIds
-            ) {
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
 
-                /*
-                |------------------------------------------------------------------
-                | CHAMPS NON MODIFIABLES
-                |------------------------------------------------------------------
-                */
+        DB::transaction(function () use (
+            $campagne,
+            $validated,
+            $regionIds,
+            $prefectureIds,
+            $communeIds,
+            $cantonIds,
+            $villageIds,
+            $questionnaireIds
+        ) {
 
-                unset(
-                    $data['codeCampagne'],
-                    $data['created_by'],
-                    $data['statut']
-                );
+            /*
+            |--------------------------------------------------------------------------
+            | DONNÉES DE LA CAMPAGNE
+            |--------------------------------------------------------------------------
+            |
+            | Certains champs ne doivent jamais être modifiés par le formulaire.
+            |
+            */
+
+            $data = [
+
+                'libelle' =>
+                    $validated['libelle'],
+
+                'description' =>
+                    $validated['description'] ?? null,
+
+                'objectifs' =>
+                    $validated['objectifs'],
+
+                'resultatsAttendus' =>
+                    $validated['resultatsAttendus'] ?? null,
+
+                'methodologie' =>
+                    $validated['methodologie'] ?? null,
+
+                'instructions' =>
+                    $validated['instructions'] ?? null,
+
+                'portee' =>
+                    $validated['portee'],
+
+                'dateDebut' =>
+                    $validated['dateDebut'],
+
+                'dateFin' =>
+                    $validated['dateFin'] ?? null,
+            ];
 
 
-                /*
-                |------------------------------------------------------------------
-                | CAMPAGNE
-                |------------------------------------------------------------------
-                */
+            /*
+            |--------------------------------------------------------------------------
+            | MISE À JOUR DE LA CAMPAGNE
+            |--------------------------------------------------------------------------
+            */
 
-                $campagne->update($data);
-
-
-                /*
-                |------------------------------------------------------------------
-                | ZONES
-                |------------------------------------------------------------------
-                */
-
-                $campagne->zones()->delete();
+            $campagne->update($data);
 
 
-                foreach ($zones as $zone) {
+            /*
+            |--------------------------------------------------------------------------
+            | SUPPRESSION DES ANCIENNES ZONES
+            |--------------------------------------------------------------------------
+            |
+            | On reconstruit le périmètre territorial à partir de la nouvelle
+            | sélection.
+            |
+            */
+
+            $campagne->zones()->delete();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CAMPAGNE NATIONALE
+            |--------------------------------------------------------------------------
+            |
+            | Aucune zone spécifique n'est enregistrée.
+            |
+            */
+
+            if ($validated['portee'] === 'nationale') {
+
+                // Aucun enregistrement territorial.
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CAMPAGNE RÉGIONALE
+            |--------------------------------------------------------------------------
+            */
+
+            elseif ($validated['portee'] === 'regionale') {
+
+                foreach ($regionIds as $regionId) {
 
                     $campagne->zones()->create([
 
                         'region_id' =>
-                            $zone['region_id'] ?? null,
+                            $regionId,
 
                         'prefecture_id' =>
-                            $zone['prefecture_id'],
+                            null,
 
                         'commune_id' =>
-                            $zone['commune_id'] ?? null,
+                            null,
 
                         'canton_id' =>
-                            $zone['canton_id'] ?? null,
+                            null,
 
                         'village_id' =>
-                            $zone['village_id'] ?? null,
+                            null,
 
-                        'dateDebut' =>
-                            $zone['dateDebut'] ?? null,
+                        'statut' =>
+                            'planifiee',
+                    ]);
+                }
+            }
 
-                        'dateFin' =>
-                            $zone['dateFin'] ?? null,
+
+            /*
+            |--------------------------------------------------------------------------
+            | CAMPAGNE PRÉFECTORALE
+            |--------------------------------------------------------------------------
+            */
+
+            elseif ($validated['portee'] === 'prefectorale') {
+
+                /*
+                |----------------------------------------------------------------------
+                | PRÉFECTURES
+                |----------------------------------------------------------------------
+                */
+
+                foreach ($prefectureIds as $prefectureId) {
+
+                    $prefecture = Prefecture::find(
+                        $prefectureId
+                    );
+
+                    $campagne->zones()->create([
+
+                        'region_id' =>
+                            $prefecture?->region_id,
+
+                        'prefecture_id' =>
+                            $prefectureId,
+
+                        'commune_id' =>
+                            null,
+
+                        'canton_id' =>
+                            null,
+
+                        'village_id' =>
+                            null,
 
                         'statut' =>
                             'planifiee',
@@ -1312,21 +1434,126 @@ class CampagneRecensementController extends Controller
 
 
                 /*
-                |------------------------------------------------------------------
-                | QUESTIONNAIRES
-                |------------------------------------------------------------------
+                |----------------------------------------------------------------------
+                | COMMUNES
+                |----------------------------------------------------------------------
                 */
 
-                $campagne->questionnaires()->sync(
-                    $questionnaireIds
-                );
+                foreach ($communeIds as $communeId) {
+
+                    $commune = \App\Models\Commune::find(
+                        $communeId
+                    );
+
+                    $campagne->zones()->create([
+
+                        'region_id' =>
+                            $commune?->prefecture?->region_id,
+
+                        'prefecture_id' =>
+                            $commune?->prefecture_id,
+
+                        'commune_id' =>
+                            $communeId,
+
+                        'canton_id' =>
+                            null,
+
+                        'village_id' =>
+                            null,
+
+                        'statut' =>
+                            'planifiee',
+                    ]);
+                }
+
+
+                /*
+                |----------------------------------------------------------------------
+                | CANTONS
+                |----------------------------------------------------------------------
+                */
+
+                foreach ($cantonIds as $cantonId) {
+
+                    $canton = \App\Models\Canton::with(
+                        'commune.prefecture'
+                    )->find($cantonId);
+
+                    $campagne->zones()->create([
+
+                        'region_id' =>
+                            $canton?->commune?->prefecture?->region_id,
+
+                        'prefecture_id' =>
+                            $canton?->commune?->prefecture_id,
+
+                        'commune_id' =>
+                            $canton?->commune_id,
+
+                        'canton_id' =>
+                            $cantonId,
+
+                        'village_id' =>
+                            null,
+
+                        'statut' =>
+                            'planifiee',
+                    ]);
+                }
+
+
+                /*
+                |----------------------------------------------------------------------
+                | VILLAGES
+                |----------------------------------------------------------------------
+                */
+
+                foreach ($villageIds as $villageId) {
+
+                    $village = \App\Models\Village::with(
+                        'canton.commune.prefecture'
+                    )->find($villageId);
+
+                    $campagne->zones()->create([
+
+                        'region_id' =>
+                            $village?->canton?->commune?->prefecture?->region_id,
+
+                        'prefecture_id' =>
+                            $village?->canton?->commune?->prefecture_id,
+
+                        'commune_id' =>
+                            $village?->canton?->commune_id,
+
+                        'canton_id' =>
+                            $village?->canton_id,
+
+                        'village_id' =>
+                            $villageId,
+
+                        'statut' =>
+                            'planifiee',
+                    ]);
+                }
             }
-        );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | QUESTIONNAIRES
+            |--------------------------------------------------------------------------
+            */
+
+            $campagne->questionnaires()->sync(
+                $questionnaireIds
+            );
+        });
 
 
         /*
         |--------------------------------------------------------------------------
-        | SYNCHRONISATION APRÈS MODIFICATION
+        | SYNCHRONISATION DU STATUT APRÈS MODIFICATION
         |--------------------------------------------------------------------------
         */
 
@@ -1334,6 +1561,12 @@ class CampagneRecensementController extends Controller
 
         $campagne->synchroniserStatut();
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | REDIRECTION
+        |--------------------------------------------------------------------------
+        */
 
         return redirect()
             ->route('campagnes.index')

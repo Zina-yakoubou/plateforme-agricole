@@ -7,12 +7,36 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MouvementStock extends Model
 {
-    protected $primaryKey = 'idMouvement';
-    protected $fillable = ['type', 'quantite', 'date', 'motif', 'agentResponsable_id', 'intrant_id', 'magasin_id', 'fournisseur_id'];
+    protected $table = 'mouvement_stocks';
 
-    public function agentResponsable(): BelongsTo
+    protected $primaryKey = 'idMouvement';
+
+    protected $fillable = [
+        'magasin_id',
+        'intrant_id',
+        'agentResponsable_id',
+        'fournisseur_id',
+        'distribution_id',
+        'type',
+        'quantite',
+        'unite',
+        'dateMouvement',
+        'reference',
+        'motif',
+    ];
+
+    protected $casts = [
+        'quantite' => 'decimal:2',
+        'dateMouvement' => 'datetime',
+    ];
+
+    /* ============================
+     | RELATIONS
+     * ============================ */
+
+    public function magasin(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'agentResponsable_id', 'idUser');
+        return $this->belongsTo(Magasin::class, 'magasin_id', 'idMagasin');
     }
 
     public function intrant(): BelongsTo
@@ -20,13 +44,18 @@ class MouvementStock extends Model
         return $this->belongsTo(Intrant::class, 'intrant_id', 'idIntrant');
     }
 
-    public function magasin(): BelongsTo
+    public function agentResponsable(): BelongsTo
     {
-        return $this->belongsTo(Magasin::class, 'magasin_id', 'idMagasin');
+        return $this->belongsTo(User::class, 'agentResponsable_id');
     }
 
     public function fournisseur(): BelongsTo
     {
         return $this->belongsTo(Fournisseur::class, 'fournisseur_id', 'idFournisseur');
+    }
+
+    public function distribution(): BelongsTo
+    {
+        return $this->belongsTo(Distribution::class, 'distribution_id', 'idDistribution');
     }
 }

@@ -18,24 +18,43 @@
             Ajouter une maison
         </h1>
 
-        <p class="text-sm text-slate-500 mt-1">
+        <p class="mt-1 text-sm text-slate-500">
             Enregistrer une nouvelle maison dans le village
             <strong>{{ $village->nom }}</strong>.
         </p>
 
     </div>
 
+    {{-- ERREURS --}}
+    @if($errors->any())
+
+        <div class="mb-5 rounded-lg bg-red-100 px-4 py-3 text-red-700">
+
+            <ul class="list-disc list-inside">
+
+                @foreach($errors->all() as $error)
+
+                    <li>{{ $error }}</li>
+
+                @endforeach
+
+            </ul>
+
+        </div>
+
+    @endif
 
     {{-- FORMULAIRE --}}
-
-    <div class="bg-white rounded-xl shadow p-6">
+    <div class="rounded-xl bg-white p-6 shadow">
 
         <form
             method="POST"
             action="{{ route('villages.maisons.store', $village) }}"
         >
 
-            @include('maisons._form')
+            @include('maisons._form', [
+                'village' => $village
+            ])
 
         </form>
 
@@ -44,4 +63,3 @@
 </div>
 
 @endsection
-

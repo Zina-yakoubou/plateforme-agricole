@@ -8,8 +8,28 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SaisonDistribution extends Model
 {
+    protected $table = 'saison_distributions';
+
     protected $primaryKey = 'idSaison';
-    protected $fillable = ['libelle', 'dateDebut', 'dateFin', 'statut', 'baseSurDerniereAnnee', 'campagneBase_id'];
+
+    protected $fillable = [
+        'libelle',
+        'dateDebut',
+        'dateFin',
+        'statut',
+        'baseSurDerniereAnnee',
+        'campagneBase_id',
+    ];
+
+    protected $casts = [
+        'dateDebut' => 'date',
+        'dateFin' => 'date',
+        'baseSurDerniereAnnee' => 'boolean',
+    ];
+
+    /* ============================
+     | RELATIONS
+     * ============================ */
 
     public function campagneBase(): BelongsTo
     {
