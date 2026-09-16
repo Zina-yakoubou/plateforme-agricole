@@ -697,7 +697,7 @@
     {{-- ====================================================================
         AGENT RECENSEUR
     ===================================================================== --}}
-    @if($user->isAgent())
+    {{-- @if($user->isAgent())
 
         <div class="mt-6">
 
@@ -708,27 +708,7 @@
                 Recensement
             </p>
 
-            {{-- Tableau de bord / Ma campagne --}}
-            {{-- <a
-                href="{{ route('dashboard') }}"
-                :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4'"
-                class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out
-                    {{ request()->routeIs('dashboard')
-                        ? 'bg-green-50 text-green-700 font-semibold'
-                        : 'text-text-secondary hover:bg-background-muted' }}"
-                title="Ma campagne"
-            >
-                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-                        d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/>
-                </svg>
-
-                <span x-show="!sidebarCollapsed" x-transition.opacity>
-                    Ma campagne
-                </span>
-            </a> --}}
-
-            {{-- Mes affectations --}}
+          
             <a
                 href="{{ route('agent.affectations') }}"
                 :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4'"
@@ -748,7 +728,6 @@
                 </span>
             </a>
 
-            {{-- Identification (désactivé pour le moment) --}}
             <a
                 href="#"
                 onclick="return false"
@@ -771,7 +750,6 @@
                 </span>
             </a>
 
-            {{-- Recensement (désactivé) --}}
             <a
                 href="#"
                 onclick="return false"
@@ -795,7 +773,6 @@
                 </span>
             </a>
 
-            {{-- Synchronisation (désactivé) --}}
             <a
                 href="#"
                 onclick="return false"
@@ -821,8 +798,203 @@
 
         </div>
 
-    @endif
+    @endif --}}
 
+
+
+
+    @if($user->isAgent())
+
+    <div class="mt-6">
+
+        <p
+            x-show="!sidebarCollapsed"
+            class="mb-3 px-1 text-xs uppercase tracking-widest text-text-muted whitespace-nowrap"
+        >
+            Recensement
+        </p>
+
+
+        {{-- =========================================================
+             MES AFFECTATIONS
+             =========================================================
+             Organisationnel :
+             l'agent consulte les campagnes, équipes et villages
+             auxquels il est affecté.
+        --}}
+
+        <a
+            href="{{ route('agent.affectations') }}"
+            :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4'"
+            class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out
+                {{ request()->routeIs('agent.affectations*')
+                    ? 'bg-green-50 text-green-700 font-semibold'
+                    : 'text-text-secondary hover:bg-background-muted' }}"
+            title="Mes affectations"
+        >
+            <svg
+                class="h-5 w-5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a3 3 0 006 0M9 12h6M9 16h4"
+                />
+            </svg>
+
+            <span
+                x-show="!sidebarCollapsed"
+                x-transition.opacity
+            >
+                Mes affectations
+            </span>
+        </a>
+
+
+        {{-- =========================================================
+             ZONE DE COLLECTE
+             =========================================================
+             Opérationnel :
+             l'agent ouvre une affectation et travaille sur les
+             maisons de son village.
+        --}}
+
+        {{-- <a
+            href="{{ route('agent.zone.collecte') }}"
+            :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4'"
+            class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out
+                {{ request()->routeIs('agent.zone.collecte*')
+                    ? 'bg-green-50 text-green-700 font-semibold'
+                    : 'text-text-secondary hover:bg-background-muted' }}"
+            title="Zone de collecte"
+        >
+            <svg
+                class="h-5 w-5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 01.553-.894L9 2l6 2 5.447-2.724A1 1 0 0121 2.382v10.764a1 1 0 01-.553.894L15 16l-6 4z"
+                />
+                <path
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 2v18M15 4v12"
+                />
+            </svg>
+
+            <span
+                x-show="!sidebarCollapsed"
+                x-transition.opacity
+            >
+                Zone de collecte
+            </span>
+        </a> --}}
+
+
+        {{-- =========================================================
+             MES RECENSEMENTS
+             =========================================================
+             Historique :
+             l'agent retrouve les recensements qu'il a réalisés
+             ou commencés.
+        --}}
+
+        <a
+            href="{{ route('agent.recensements.index') }}"
+            :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4'"
+            class="mb-1 flex items-center gap-3 rounded-md py-3 transition-colors duration-150 ease-in-out
+                {{ request()->routeIs('agent.recensements*')
+                    ? 'bg-green-50 text-green-700 font-semibold'
+                    : 'text-text-secondary hover:bg-background-muted' }}"
+            title="Mes recensements"
+        >
+            <svg
+                class="h-5 w-5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M8 6h11M8 12h11M8 18h11"
+                />
+                <circle cx="4" cy="6" r="1"/>
+                <circle cx="4" cy="12" r="1"/>
+                <circle cx="4" cy="18" r="1"/>
+            </svg>
+
+            <span
+                x-show="!sidebarCollapsed"
+                x-transition.opacity
+            >
+                Mes recensements
+            </span>
+        </a>
+
+
+            {{-- =========================================================
+                SYNCHRONISATION
+                =========================================================
+                Préparation au fonctionnement hors ligne.
+            --}}
+
+            <a
+                href="#"
+                onclick="return false"
+                :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4'"
+                class="mb-1 flex items-center gap-3 rounded-md py-3 text-gray-400 cursor-not-allowed"
+                title="Bientôt disponible"
+            >
+                <svg
+                    class="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M4 12a8 8 0 0114.9-4M20 12a8 8 0 01-14.9 4"
+                    />
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M19 4v4h-4M5 20v-4h4"
+                    />
+                </svg>
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition.opacity
+                >
+                    Synchronisation
+                </span>
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    class="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-[10px]"
+                >
+                    Bientôt
+                </span>
+            </a>
+
+        </div>
+
+    @endif
 
     {{-- ====================================================================
         SUPERVISEUR
@@ -920,7 +1092,8 @@
         {{-- CONTRÔLE QUALITÉ --}}
         <a
             href="{{ route('superviseur.controle-qualite.index') }}"
-            class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition
+            :class="sidebarCollapsed ? 'justify-center px-0' : 'px-3'"
+            class="flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition
                 {{ request()->routeIs('superviseur.controle-qualite.*')
                     ? 'bg-[#006a4f] text-white'
                     : 'text-gray-700 hover:bg-gray-100' }}"

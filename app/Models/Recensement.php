@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Recensement extends Model
 {
@@ -87,6 +88,25 @@ class Recensement extends Model
             Maison::class,
             'maison_id',
             'idMaison'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ménages du recensement
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANT :
+    | Le ménage appartient au recensement et non directement à la maison.
+    |
+    */
+
+    public function menages(): HasMany
+    {
+        return $this->hasMany(
+            Menage::class,
+            'recensement_id',
+            'idRecensement'
         );
     }
 

@@ -8,9 +8,12 @@ use App\Models\Maison;
 use App\Models\Village;
 use App\Services\ReferenceGeneratorService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Models\Affectation;
+use Illuminate\Http\Request;
 
 class MaisonController extends Controller
 {
@@ -22,22 +25,65 @@ class MaisonController extends Controller
     /**
      * Liste des maisons d'un village.
      */
-    public function index(Village $village): View
-    {
-        $maisons = $village->maisons()
-            ->withCount('menages')
-            ->orderBy('idMaison')
-            ->paginate(10);
+    // public function index(Village $village): View
+    // {
+    //     $maisons = $village->maisons()
+    //         ->withCount('menages')
+    //         ->orderBy('idMaison')
+    //         ->paginate(10);
 
-        return view('maisons.index', compact(
-            'village',
-            'maisons'
-        ));
+    //     return view('maisons.index', compact(
+    //         'village',
+    //         'maisons'
+    //     ));
+    // }
+
+
+        public function index(Request $request, Village $village): View
+    {
+        $affectation = null;
+
+        if ($request->filled('affectation_id')) {
+            $affectation = Affectation::with(['campagne', 'equipe', 'village.canton.commune'])
+                ->findOrFail($request->integer('affectation_id'));
+
+            abort_unless($affectation->statut === 'active', 403, 'Cette affectation n’est plus active.');
+
+            $estMembre = $affectation->equipe()
+                ->whereHas('membres', fn ($q) => $q->where('users.id', auth()->id()))
+                ->exists();
+
+            abort_unless($estMembre, 403, 'Vous n’êtes pas autorisé à accéder à cette affectation.');
+
+            abort_unless(
+                $affectation->village_id === $village->idVillage,
+                403,
+                'Ce village ne correspond pas à votre affectation.'
+            );
+        }
+
+        $maisons = $village->maisons()
+            ->with(['village.canton.commune'])
+            ->with(['recensements' => function ($query) {
+                $query->with('campagne:idCampagne,libelle')
+                    ->withCount('menages')
+                    ->orderByDesc('campagne_id');
+            }])
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $terme = $request->string('q');
+                $query->where(function ($q) use ($terme) {
+                    $q->where('numeroMaison', 'like', "%{$terme}%")
+                    ->orWhere('adresse', 'like', "%{$terme}%");
+                });
+            })
+            ->orderBy('idMaison')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('maisons.index', compact('village', 'maisons', 'affectation'));
     }
 
-    /**
-     * Formulaire de création d'une maison.
-     */
+   
     public function create(Village $village): View
     {
         $village->load([
@@ -47,19 +93,12 @@ class MaisonController extends Controller
         return view('maisons.create', compact('village'));
     }
 
-    /**
-     * Enregistre une nouvelle maison.
-     */
+   
     public function store(
         StoreMaisonRequest $request,
         Village $village
     ): RedirectResponse {
-        /*
-        |--------------------------------------------------------------------------
-        | Génération automatique du numéro de maison
-        |--------------------------------------------------------------------------
-        */
-
+        
         $numeroMaison = $this->referenceGenerator->generate(
             type: 'maison',
             parentType: 'village',
@@ -69,19 +108,10 @@ class MaisonController extends Controller
             padding: 5
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Génération de l'identifiant hors ligne
-        |--------------------------------------------------------------------------
-        */
-
+        
         $uid = (string) Str::uuid();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Photo de la maison
-        |--------------------------------------------------------------------------
-        */
+        
 
         $photoMaison = null;
 
@@ -91,11 +121,7 @@ class MaisonController extends Controller
                 ->store('maisons', 'public');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Création
-        |--------------------------------------------------------------------------
-        */
+        
 
         $maison = $village->maisons()->create([
             'uid' => $uid,
@@ -139,20 +165,50 @@ class MaisonController extends Controller
             );
     }
 
-    /**
-     * Affiche une maison.
-     */
-    public function show(Maison $maison): View
+    
+    //     public function show(Maison $maison): View
+    // {
+    //     $maison->load([
+    //         'village.canton.commune',
+    //         'recensements.agent',
+    //         'recensements.campagne',
+    //         'recensements.affectation.equipe',
+    //     ]);
+
+    //     return view('maisons.show', compact('maison'));
+    // }
+
+
+
+
+        public function show(Maison $maison): View
     {
         $maison->load([
             'village.canton.commune',
-            'menages',
-            'agent',
+            'recensements.campagne',
+            'recensements.agent',
+            'recensements.affectation.equipe',
         ]);
 
-        return view('maisons.show', compact('maison'));
-    }
+        $user = Auth::user();
 
+        // Affectation active de l'agent connecté couvrant ce village
+        $affectation = Affectation::query()
+            ->where('village_id', $maison->village_id)
+            ->where('statut', 'active')
+            ->whereHas('equipe.membres', function ($query) use ($user) {
+                $query->where('users.id', $user->id);
+            })
+            ->latest('idAffectation')
+            ->first();
+
+        // Recensement de cette maison pour la campagne de l'affectation
+        $recensement = $affectation
+            ? $maison->recensements->firstWhere('campagne_id', $affectation->campagne_id)
+            : null;
+
+        return view('maisons.show', compact('maison', 'affectation', 'recensement'));
+    }
     /**
      * Formulaire de modification.
      */

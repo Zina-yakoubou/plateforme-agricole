@@ -43,14 +43,14 @@ class Maison extends Model
     /**
      * Une maison peut contenir plusieurs ménages.
      */
-    public function menages(): HasMany
-    {
-        return $this->hasMany(
-            Menage::class,
-            'maison_id',
-            'idMaison'
-        );
-    }
+    // public function menages(): HasMany
+    // {
+    //     return $this->hasMany(
+    //         Menage::class,
+    //         'maison_id',
+    //         'idMaison'
+    //     );
+    // }
 
     /**
      * Une maison possède plusieurs fiches de recensement

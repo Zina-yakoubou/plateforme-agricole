@@ -57,7 +57,6 @@ use App\Http\Controllers\AffectationController;
 
 use App\Http\Controllers\MaisonController;
 use App\Http\Controllers\MenageController;
-use App\Http\Controllers\ExploitationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -1117,80 +1116,11 @@ Route::middleware(['auth'])->group(function () {
         '/agent/mes-recensements/{recensement}/menages/{menage}',
         [MenageController::class, 'destroy']
     )->name('agent.recensements.menages.destroy');
-
-    Route::get(
-            '/affectations/{affectation}/maisons/create',
-    [RecensementController::class, 'createMaison']
-        )->name('recensements.maison.create');
-
-  
-        // ============================================================
-    // RECENSEMENTS - AGENT
-    // ============================================================
-
-    Route::get(
-        '/agent/mes-recensements',
-        [RecensementController::class, 'index']
-    )->name('agent.recensements.index');
-
-    Route::get(
-        '/agent/mes-affectations/{affectation}/maisons/{maison}/recensement',
-        [RecensementController::class, 'commencer']
-    )->name('agent.recensements.commencer');
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}',
-        [RecensementController::class, 'show']
-    )->name('agent.recensements.show');
-
-    Route::patch(
-        '/agent/mes-recensements/{recensement}/mettre-en-cours',
-        [RecensementController::class, 'mettreEnCours']
-    )->name('agent.recensements.mettre-en-cours');
-
-    Route::patch(
-        '/agent/mes-recensements/{recensement}/terminer',
-        [RecensementController::class, 'terminer']
-    )->name('agent.recensements.terminer');
-
-
-    // =====================================================
-// EXPLOITATIONS - AGENT
-// =====================================================
-
-Route::get(
-    '/agent/exploitants/{exploitant}/exploitations',
-    [ExploitationController::class, 'index']
-)->name('agent.exploitants.exploitations.index');
-
-Route::get(
-    '/agent/exploitants/{exploitant}/exploitations/create',
-    [ExploitationController::class, 'create']
-)->name('agent.exploitants.exploitations.create');
-
-Route::post(
-    '/agent/exploitants/{exploitant}/exploitations',
-    [ExploitationController::class, 'store']
-)->name('agent.exploitants.exploitations.store');
-
-Route::get(
-    '/agent/exploitants/{exploitant}/exploitations/{exploitation}/edit',
-    [ExploitationController::class, 'edit']
-)->name('agent.exploitants.exploitations.edit');
-
-Route::put(
-    '/agent/exploitants/{exploitant}/exploitations/{exploitation}',
-    [ExploitationController::class, 'update']
-)->name('agent.exploitants.exploitations.update');
-
-Route::delete(
-    '/agent/exploitants/{exploitant}/exploitations/{exploitation}',
-    [ExploitationController::class, 'destroy']
-)->name('agent.exploitants.exploitations.destroy');
 });
 
 
 /*
+|--------------------------------------------------------------------------
 | AUTHENTIFICATION BREEZE
 |--------------------------------------------------------------------------
 */

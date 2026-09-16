@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateMenageRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class UpdateMenageRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return Auth::check();
     }
 
     /**
@@ -72,14 +73,14 @@ class UpdateMenageRequest extends FormRequest
             ],
 
             'statut' => [
-                'required',
+                'nullable',
                 'in:brouillon,en_cours,terminee',
             ],
         ];
     }
 
     /**
-     * Messages de validation.
+     * Messages personnalisés.
      */
     public function messages(): array
     {
@@ -103,7 +104,7 @@ class UpdateMenageRequest extends FormRequest
                 'Le sexe du chef de ménage est obligatoire.',
 
             'sexeChef.in' =>
-                'Le sexe du chef de ménage doit être M ou F.',
+                'Le sexe sélectionné est invalide.',
 
             'nombreHommes.required' =>
                 'Le nombre d’hommes est obligatoire.',
@@ -149,9 +150,6 @@ class UpdateMenageRequest extends FormRequest
 
             'observations.string' =>
                 'Les observations doivent être une chaîne de caractères.',
-
-            'statut.required' =>
-                'Le statut du ménage est obligatoire.',
 
             'statut.in' =>
                 'Le statut sélectionné est invalide.',

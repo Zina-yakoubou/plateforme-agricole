@@ -4,176 +4,152 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMenageRequest;
 use App\Http\Requests\UpdateMenageRequest;
-use App\Models\Maison;
 use App\Models\Menage;
+use App\Models\Recensement;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class MenageController extends Controller
 {
     /**
-     * Liste des ménages d'une maison.
+     * Liste des ménages d'un recensement.
      */
-    public function index(Maison $maison): View
+    public function index(Recensement $recensement): View
     {
-        $maison->load([
-            'village',
-            'menages',
+        $this->verifierAccesRecensement($recensement);
+
+        $recensement->load([
+            'campagne',
+            'maison.village.canton.commune.prefecture',
         ]);
 
-        return view('menages.index', compact('maison'));
+        $menages = $recensement->menages()
+            ->latest('idMenage')
+            ->paginate(15);
+
+        return view(
+            'menages.index',
+            compact('recensement', 'menages')
+        );
     }
 
     /**
-     * Formulaire de création d'un ménage.
+     * Formulaire d'ajout d'un ménage.
      */
-    public function create(Maison $maison): View
-    {
-        $maison->load('village');
+    public function create(Recensement $recensement): View
+{
+    $this->verifierAccesRecensement($recensement);
 
-        return view('menages.create', compact('maison'));
-    }
+    $recensement->load([
+        'campagne',
+        'maison.village.canton.commune.prefecture',
+    ]);
+
+    /*
+     * Déterminer automatiquement le prochain numéro
+     * de ménage pour ce recensement.
+     */
+    $dernierNumero = $recensement->menages()
+        ->max('numeroMenage');
+
+    $prochainNumero = $dernierNumero
+        ? ((int) $dernierNumero + 1)
+        : 1;
+
+    return view(
+        'menages.create',
+        compact(
+            'recensement',
+            'prochainNumero'
+        )
+    );
+}
 
     /**
      * Enregistrer un ménage.
      */
     public function store(
         StoreMenageRequest $request,
-        Maison $maison
+        Recensement $recensement
     ): RedirectResponse {
-        $menage = DB::transaction(function () use (
-            $request,
-            $maison
-        ) {
-            $numero = $maison->menages()->count() + 1;
 
-            $numeroMenage = $maison->numeroMaison
-                . '-M'
-                . str_pad(
-                    $numero,
-                    2,
-                    '0',
-                    STR_PAD_LEFT
-                );
+        $this->verifierAccesRecensement($recensement);
 
-            return $maison->menages()->create([
-                'uid' => (string) Str::uuid(),
+        Menage::create(array_merge(
+            $request->validated(),
+            [
+                'recensement_id' => $recensement->idRecensement,
+            ]
+        ));
 
-                'numeroMenage' => $numeroMenage,
-
-                'nomChef' =>
-                    $request->validated('nomChef'),
-
-                'prenomChef' =>
-                    $request->validated('prenomChef'),
-
-                'sexeChef' =>
-                    $request->validated('sexeChef'),
-
-                'nombreHommes' =>
-                    $request->validated('nombreHommes', 0),
-
-                'nombreFemmes' =>
-                    $request->validated('nombreFemmes', 0),
-
-                'nombreGarcons' =>
-                    $request->validated('nombreGarcons', 0),
-
-                'nombreFilles' =>
-                    $request->validated('nombreFilles', 0),
-
-                'possedeExploitation' =>
-                    $request->boolean('possedeExploitation'),
-
-                'observations' =>
-                    $request->validated('observations'),
-
-                'statut' =>
-                    $request->validated(
-                        'statut',
-                        'brouillon'
-                    ),
-            ]);
-        });
-
-        return redirect()
-            ->route('maisons.show', $maison)
-            ->with(
-                'success',
-                "Le ménage {$menage->numeroMenage} a été enregistré avec succès."
-            );
-    }
-
-    /**
-     * Afficher un ménage.
-     */
-    public function show(Menage $menage): View
-    {
-        $menage->load([
-            'maison.village.canton.commune',
-            'exploitants',
+        // Mise à jour de la date de modification du recensement
+        $recensement->update([
+            'dateDerniereModification' => now(),
         ]);
 
-        return view('menages.show', compact('menage'));
+        return redirect()
+            ->route(
+                'agent.recensements.show',
+                $recensement
+            )
+            ->with(
+                'success',
+                'Le ménage a été ajouté avec succès.'
+            );
     }
 
     /**
      * Formulaire de modification.
      */
-    public function edit(Menage $menage): View
-    {
-        $menage->load('maison');
+    public function edit(
+        Recensement $recensement,
+        Menage $menage
+    ): View {
 
-        return view('menages.edit', compact('menage'));
+        $this->verifierAccesRecensement($recensement);
+
+        $this->verifierMenageDuRecensement(
+            $recensement,
+            $menage
+        );
+
+        return view(
+            'menages.edit',
+            compact('recensement', 'menage')
+        );
     }
 
     /**
-     * Mettre à jour un ménage.
+     * Modifier un ménage.
      */
     public function update(
         UpdateMenageRequest $request,
+        Recensement $recensement,
         Menage $menage
     ): RedirectResponse {
-        $menage->update([
-            'nomChef' =>
-                $request->validated('nomChef'),
 
-            'prenomChef' =>
-                $request->validated('prenomChef'),
+        $this->verifierAccesRecensement($recensement);
 
-            'sexeChef' =>
-                $request->validated('sexeChef'),
+        $this->verifierMenageDuRecensement(
+            $recensement,
+            $menage
+        );
 
-            'nombreHommes' =>
-                $request->validated('nombreHommes'),
+        $menage->update($request->validated());
 
-            'nombreFemmes' =>
-                $request->validated('nombreFemmes'),
-
-            'nombreGarcons' =>
-                $request->validated('nombreGarcons'),
-
-            'nombreFilles' =>
-                $request->validated('nombreFilles'),
-
-            'possedeExploitation' =>
-                $request->boolean('possedeExploitation'),
-
-            'observations' =>
-                $request->validated('observations'),
-
-            'statut' =>
-                $request->validated('statut'),
+        $recensement->update([
+            'dateDerniereModification' => now(),
         ]);
 
         return redirect()
-            ->route('menages.show', $menage)
+            ->route(
+                'agent.recensements.show',
+                $recensement
+            )
             ->with(
                 'success',
-                'Le ménage a été mis à jour avec succès.'
+                'Le ménage a été modifié avec succès.'
             );
     }
 
@@ -181,18 +157,85 @@ class MenageController extends Controller
      * Supprimer un ménage.
      */
     public function destroy(
+        Recensement $recensement,
         Menage $menage
     ): RedirectResponse {
-        $maison = $menage->maison;
+
+        $this->verifierAccesRecensement($recensement);
+
+        $this->verifierMenageDuRecensement(
+            $recensement,
+            $menage
+        );
 
         $menage->delete();
 
+        $recensement->update([
+            'dateDerniereModification' => now(),
+        ]);
+
         return redirect()
-            ->route('maisons.show', $maison)
+            ->route(
+                'agent.recensements.show',
+                $recensement
+            )
             ->with(
                 'success',
                 'Le ménage a été supprimé avec succès.'
             );
     }
-}
 
+    /**
+     * Vérifie que l'agent connecté appartient bien à l'équipe
+     * affectée au recensement.
+     */
+    private function verifierAccesRecensement(
+        Recensement $recensement
+    ): void {
+
+        $recensement->loadMissing([
+            'affectation.equipe.membres',
+        ]);
+
+        $user = Auth::user();
+
+        $affectation = $recensement->affectation;
+
+        abort_unless(
+            $affectation,
+            403,
+            'Aucune affectation associée à ce recensement.'
+        );
+
+        abort_unless(
+            $affectation->statut === 'active',
+            403,
+            'Cette affectation n’est plus active.'
+        );
+
+        $estMembre = $affectation->equipe
+            ->membres
+            ->contains('id', $user->id);
+
+        abort_unless(
+            $estMembre,
+            403,
+            'Vous n’êtes pas autorisé à accéder à ce recensement.'
+        );
+    }
+
+    /**
+     * Vérifie que le ménage appartient bien au recensement courant.
+     */
+    private function verifierMenageDuRecensement(
+        Recensement $recensement,
+        Menage $menage
+    ): void {
+
+        abort_unless(
+            (int) $menage->recensement_id === (int) $recensement->idRecensement,
+            404,
+            'Ce ménage n’appartient pas à ce recensement.'
+        );
+    }
+}

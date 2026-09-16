@@ -8,6 +8,7 @@ use App\Models\CampagneRecensement;
 use App\Models\CampagneDeploiement;
 use App\Models\Canton;
 use App\Models\Equipe;
+use App\Models\Maison;
 use App\Models\User;
 use App\Models\Village;
 use App\Models\RattachementPrefecture;
@@ -1764,28 +1765,65 @@ class AffectationController extends Controller
     }
 
 
-        public function detailAgent(Affectation $affectation): View
-    {
-        $user = Auth::user();
+    
 
-        // Sécurité : l'agent ne peut consulter que ses propres affectations
-        $estMembre = $affectation->equipe()
-            ->whereHas('membres', function ($query) use ($user) {
-                $query->where('users.id', $user->id);
-            })
-            ->exists();
+    public function detailAgent(Affectation $affectation): View
+{
+    $user = Auth::user();
 
-        abort_unless($estMembre, 403);
+    // Sécurité : l'agent ne peut consulter que ses propres affectations
+    $estMembre = $affectation->equipe()
+        ->whereHas('membres', function ($query) use ($user) {
+            $query->where('users.id', $user->id);
+        })
+        ->exists();
 
-        $affectation->load([
-            'campagne',
-            'equipe.superviseur',
-            'equipe.membres',
-            'village.canton.commune.prefecture',
-        ]);
+    abort_unless($estMembre, 403);
 
-        return view('agent.affectations.show', compact('affectation'));
-    }
+    $affectation->load([
+        'campagne',
+        'equipe.superviseur',
+        'equipe.membres',
+        'village.canton.commune.prefecture',
+    ]);
+
+    /*
+     * ============================================================
+     * MAISONS DU VILLAGE AFFECTÉ
+     * ============================================================
+     *
+     * On récupère les maisons permanentes du village.
+     *
+     * Pour chaque maison, on charge uniquement son recensement
+     * correspondant à la campagne de cette affectation.
+     */
+    $maisons = Maison::query()
+        ->where(
+            'village_id',
+            $affectation->village_id
+        )
+        ->with([
+            'recensements' => function ($query) use ($affectation) {
+
+                $query
+                    ->where(
+                        'campagne_id',
+                        $affectation->campagne_id
+                    )
+                    ->withCount('menages');
+            },
+        ])
+        ->orderBy('numeroMaison')
+        ->get();
+
+    return view(
+        'agent.affectations.show',
+        compact(
+            'affectation',
+            'maisons'
+        )
+    );
+}
 
 
 

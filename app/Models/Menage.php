@@ -2,17 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Menage extends Model
 {
+    use HasFactory;
+
+    protected $table = 'menages';
+
     protected $primaryKey = 'idMenage';
 
     protected $fillable = [
         'uid',
-        'maison_id',
+        'recensement_id',
         'numeroMenage',
         'nomChef',
         'prenomChef',
@@ -23,39 +28,38 @@ class Menage extends Model
         'nombreFilles',
         'possedeExploitation',
         'observations',
+        'statut',
     ];
 
     protected $casts = [
         'possedeExploitation' => 'boolean',
+        'nombreHommes' => 'integer',
+        'nombreFemmes' => 'integer',
+        'nombreGarcons' => 'integer',
+        'nombreFilles' => 'integer',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Maison
-    |--------------------------------------------------------------------------
-    */
-
-    public function maison(): BelongsTo
+    /**
+     * Générer automatiquement l'UID du ménage.
+     */
+    protected static function booted(): void
     {
-        return $this->belongsTo(
-            Maison::class,
-            'maison_id',
-            'idMaison'
-        );
+        static::creating(function (Menage $menage) {
+            if (empty($menage->uid)) {
+                $menage->uid = (string) Str::uuid();
+            }
+        });
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Exploitants
-    |--------------------------------------------------------------------------
-    */
-
-    public function exploitants(): HasMany
+    /**
+     * Recensement auquel appartient le ménage.
+     */
+    public function recensement(): BelongsTo
     {
-        return $this->hasMany(
-            Exploitant::class,
-            'menage_id',
-            'idMenage'
+        return $this->belongsTo(
+            Recensement::class,
+            'recensement_id',
+            'idRecensement'
         );
     }
 }

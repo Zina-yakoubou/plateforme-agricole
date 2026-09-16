@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class StoreMaisonRequest extends FormRequest
 {
@@ -12,7 +12,7 @@ class StoreMaisonRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Auth::check();
     }
 
     /**
@@ -21,23 +21,10 @@ class StoreMaisonRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'uid' => [
-                'required',
-                'uuid',
-                'unique:maisons,uid',
-            ],
-
-            'numeroMaison' => [
-                'required',
+            'adresse' => [
+                'nullable',
                 'string',
-                'max:100',
-                'unique:maisons,numeroMaison',
-            ],
-
-            'village_id' => [
-                'required',
-                'integer',
-                'exists:villages,idVillage',
+                'max:255',
             ],
 
             'latitude' => [
@@ -56,13 +43,6 @@ class StoreMaisonRequest extends FormRequest
                 'nullable',
                 'numeric',
                 'min:0',
-                'max:9999.99',
-            ],
-
-            'adresse' => [
-                'nullable',
-                'string',
-                'max:255',
             ],
         ];
     }
@@ -73,43 +53,29 @@ class StoreMaisonRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'uid.required' => 'L’identifiant technique de la maison est obligatoire.',
-            'uid.uuid' => 'L’identifiant technique de la maison doit être un UUID valide.',
-            'uid.unique' => 'Cette maison existe déjà.',
+            'adresse.string' =>
+                'L’adresse doit être une chaîne de caractères.',
 
-            'numeroMaison.required' => 'Le numéro de la maison est obligatoire.',
-            'numeroMaison.unique' => 'Ce numéro de maison existe déjà.',
-            'numeroMaison.max' => 'Le numéro de maison ne peut pas dépasser 100 caractères.',
+            'adresse.max' =>
+                'L’adresse ne peut pas dépasser 255 caractères.',
 
-            'village_id.required' => 'Le village est obligatoire.',
-            'village_id.exists' => 'Le village sélectionné n’existe pas.',
+            'latitude.numeric' =>
+                'La latitude doit être un nombre.',
 
-            'latitude.numeric' => 'La latitude doit être une valeur numérique.',
-            'latitude.between' => 'La latitude doit être comprise entre -90 et 90.',
+            'latitude.between' =>
+                'La latitude doit être comprise entre -90 et 90.',
 
-            'longitude.numeric' => 'La longitude doit être une valeur numérique.',
-            'longitude.between' => 'La longitude doit être comprise entre -180 et 180.',
+            'longitude.numeric' =>
+                'La longitude doit être un nombre.',
 
-            'precisionGPS.numeric' => 'La précision GPS doit être une valeur numérique.',
-            'precisionGPS.min' => 'La précision GPS ne peut pas être négative.',
+            'longitude.between' =>
+                'La longitude doit être comprise entre -180 et 180.',
 
-            'adresse.max' => 'L’adresse ne peut pas dépasser 255 caractères.',
-        ];
-    }
+            'precisionGPS.numeric' =>
+                'La précision GPS doit être un nombre.',
 
-    /**
-     * Noms lisibles des champs.
-     */
-    public function attributes(): array
-    {
-        return [
-            'uid' => 'identifiant technique',
-            'numeroMaison' => 'numéro de maison',
-            'village_id' => 'village',
-            'latitude' => 'latitude',
-            'longitude' => 'longitude',
-            'precisionGPS' => 'précision GPS',
-            'adresse' => 'adresse',
+            'precisionGPS.min' =>
+                'La précision GPS ne peut pas être négative.',
         ];
     }
 }

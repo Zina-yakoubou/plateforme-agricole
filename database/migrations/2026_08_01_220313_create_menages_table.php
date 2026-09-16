@@ -11,15 +11,15 @@ return new class extends Migration
         Schema::create('menages', function (Blueprint $table) {
             $table->id('idMenage');
 
-            // Identifiant technique permanent
+            // Identifiant technique permanent du ménage
             $table->uuid('uid')->unique();
 
-            // Une maison peut contenir plusieurs ménages
-            $table->foreignId('maison_id')
-                ->constrained('maisons', 'idMaison')
+            // Le ménage appartient au recensement d'une campagne
+            $table->foreignId('recensement_id')
+                ->constrained('recensements', 'idRecensement')
                 ->cascadeOnDelete();
 
-            // Identification du ménage dans la maison
+            // Identification du ménage dans le recensement
             $table->string('numeroMenage');
 
             // Chef du ménage
@@ -41,9 +41,9 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // Deux ménages différents peuvent exister dans une même maison,
-            // mais chacun possède un numéro distinct.
-            $table->unique(['maison_id', 'numeroMenage']);
+            // Un même recensement peut contenir plusieurs ménages,
+            // mais chaque ménage possède un numéro distinct.
+            $table->unique(['recensement_id', 'numeroMenage']);
         });
     }
 

@@ -326,8 +326,8 @@ class RecensementController extends Controller
 
 
     public function demarrer(
-        Affectation $affectation
-    ): View {
+            Affectation $affectation
+        ): View {
         $this->verifierAccesAffectation($affectation);
 
         $affectation->load([
