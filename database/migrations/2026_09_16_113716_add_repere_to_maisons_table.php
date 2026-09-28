@@ -11,7 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::table('maisons', function (Blueprint $table) {
+            $table->string('repere')->nullable()->after('numeroMaison');
+
+        });
     }
 
     /**
@@ -19,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('maisons', function (Blueprint $table) {
+            //
+        });
     }
 };

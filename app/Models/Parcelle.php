@@ -8,35 +8,43 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Parcelle extends Model
 {
+    protected $table = 'parcelles';
+
     protected $primaryKey = 'idParcelle';
 
     protected $fillable = [
         'uid',
-        'exploitant_id',
+        'exploitation_id',
         'numeroParcelle',
         'superficie',
+        'statutParcelle',
         'typeSol',
         'modeFaireValoir',
         'modeIrrigation',
-        'estCultivee',
-        'estJachere',
         'presenceArbres',
         'observations',
     ];
 
     protected $casts = [
         'superficie' => 'decimal:2',
-        'estCultivee' => 'boolean',
-        'estJachere' => 'boolean',
         'presenceArbres' => 'boolean',
     ];
 
-    public function exploitant(): BelongsTo
+    public function exploitation(): BelongsTo
     {
         return $this->belongsTo(
-            Exploitant::class,
-            'exploitant_id',
-            'idExploitant'
+            Exploitation::class,
+            'exploitation_id',
+            'idExploitation'
+        );
+    }
+
+    public function cultures(): HasMany
+    {
+        return $this->hasMany(
+            CultureParcelle::class,
+            'parcelle_id',
+            'idParcelle'
         );
     }
 
@@ -44,15 +52,6 @@ class Parcelle extends Model
     {
         return $this->hasMany(
             PointGPS::class,
-            'parcelle_id',
-            'idParcelle'
-        );
-    }
-
-    public function culturesParcelles(): HasMany
-    {
-        return $this->hasMany(
-            CultureParcelle::class,
             'parcelle_id',
             'idParcelle'
         );

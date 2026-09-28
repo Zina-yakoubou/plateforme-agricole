@@ -7,19 +7,29 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Cheptel extends Model
 {
+    protected $table = 'cheptels';
+
     protected $primaryKey = 'idCheptel';
 
     protected $fillable = [
-        'exploitation_id',
         'uid',
+        'exploitation_id',
         'typeAnimal',
         'effectif',
         'modeElevage',
         'observations',
     ];
 
+    protected $casts = [
+        'effectif' => 'integer',
+    ];
+
     public function exploitation(): BelongsTo
     {
-        return $this->belongsTo(Exploitation::class, 'exploitation_id', 'idExploitation');
+        return $this->belongsTo(
+            Exploitation::class,
+            'exploitation_id',
+            'idExploitation'
+        );
     }
 }

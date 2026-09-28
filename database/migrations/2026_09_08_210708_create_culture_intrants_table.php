@@ -12,23 +12,30 @@ return new class extends Migration
 
             $table->id();
 
-            $table->foreignId('culture_id')
-                ->constrained('cultures','idCulture')
+            $table->foreignId('culture_parcelle_id')
+                ->constrained(
+                    'cultures_parcelles',
+                    'idCultureParcelle'
+                )
                 ->cascadeOnDelete();
 
             $table->foreignId('intrant_id')
-                ->constrained('intrants','idIntrant')
+                ->constrained(
+                    'intrants',
+                    'idIntrant'
+                )
                 ->cascadeOnDelete();
 
-            // Quantité réellement appliquée
-            $table->decimal('quantite',8,2);
+            $table->decimal('quantite', 8, 2);
 
-            // Nombre d'applications
-            $table->unsignedTinyInteger('nombreApplications')->default(1);
+            $table->unsignedTinyInteger('nombreApplications')
+                ->default(1);
 
-            $table->date('dateApplication')->nullable();
+            $table->date('dateApplication')
+                ->nullable();
 
-            $table->text('observations')->nullable();
+            $table->text('observations')
+                ->nullable();
 
             $table->timestamps();
         });

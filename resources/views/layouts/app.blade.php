@@ -1,144 +1,123 @@
 <!DOCTYPE html>
-
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
 
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<meta charset="utf-8">
+    <title>{{ config('app.name', 'SIRA-Mô') }}</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    {{-- Police --}}
+    <link rel="preconnect" href="https://fonts.bunny.net">
 
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    <link
+        href="https://fonts.bunny.net/css?family=poppins:400,500,600,700&display=swap"
+        rel="stylesheet"
+    >
 
-<title>
-    {{ config('app.name', 'Recensement Agricole') }}
-</title>
+    {{-- Vite --}}
+    @vite([
+        'resources/css/app.css',
+        'resources/js/app.js'
+    ])
 
-{{-- ============================================================
-    POLICE
-============================================================ --}}
-<link rel="preconnect" href="https://fonts.bunny.net">
+    {{-- Alpine JS --}}
+    <script
+        defer
+        src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
+    </script>
 
-<link
-    href="https://fonts.bunny.net/css?family=poppins:400,500,600,700&display=swap"
-    rel="stylesheet"
-/>
+    {{-- Styles globaux --}}
+    <style>
+        [x-cloak]{
+            display:none !important;
+        }
 
+        html{
+            scroll-behavior:smooth;
+        }
 
-{{-- ============================================================
-    ASSETS VITE
-============================================================ --}}
-@vite([
-    'resources/css/app.css',
-    'resources/js/app.js'
-])
+        body{
+            font-family:'Poppins',sans-serif;
+            background:#f8faf9;
+            overflow-x:hidden;
+        }
 
+        /* Scrollbar discrète */
+        ::-webkit-scrollbar{
+            width:6px;
+            height:6px;
+        }
 
-{{-- ============================================================
-    ALPINE JS
-============================================================ --}}
-<script
-    defer
-    src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
-></script>
+        ::-webkit-scrollbar-thumb{
+            background:#cbd5e1;
+            border-radius:999px;
+        }
 
-
-{{-- ============================================================
-    STYLES
-============================================================ --}}
-<style>
-
-    [x-cloak] {
-        display: none !important;
-    }
-
-    .font-poppins,
-    body {
-        font-family:
-            'Poppins',
-            system-ui,
-            -apple-system,
-            "Segoe UI",
-            Roboto,
-            "Helvetica Neue",
-            Arial,
-            sans-serif;
-    }
-
-</style>
-
+        ::-webkit-scrollbar-track{
+            background:transparent;
+        }
+    </style>
 
 </head>
 
-<body class="font-poppins antialiased bg-[#f8faf9]">
+<body class="bg-[#f8faf9] text-slate-800 antialiased">
 
 <div
-    class="flex min-h-screen"
     x-data="{
-        sidebarOpen: false,
-        sidebarCollapsed: false
+        sidebarOpen:false,
+        sidebarCollapsed:false,
+
+        toggleSidebar(){
+            this.sidebarOpen=!this.sidebarOpen;
+        },
+
+        closeSidebar(){
+            this.sidebarOpen=false;
+        }
     }"
+    class="relative flex min-h-screen"
 >
 
+    {{-- ================= OVERLAY MOBILE ================= --}}
+    <div
+        x-cloak
+        x-show="sidebarOpen"
+        x-transition.opacity
+        @click="closeSidebar()"
+        class="fixed inset-0 z-40 bg-black/40 lg:hidden">
+    </div>
 
-{{-- ============================================================
-    SIDEBAR
-============================================================ --}}
-@include('layouts.sidebar')
+    {{-- ================= SIDEBAR ================= --}}
+    @include('layouts.sidebar')
 
+    {{-- ================= CONTENU ================= --}}
+    <div class="flex min-w-0 flex-1 flex-col">
 
-<div class="flex-1 flex flex-col min-w-0">
+        {{-- Navbar --}}
+        @include('layouts.navbar')
 
-    {{-- ========================================================
-        NAVBAR
-    ========================================================= --}}
-    @include('layouts.navbar')
+        {{-- Contenu principal --}}
+        <main class="flex-1">
 
+            <div class="w-full px-3 py-4 sm:px-5 lg:px-8 lg:py-6">
 
-    {{-- ========================================================
-        ZONE PRINCIPALE
-    ========================================================= --}}
-    <main class="flex-1 flex flex-col">
+                @yield('content')
 
-        {{-- ====================================================
-            CONTENU DES PAGES
-        ==================================================== --}}
-        <div class="flex-1 p-6">
+            </div>
 
-            @yield('content')
+        </main>
 
-        </div>
-
-
-        {{-- ====================================================
-            FOOTER
-        ==================================================== --}}
+        {{-- Footer --}}
         @include('layouts.footer')
 
-    </main>
+    </div>
 
 </div>
 
-
-</div>
-
-{{-- ================================================================
-SCRIPTS DES VUES
-
-```
-Permet aux vues comme maisons/form.blade.php d'utiliser :
-
-    @push('scripts')
-        <script>
-            ...
-        </script>
-    @endpush
-
-notamment pour la géolocalisation GPS.
-```
-
-================================================================ --}}
+{{-- Scripts spécifiques aux vues --}}
 @stack('scripts')
 
 </body>

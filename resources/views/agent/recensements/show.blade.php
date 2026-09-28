@@ -32,7 +32,7 @@
                 </svg>
 
                 <span class="font-medium text-slate-700">
-                    Maison {{ $recensement->maison->numeroMaison }}
+                    {{ $recensement->maison->repere ?: 'Maison ' . $recensement->maison->numeroMaison }}
                 </span>
 
             </div>
@@ -142,8 +142,14 @@
                         </p>
 
                         <p class="mt-1 font-bold text-slate-800">
-                            N° {{ $recensement->maison->numeroMaison }}
+                            {{ $recensement->maison->repere ?: 'N° ' . $recensement->maison->numeroMaison }}
                         </p>
+
+                        @if($recensement->maison->repere)
+                            <p class="text-xs text-slate-400">
+                                N° {{ $recensement->maison->numeroMaison }}
+                            </p>
+                        @endif
 
                     </div>
 
@@ -338,6 +344,20 @@
             </div>
 
 
+            @php
+                /*
+                 * Nécessite que le contrôleur charge :
+                 * 'menages.exploitants.exploitation'
+                 */
+                $totalExploitants = $recensement->menages
+                    ->sum(fn ($m) => $m->exploitants->count());
+
+                $totalExploitations = $recensement->menages
+                    ->sum(fn ($m) => $m->exploitants->filter(
+                        fn ($e) => $e->exploitation !== null
+                    )->count());
+            @endphp
+
             <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
 
                 {{-- Étape 1 --}}
@@ -436,15 +456,44 @@
 
 
                 {{-- Étape 3 --}}
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div class="rounded-xl border
+                    {{ $totalExploitants > 0
+                        ? 'border-blue-200 bg-blue-50'
+                        : 'border-slate-200 bg-slate-50'
+                    }}
+                    p-4">
 
                     <div class="flex items-center gap-3">
 
-                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-slate-500">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-full
+                            {{ $totalExploitants > 0
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-200 text-slate-500'
+                            }}">
 
-                            <span class="text-sm font-bold">
-                                3
-                            </span>
+                            @if($totalExploitants > 0)
+
+                                <svg
+                                    class="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+
+                            @else
+
+                                <span class="text-sm font-bold">
+                                    3
+                                </span>
+
+                            @endif
 
                         </div>
 
@@ -454,7 +503,10 @@
                             </p>
 
                             <p class="text-xs text-slate-500">
-                                À renseigner
+                                {{ $totalExploitants > 0
+                                    ? $totalExploitants . ' enregistré(s)'
+                                    : 'À renseigner'
+                                }}
                             </p>
                         </div>
 
@@ -464,15 +516,44 @@
 
 
                 {{-- Étape 4 --}}
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div class="rounded-xl border
+                    {{ $totalExploitations > 0
+                        ? 'border-blue-200 bg-blue-50'
+                        : 'border-slate-200 bg-slate-50'
+                    }}
+                    p-4">
 
                     <div class="flex items-center gap-3">
 
-                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-slate-500">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-full
+                            {{ $totalExploitations > 0
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-200 text-slate-500'
+                            }}">
 
-                            <span class="text-sm font-bold">
-                                4
-                            </span>
+                            @if($totalExploitations > 0)
+
+                                <svg
+                                    class="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+
+                            @else
+
+                                <span class="text-sm font-bold">
+                                    4
+                                </span>
+
+                            @endif
 
                         </div>
 
@@ -482,7 +563,10 @@
                             </p>
 
                             <p class="text-xs text-slate-500">
-                                À renseigner
+                                {{ $totalExploitations > 0
+                                    ? $totalExploitations . ' enregistrée(s)'
+                                    : 'À renseigner'
+                                }}
                             </p>
                         </div>
 
@@ -607,6 +691,14 @@
 
                                         @endif
 
+                                        @if($menage->exploitants->count() > 0)
+
+                                            <span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
+                                                {{ $menage->exploitants->count() }} exploitant(s)
+                                            </span>
+
+                                        @endif
+
                                     </div>
 
 
@@ -660,6 +752,32 @@
 
 
                             <div class="flex shrink-0 items-center gap-2">
+
+                                <a
+                                    href="{{ route('agent.recensements.menages.exploitants.index', [
+                                        'recensement' => $recensement,
+                                        'menage' => $menage,
+                                    ]) }}"
+                                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+                                >
+
+                                    <svg
+                                        class="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m8-5a4 4 0 10-8 0 4 4 0 008 0z"
+                                        />
+                                    </svg>
+
+                                    Exploitants
+
+                                </a>
 
                                 <a
                                     href="{{ route('agent.recensements.menages.edit', [

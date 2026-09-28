@@ -12,62 +12,80 @@ return new class extends Migration
 
             $table->id('idCultureParcelle');
 
-            // Identifiant technique
-            $table->uuid('uid')->unique();
+            $table->uuid('uid')
+                ->unique();
 
-            // Parcelle concernée
             $table->foreignId('parcelle_id')
-                ->constrained('parcelles', 'idParcelle')
+                ->constrained(
+                    'parcelles',
+                    'idParcelle'
+                )
                 ->cascadeOnDelete();
 
-            // Culture concernée
             $table->foreignId('culture_id')
-                ->constrained('cultures', 'idCulture')
+                ->constrained(
+                    'cultures',
+                    'idCulture'
+                )
                 ->restrictOnDelete();
 
-            // Campagne agricole
-            $table->string('campagneAgricole');
+            /*
+             * Pour l'instant cette information reste facultative.
+             */
+            $table->string('campagneAgricole')
+                ->nullable();
 
-            // Type de culture sur la parcelle
+            /*
+             * Culture principale ou associée.
+             */
             $table->enum('modeCulture', [
                 'principale',
                 'associee',
-                'rotation'
             ]);
 
-            // Superficie occupée par cette culture
-            $table->decimal('superficieCultivee', 8, 2);
+            /*
+             * Une parcelle peut contenir plusieurs cultures.
+             */
+            $table->decimal('superficieCultivee', 8, 2)
+                ->nullable();
 
-            // Calendrier agricole
-            $table->date('dateSemis')->nullable();
+            $table->date('dateSemis')
+                ->nullable();
 
-            $table->date('dateRecoltePrevue')->nullable();
+            $table->date('dateRecoltePrevue')
+                ->nullable();
 
-            $table->date('dateRecolteEffective')->nullable();
+            $table->date('dateRecolteEffective')
+                ->nullable();
 
-            // Irrigation
-            $table->boolean('irriguee')->default(false);
+            /*
+             * Peut différer du mode d'irrigation général
+             * de la parcelle.
+             */
+            $table->boolean('irriguee')
+                ->default(false);
 
-            // État de la culture
             $table->enum('etatCulture', [
                 'semis',
                 'croissance',
                 'floraison',
                 'recolte',
-                'terminee'
+                'terminee',
             ])->default('semis');
 
-            // Observations
-            $table->text('observations')->nullable();
+            $table->text('observations')
+                ->nullable();
 
             $table->timestamps();
 
-            // Une même culture ne doit pas être enregistrée
-            // deux fois pour la même parcelle et la même campagne.
+            /*
+             * Protection contre les doublons lorsque
+             * campagneAgricole est renseignée.
+             */
             $table->unique([
                 'parcelle_id',
                 'culture_id',
-                'campagneAgricole'
+                'campagneAgricole',
             ]);
         });
     }

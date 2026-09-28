@@ -9,7 +9,7 @@
         {{-- ============================================================
             EN-TÊTE
         ============================================================ --}}
-        <div class="mb-6">
+        {{-- <div class="mb-6">
 
             <div class="mb-2 flex items-center gap-2 text-sm text-slate-500">
 
@@ -57,6 +57,71 @@
                     <p class="mt-1 text-sm font-semibold text-emerald-800">
                         {{ ucfirst($affectation->statut) }}
                     </p>
+                </div>
+
+            </div>
+
+        </div> --}}
+
+
+        {{-- En-tête --}}
+        <div class="border-b border-slate-200 px-6 py-5">
+
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                <div>
+
+                    <h2 class="text-lg font-bold text-slate-800">
+                        Maisons à recenser
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Sélectionnez une maison pour commencer ou reprendre son recensement.
+                    </p>
+
+                </div>
+
+
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+
+                    {{-- Nombre de maisons --}}
+                    <div class="rounded-xl bg-slate-100 px-4 py-2">
+
+                        <span class="text-sm font-semibold text-slate-700">
+                            {{ $maisons->count() }}
+                        </span>
+
+                        <span class="text-sm text-slate-500">
+                            maison(s)
+                        </span>
+
+                    </div>
+
+
+                    {{-- Ajouter une maison --}}
+                    <a
+                        href="{{ route('villages.maisons.create', $affectation->village) }}"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                    >
+
+                        <svg
+                            class="h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 4v16m8-8H4"
+                            />
+                        </svg>
+
+                        Ajouter une maison
+
+                    </a>
+
                 </div>
 
             </div>

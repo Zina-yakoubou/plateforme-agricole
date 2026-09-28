@@ -15,11 +15,7 @@ class StoreMenageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'numeroMenage' => [
-            'required',
-            'integer',
-            'min:1',
-        ],
+           
             'nomChef' => [
                 'required',
                 'string',

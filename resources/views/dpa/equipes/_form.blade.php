@@ -155,44 +155,6 @@
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-            {{-- RÉFÉRENCE --}}
-            {{-- <div>
-
-                <label
-                    for="reference"
-                    class="block text-sm font-medium text-gray-700"
-                >
-                    Référence
-                    <span class="text-red-500">*</span>
-                </label>
-
-                <input
-                    type="text"
-                    name="reference"
-                    id="reference"
-                    value="{{ old('reference', $equipe->reference ?? '') }}"
-                    placeholder="Ex. EQ-MO-001"
-                    class="mt-2 block w-full rounded-lg
-                           border border-gray-300
-                           bg-white
-                           px-4 py-3
-                           text-sm text-gray-800
-                           placeholder:text-gray-400
-                           focus:border-[#006a4f]
-                           focus:outline-none
-                           focus:ring-2
-                           focus:ring-[#006a4f]/10"
-                >
-
-                @error('reference')
-                    <p class="mt-1 text-xs text-red-600">
-                        {{ $message }}
-                    </p>
-                @enderror
-
-            </div> --}}
-
-
             {{-- NOM --}}
             <div>
 
@@ -403,18 +365,20 @@
             </template>
 
 
-            {{-- Liste des superviseurs --}}
+            {{-- =====================================================
+                 LISTE DES SUPERVISEURS
+                 MODIFICATION : OUVERTURE VERS LE HAUT
+            ====================================================== --}}
+
             <div
                 x-show="superviseurOpen"
                 x-transition
-                class="absolute z-30 mt-2 w-full overflow-hidden
+                class="absolute bottom-full z-30 mb-2 w-full overflow-hidden
                        rounded-lg border border-gray-200
                        bg-white shadow-lg"
             >
 
-                <div
-                    class="max-h-64 overflow-y-auto p-1"
-                >
+                <div class="max-h-64 overflow-y-auto p-1">
 
                     <template
                         x-for="item in superviseursFiltres"
@@ -680,12 +644,13 @@
 
             {{-- =====================================================
                  LISTE DES AGENTS
+                 MODIFICATION : OUVERTURE VERS LE HAUT
             ====================================================== --}}
 
             <div
                 x-show="agentsOpen"
                 x-transition
-                class="absolute z-30 mt-2 w-full overflow-hidden
+                class="absolute bottom-full z-30 mb-2 w-full overflow-hidden
                        rounded-lg border border-gray-200
                        bg-white shadow-lg"
             >

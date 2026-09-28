@@ -149,7 +149,7 @@
                            focus:ring-[#006a4f]/20"
                 >
 
-                    <svg
+                    {{-- <svg
                         class="h-4 w-4"
                         fill="none"
                         stroke="currentColor"
@@ -161,7 +161,7 @@
                             stroke-width="2"
                             d="M12 4v16m8-8H4"
                         />
-                    </svg>
+                    </svg> --}}
 
                     Créer l'équipe
 

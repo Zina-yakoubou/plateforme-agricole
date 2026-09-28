@@ -1,4 +1,4 @@
-@extends('layouts.agent')
+@extends('layouts.app')
 
 @section('content')
 <div class="max-w-2xl mx-auto py-6">
@@ -12,8 +12,7 @@
         @csrf
         @method('PUT')
 
-        @include('agent.menages._form', ['menage' => $menage, 'prochainNumero' => null])
-
+            @include('menages._form', ['menage' => $menage, 'prochainNumero' => null])
         <div class="pt-4 flex justify-end gap-2">
             <a href="{{ route('agent.recensements.menages.index', $recensement) }}"
                class="px-4 py-2 text-sm text-gray-600 hover:underline">Annuler</a>

@@ -350,7 +350,8 @@ class DpaCampagneController extends Controller
             'campagne.createur',
             'campagne.zones.region',
             'campagne.zones.prefecture',
-            'campagne.affectations.user',
+            //'campagne.affectations.user',
+            //'campagne.affectations.equipe',
             'prefecture.communes.cantons.villages',
             'recuPar',
         ]);

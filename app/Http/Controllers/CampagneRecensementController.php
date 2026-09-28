@@ -170,46 +170,6 @@ class CampagneRecensementController extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CREATE
-    |--------------------------------------------------------------------------
-    */
-
-    // public function create()
-    // {
-    //     $regions = Region::with([
-    //         'prefectures.communes.cantons.villages',
-    //     ])
-    //         ->orderBy('nom')
-    //         ->get();
-
-
-    //     $structures = Structure::orderBy('nom')
-    //         ->get();
-
-
-    //     /*
-    //     |----------------------------------------------------------------------
-    //     | QUESTIONNAIRES DISPONIBLES
-    //     |----------------------------------------------------------------------
-    //     */
-
-    //     $questionnaires = Questionnaire::query()
-    //         ->where('etat', true)
-    //         ->orderBy('nom')
-    //         ->get();
-
-
-    //     return view(
-    //         'campagnes.create',
-    //         compact(
-    //             'regions',
-    //             'structures',
-    //             'questionnaires'
-    //         )
-    //     );
-    // }
 
 
         public function create()
@@ -277,483 +237,7 @@ class CampagneRecensementController extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | STORE
-    |--------------------------------------------------------------------------
-    */
-
-    // public function store(
-    //     StoreCampagneRecensementRequest $request
-    // ) {
-    //     $data = $request->validated();
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | ZONES
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $zones = $data['zones'] ?? [];
-
-    //     unset($data['zones']);
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | QUESTIONNAIRES
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $questionnaireIds =
-    //         $data['questionnaire_ids'] ?? [];
-
-    //     unset($data['questionnaire_ids']);
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | CODE
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $data['codeCampagne'] =
-    //         $this->genererCodeCampagne();
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | STATUT INITIAL
-    //     |--------------------------------------------------------------------------
-    //     |
-    //     | Toujours planifiée lors de la création.
-    //     |
-    //     | La synchronisation déterminera ensuite si la campagne doit
-    //     | immédiatement devenir active.
-    //     |
-    //     */
-
-    //     $data['statut'] = 'planifiee';
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | CRÉATEUR
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $data['created_by'] = auth()->id();
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | TRANSACTION
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $campagne = DB::transaction(
-    //         function () use (
-    //             $data,
-    //             $zones,
-    //             $questionnaireIds
-    //         ) {
-
-    //             /*
-    //             |------------------------------------------------------------------
-    //             | CAMPAGNE
-    //             |------------------------------------------------------------------
-    //             */
-
-    //             $campagne =
-    //                 CampagneRecensement::create($data);
-
-
-    //             /*
-    //             |------------------------------------------------------------------
-    //             | ZONES
-    //             |------------------------------------------------------------------
-    //             */
-
-    //             foreach ($zones as $zone) {
-
-    //                 $campagne->zones()->create([
-
-    //                     'region_id' =>
-    //                         $zone['region_id'] ?? null,
-
-    //                     'prefecture_id' =>
-    //                         $zone['prefecture_id'],
-
-    //                     'commune_id' =>
-    //                         $zone['commune_id'] ?? null,
-
-    //                     'canton_id' =>
-    //                         $zone['canton_id'] ?? null,
-
-    //                     'village_id' =>
-    //                         $zone['village_id'] ?? null,
-
-    //                     'dateDebut' =>
-    //                         $zone['dateDebut'] ?? null,
-
-    //                     'dateFin' =>
-    //                         $zone['dateFin'] ?? null,
-
-    //                     'statut' =>
-    //                         'planifiee',
-    //                 ]);
-    //             }
-
-
-    //             /*
-    //             |------------------------------------------------------------------
-    //             | QUESTIONNAIRES
-    //             |------------------------------------------------------------------
-    //             */
-
-    //             if (!empty($questionnaireIds)) {
-
-    //                 $campagne->questionnaires()->sync(
-    //                     $questionnaireIds
-    //                 );
-    //             }
-
-
-    //             return $campagne;
-    //         }
-    //     );
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | SYNCHRONISATION IMMÉDIATE
-    //     |--------------------------------------------------------------------------
-    //     |
-    //     | Exemple :
-    //     |
-    //     | dateDebut = aujourd'hui 08:00
-    //     | création = aujourd'hui 10:00
-    //     |
-    //     | La campagne ne doit pas rester planifiée.
-    //     |
-    //     */
-
-    //     $campagne->synchroniserStatut();
-
-
-    //     return redirect()
-    //         ->route('campagnes.index')
-    //         ->with(
-    //             'success',
-    //             'Campagne créée avec succès.'
-    //         );
-    // }
-
-
-
-    //   
-    
-    //     public function store(StoreCampagneRecensementRequest $request)
-    // {
-    //     $data = $request->validated();
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | PORTÉE / ZONES
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $portee = $data['portee'];
-
-    //     $regionIds = $data['region_ids'] ?? [];
-
-    //     $prefectureIds = $data['prefecture_ids'] ?? [];
-
-    //     unset(
-    //         $data['region_ids'],
-    //         $data['prefecture_ids']
-    //     );
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | QUESTIONNAIRES
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $questionnaireIds = $data['questionnaire_ids'] ?? [];
-
-    //     unset($data['questionnaire_ids']);
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | CODE CAMPAGNE
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $data['codeCampagne'] = $this->genererCodeCampagne();
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | STATUT INITIAL
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $data['statut'] = 'planifiee';
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | CRÉATEUR
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $data['created_by'] = Auth::user()->getAuthIdentifier();
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | CRÉATION
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $campagne = DB::transaction(function () use (
-    //         $data,
-    //         $questionnaireIds,
-    //         $portee,
-    //         $regionIds,
-    //         $prefectureIds
-    //     ) {
-
-    //         /*
-    //         |--------------------------------------------------------------------------
-    //         | CAMPAGNE
-    //         |--------------------------------------------------------------------------
-    //         */
-
-    //         $campagne = CampagneRecensement::create($data);
-
-
-    //         /*
-    //         |--------------------------------------------------------------------------
-    //         | QUESTIONNAIRES
-    //         |--------------------------------------------------------------------------
-    //         */
-
-    //         if (!empty($questionnaireIds)) {
-
-    //             $campagne->questionnaires()->sync(
-    //                 $questionnaireIds
-    //             );
-    //         }
-
-
-    //         /*
-    //         |--------------------------------------------------------------------------
-    //         | ZONES — CAMPAGNE RÉGIONALE
-    //         |--------------------------------------------------------------------------
-    //         |
-    //         | On enregistre uniquement la région.
-    //         |
-    //         | Lors du déploiement, deploy() retrouvera automatiquement
-    //         | toutes les préfectures appartenant à cette région.
-    //         |
-    //         */
-
-    //         if ($portee === 'regionale') {
-
-    //             foreach ($regionIds as $regionId) {
-
-    //                 $campagne->zones()->create([
-    //                     'region_id'     => $regionId,
-    //                     'prefecture_id' => null,
-    //                     'commune_id'    => null,
-    //                     'canton_id'     => null,
-    //                     'village_id'    => null,
-    //                 ]);
-    //             }
-    //         }
-
-
-    //         /*
-    //         |--------------------------------------------------------------------------
-    //         | ZONES — CAMPAGNE PRÉFECTORALE
-    //         |--------------------------------------------------------------------------
-    //         |
-    //         | L'utilisateur choisit directement les préfectures.
-    //         |
-    //         | La région est récupérée automatiquement depuis la préfecture.
-    //         |
-    //         */
-
-    //         if ($portee === 'prefectorale') {
-
-    //             foreach ($prefectureIds as $prefectureId) {
-
-    //                 $regionId = Prefecture::query()
-    //                     ->where(
-    //                         'idPrefecture',
-    //                         $prefectureId
-    //                     )
-    //                     ->value('region_id');
-
-
-    //                 $campagne->zones()->create([
-    //                     'region_id'     => $regionId,
-    //                     'prefecture_id' => $prefectureId,
-    //                     'commune_id'    => null,
-    //                     'canton_id'     => null,
-    //                     'village_id'    => null,
-    //                 ]);
-    //             }
-    //         }
-
-
-    //         /*
-    //         |--------------------------------------------------------------------------
-    //         | CAMPAGNE NATIONALE
-    //         |--------------------------------------------------------------------------
-    //         |
-    //         | Aucune zone spécifique n'est enregistrée.
-    //         | deploy() récupérera directement toutes les préfectures.
-    //         |
-    //         */
-
-    //         return $campagne;
-    //     });
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | SYNCHRONISATION DU STATUT
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $campagne->synchroniserStatut();
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | REDIRECTION
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     return redirect()
-    //         ->route('campagnes.index')
-    //         ->with(
-    //             'success',
-    //             'Campagne créée avec succès.'
-    //         );
-    // }
-
-
-
-    //     public function store(StoreCampagneRecensementRequest $request)
-    // {
-    //     $validated = $request->validated();
-
-    //     DB::transaction(function () use ($validated) {
-
-    //         /*
-    //         |--------------------------------------------------------------------------
-    //         | CRÉATION DE LA CAMPAGNE
-    //         |--------------------------------------------------------------------------
-    //         */
-
-    //         $campagne = CampagneRecensement::create([
-    //             'codeCampagne'       => $this->genererCodeCampagne(),
-    //             'libelle'            => $validated['libelle'],
-    //             'description'        => $validated['description'] ?? null,
-    //             'objectifs'          => $validated['objectifs'],
-    //             'resultatsAttendus'  => $validated['resultatsAttendus'] ?? null,
-    //             'methodologie'       => $validated['methodologie'] ?? null,
-    //             'instructions'       => $validated['instructions'] ?? null,
-    //             'portee'             => $validated['portee'],
-    //             'dateDebut'          => $validated['dateDebut'],
-    //             'dateFin'            => $validated['dateFin'] ?? null,
-    //             'statut'             => 'planifiee',
-    //             'created_by'         => auth()->id(),
-    //         ]);
-
-    //         /*
-    //         |--------------------------------------------------------------------------
-    //         | QUESTIONNAIRES
-    //         |--------------------------------------------------------------------------
-    //         */
-
-    //         if (!empty($validated['questionnaire_ids'])) {
-    //             $campagne->questionnaires()->sync($validated['questionnaire_ids']);
-    //         }
-
-    //         /*
-    //         |--------------------------------------------------------------------------
-    //         | ZONES BÉNÉFICIAIRES
-    //         |--------------------------------------------------------------------------
-    //         */
-
-    //         switch ($validated['portee']) {
-
-    //             /*
-    //             |--------------------------------------------------------------
-    //             | CAMPAGNE NATIONALE
-    //             |--------------------------------------------------------------
-    //             */
-
-    //             case 'nationale':
-
-    //                 $campagne->zones()->create([
-    //                     'statut' => 'planifiee',
-    //                 ]);
-
-    //                 break;
-
-    //             /*
-    //             |--------------------------------------------------------------
-    //             | CAMPAGNE RÉGIONALE
-    //             |--------------------------------------------------------------
-    //             */
-
-    //             case 'regionale':
-
-    //                 foreach ($validated['region_ids'] as $regionId) {
-
-    //                     $campagne->zones()->create([
-    //                         'region_id' => $regionId,
-    //                         'statut'    => 'planifiee',
-    //                     ]);
-    //                 }
-
-    //                 break;
-
-    //             /*
-    //             |--------------------------------------------------------------
-    //             | CAMPAGNE PRÉFECTORALE
-    //             |--------------------------------------------------------------
-    //             */
-
-    //             case 'prefectorale':
-
-    //                 foreach ($validated['prefecture_ids'] as $prefectureId) {
-
-    //                     $campagne->zones()->create([
-    //                         'prefecture_id' => $prefectureId,
-    //                         'statut'        => 'planifiee',
-    //                     ]);
-    //                 }
-
-    //                 break;
-    //         }
-
-    //     });
-
-    //     return redirect()
-    //         ->route('campagnes.index')
-    //         ->with('success', 'Campagne créée avec succès.');
-    // }
-
+   
 
     public function store(StoreCampagneRecensementRequest $request)
 {
@@ -940,8 +424,10 @@ class CampagneRecensementController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (method_exists($user, 'isAdmin') && call_user_func([$user, 'isAdmin'])) {
-
+        if (
+            method_exists($user, 'isAdmin') &&
+            call_user_func([$user, 'isAdmin'])
+        ) {
             return true;
         }
 
@@ -952,24 +438,24 @@ class CampagneRecensementController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (!method_exists($user, 'isDpa') || !call_user_func([$user, 'isDpa'])) {
-
+        if (
+            !method_exists($user, 'isDpa') ||
+            !call_user_func([$user, 'isDpa'])
+        ) {
             return true;
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | RATTACHEMENT ACTIF
+        | RATTACHEMENT ACTIF DU DPA
         |--------------------------------------------------------------------------
         */
 
-        $prefecture =
-            $user->prefectureActuelle;
+        $prefecture = $user->prefectureActuelle;
 
 
         if (!$prefecture) {
-
             return false;
         }
 
@@ -981,29 +467,54 @@ class CampagneRecensementController extends Controller
         */
 
         if ($campagne->portee === 'nationale') {
-
             return true;
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | CAMPAGNE TERRITORIALE
+        | CAMPAGNE RÉGIONALE
         |--------------------------------------------------------------------------
         |
-        | Une campagne régionale ou préfectorale devient visible
-        | si la préfecture du DPA est dans son périmètre.
+        | Une campagne régionale est visible par toutes les préfectures
+        | appartenant aux régions sélectionnées.
         |
         */
 
-        return $campagne->zones()
-            ->where(
-                'prefecture_id',
-                $prefecture->idPrefecture
-            )
-            ->exists();
-    }
+        if ($campagne->portee === 'regionale') {
 
+            return $campagne->zones()
+                ->where(
+                    'region_id',
+                    $prefecture->region_id
+                )
+                ->exists();
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CAMPAGNE PRÉFECTORALE
+        |--------------------------------------------------------------------------
+        |
+        | Une campagne préfectorale est visible uniquement par la
+        | préfecture explicitement concernée.
+        |
+        */
+
+        if ($campagne->portee === 'prefectorale') {
+
+            return $campagne->zones()
+                ->where(
+                    'prefecture_id',
+                    $prefecture->idPrefecture
+                )
+                ->exists();
+        }
+
+
+        return false;
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -1182,10 +693,11 @@ class CampagneRecensementController extends Controller
     |--------------------------------------------------------------------------
     */
 
-   public function update(
+    public function update(
         UpdateCampagneRecensementRequest $request,
         CampagneRecensement $campagne
     ) {
+
         /*
         |--------------------------------------------------------------------------
         | AUTORISATION
@@ -1241,15 +753,20 @@ class CampagneRecensementController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $regionIds = $validated['region_ids'] ?? [];
+        $regionIds =
+            $validated['region_ids'] ?? [];
 
-        $prefectureIds = $validated['prefecture_ids'] ?? [];
+        $prefectureIds =
+            $validated['prefecture_ids'] ?? [];
 
-        $communeIds = $validated['commune_ids'] ?? [];
+        $communeIds =
+            $validated['commune_ids'] ?? [];
 
-        $cantonIds = $validated['canton_ids'] ?? [];
+        $cantonIds =
+            $validated['canton_ids'] ?? [];
 
-        $villageIds = $validated['village_ids'] ?? [];
+        $villageIds =
+            $validated['village_ids'] ?? [];
 
 
         /*
@@ -1283,9 +800,6 @@ class CampagneRecensementController extends Controller
             |--------------------------------------------------------------------------
             | DONNÉES DE LA CAMPAGNE
             |--------------------------------------------------------------------------
-            |
-            | Certains champs ne doivent jamais être modifiés par le formulaire.
-            |
             */
 
             $data = [
@@ -1333,8 +847,8 @@ class CampagneRecensementController extends Controller
             | SUPPRESSION DES ANCIENNES ZONES
             |--------------------------------------------------------------------------
             |
-            | On reconstruit le périmètre territorial à partir de la nouvelle
-            | sélection.
+            | Le périmètre territorial est reconstruit à partir
+            | de la nouvelle sélection.
             |
             */
 
@@ -1346,13 +860,13 @@ class CampagneRecensementController extends Controller
             | CAMPAGNE NATIONALE
             |--------------------------------------------------------------------------
             |
-            | Aucune zone spécifique n'est enregistrée.
+            | Aucune zone territoriale particulière.
             |
             */
 
             if ($validated['portee'] === 'nationale') {
 
-                // Aucun enregistrement territorial.
+                // Rien à enregistrer.
             }
 
 
@@ -1360,9 +874,18 @@ class CampagneRecensementController extends Controller
             |--------------------------------------------------------------------------
             | CAMPAGNE RÉGIONALE
             |--------------------------------------------------------------------------
+            |
+            | On enregistre les régions sélectionnées.
+            |
             */
 
             elseif ($validated['portee'] === 'regionale') {
+
+                /*
+                |----------------------------------------------------------------------
+                | RÉGIONS
+                |----------------------------------------------------------------------
+                */
 
                 foreach ($regionIds as $regionId) {
 
@@ -1387,20 +910,11 @@ class CampagneRecensementController extends Controller
                             'planifiee',
                     ]);
                 }
-            }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | CAMPAGNE PRÉFECTORALE
-            |--------------------------------------------------------------------------
-            */
-
-            elseif ($validated['portee'] === 'prefectorale') {
 
                 /*
                 |----------------------------------------------------------------------
-                | PRÉFECTURES
+                | PRÉFECTURES DIRECTES
                 |----------------------------------------------------------------------
                 */
 
@@ -1435,15 +949,169 @@ class CampagneRecensementController extends Controller
 
                 /*
                 |----------------------------------------------------------------------
+                | COMMUNES DIRECTES
+                |----------------------------------------------------------------------
+                */
+
+                foreach ($communeIds as $communeId) {
+
+                    $commune =
+                        \App\Models\Commune::find(
+                            $communeId
+                        );
+
+                    $campagne->zones()->create([
+
+                        'region_id' =>
+                            $commune?->prefecture?->region_id,
+
+                        'prefecture_id' =>
+                            $commune?->prefecture_id,
+
+                        'commune_id' =>
+                            $communeId,
+
+                        'canton_id' =>
+                            null,
+
+                        'village_id' =>
+                            null,
+
+                        'statut' =>
+                            'planifiee',
+                    ]);
+                }
+
+
+                /*
+                |----------------------------------------------------------------------
+                | CANTONS DIRECTS
+                |----------------------------------------------------------------------
+                */
+
+                foreach ($cantonIds as $cantonId) {
+
+                    $canton =
+                        \App\Models\Canton::with(
+                            'commune.prefecture'
+                        )->find($cantonId);
+
+                    $campagne->zones()->create([
+
+                        'region_id' =>
+                            $canton?->commune?->prefecture?->region_id,
+
+                        'prefecture_id' =>
+                            $canton?->commune?->prefecture_id,
+
+                        'commune_id' =>
+                            $canton?->commune_id,
+
+                        'canton_id' =>
+                            $cantonId,
+
+                        'village_id' =>
+                            null,
+
+                        'statut' =>
+                            'planifiee',
+                    ]);
+                }
+
+
+                /*
+                |----------------------------------------------------------------------
+                | VILLAGES DIRECTS
+                |----------------------------------------------------------------------
+                */
+
+                foreach ($villageIds as $villageId) {
+
+                    $village =
+                        \App\Models\Village::with(
+                            'canton.commune.prefecture'
+                        )->find($villageId);
+
+                    $campagne->zones()->create([
+
+                        'region_id' =>
+                            $village?->canton?->commune?->prefecture?->region_id,
+
+                        'prefecture_id' =>
+                            $village?->canton?->commune?->prefecture_id,
+
+                        'commune_id' =>
+                            $village?->canton?->commune_id,
+
+                        'canton_id' =>
+                            $village?->canton_id,
+
+                        'village_id' =>
+                            $villageId,
+
+                        'statut' =>
+                            'planifiee',
+                    ]);
+                }
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CAMPAGNE PRÉFECTORALE
+            |--------------------------------------------------------------------------
+            */
+
+            elseif ($validated['portee'] === 'prefectorale') {
+
+                /*
+                |----------------------------------------------------------------------
+                | PRÉFECTURES
+                |----------------------------------------------------------------------
+                */
+
+                foreach ($prefectureIds as $prefectureId) {
+
+                    $prefecture =
+                        Prefecture::find(
+                            $prefectureId
+                        );
+
+                    $campagne->zones()->create([
+
+                        'region_id' =>
+                            $prefecture?->region_id,
+
+                        'prefecture_id' =>
+                            $prefectureId,
+
+                        'commune_id' =>
+                            null,
+
+                        'canton_id' =>
+                            null,
+
+                        'village_id' =>
+                            null,
+
+                        'statut' =>
+                            'planifiee',
+                    ]);
+                }
+
+
+                /*
+                |----------------------------------------------------------------------
                 | COMMUNES
                 |----------------------------------------------------------------------
                 */
 
                 foreach ($communeIds as $communeId) {
 
-                    $commune = \App\Models\Commune::find(
-                        $communeId
-                    );
+                    $commune =
+                        \App\Models\Commune::find(
+                            $communeId
+                        );
 
                     $campagne->zones()->create([
 
@@ -1476,9 +1144,10 @@ class CampagneRecensementController extends Controller
 
                 foreach ($cantonIds as $cantonId) {
 
-                    $canton = \App\Models\Canton::with(
-                        'commune.prefecture'
-                    )->find($cantonId);
+                    $canton =
+                        \App\Models\Canton::with(
+                            'commune.prefecture'
+                        )->find($cantonId);
 
                     $campagne->zones()->create([
 
@@ -1511,9 +1180,10 @@ class CampagneRecensementController extends Controller
 
                 foreach ($villageIds as $villageId) {
 
-                    $village = \App\Models\Village::with(
-                        'canton.commune.prefecture'
-                    )->find($villageId);
+                    $village =
+                        \App\Models\Village::with(
+                            'canton.commune.prefecture'
+                        )->find($villageId);
 
                     $campagne->zones()->create([
 
@@ -1553,13 +1223,34 @@ class CampagneRecensementController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | SYNCHRONISATION DU STATUT APRÈS MODIFICATION
+        | RAFRAÎCHISSEMENT
         |--------------------------------------------------------------------------
         */
 
         $campagne->refresh();
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | SYNCHRONISATION DU STATUT
+        |--------------------------------------------------------------------------
+        */
+
         $campagne->synchroniserStatut();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SYNCHRONISATION DES DÉPLOIEMENTS
+        |--------------------------------------------------------------------------
+        |
+        | Important :
+        | Si Centrale vient d'être ajoutée, les préfectures de Centrale
+        | sont maintenant ajoutées aux déploiements existants.
+        |
+        */
+
+        $this->synchroniserDeploiements($campagne);
 
 
         /*
@@ -1575,222 +1266,7 @@ class CampagneRecensementController extends Controller
                 'Campagne modifiée avec succès.'
             );
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DÉPLOYER
-    |--------------------------------------------------------------------------
-    */
-
-    // public function deploy(
-    //     CampagneRecensement $campagne
-    // ) {
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | SYNCHRONISATION
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $campagne->synchroniserStatut();
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | CONTRÔLES
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     if ($campagne->statut === 'archivee') {
-
-    //         return back()->with(
-    //             'error',
-    //             'Une campagne archivée ne peut pas être déployée.'
-    //         );
-    //     }
-
-
-    //     if ($campagne->statut === 'cloturee') {
-
-    //         return back()->with(
-    //             'error',
-    //             'Une campagne clôturée ne peut pas être déployée.'
-    //         );
-    //     }
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | PRÉFECTURES CONCERNÉES
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $prefectureIds = collect();
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | NATIONALE
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     if ($campagne->portee === 'nationale') {
-
-    //         $prefectureIds =
-    //             Prefecture::query()
-    //                 ->pluck('idPrefecture');
-    //     }
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | RÉGIONALE
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     elseif ($campagne->portee === 'regionale') {
-
-    //         $regionIds = $campagne->zones()
-    //             ->whereNotNull('region_id')
-    //             ->pluck('region_id')
-    //             ->unique();
-
-
-    //         if ($regionIds->isEmpty()) {
-
-    //             return back()->with(
-    //                 'error',
-    //                 'Aucune région n’est associée à cette campagne.'
-    //             );
-    //         }
-
-
-    //         $prefectureIds =
-    //             Prefecture::query()
-    //                 ->whereIn(
-    //                     'region_id',
-    //                     $regionIds
-    //                 )
-    //                 ->pluck('idPrefecture');
-    //     }
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | PRÉFECTORALE
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     elseif ($campagne->portee === 'prefectorale') {
-
-    //         $prefectureIds =
-    //             $campagne->zones()
-    //                 ->whereNotNull('prefecture_id')
-    //                 ->pluck('prefecture_id')
-    //                 ->unique();
-    //     }
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | PORTÉE INVALIDE
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     else {
-
-    //         return back()->with(
-    //             'error',
-    //             'La portée de cette campagne est invalide.'
-    //         );
-    //     }
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | NETTOYAGE
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $prefectureIds = $prefectureIds
-    //         ->filter()
-    //         ->unique()
-    //         ->values();
-
-
-    //     if ($prefectureIds->isEmpty()) {
-
-    //         return back()->with(
-    //             'error',
-    //             'Aucune préfecture n’est concernée par cette campagne.'
-    //         );
-    //     }
-
-
-    //     /*
-    //     |--------------------------------------------------------------------------
-    //     | CRÉATION DES DÉPLOIEMENTS
-    //     |--------------------------------------------------------------------------
-    //     */
-
-    //     $nombreNouveauxDeploiements = 0;
-
-
-    //     DB::transaction(
-    //         function () use (
-    //             $campagne,
-    //             $prefectureIds,
-    //             &$nombreNouveauxDeploiements
-    //         ) {
-
-    //             foreach ($prefectureIds as $prefectureId) {
-
-    //                 $deploiement =
-    //                     CampagneDeploiement::firstOrCreate(
-
-    //                         [
-    //                             'campagne_id' =>
-    //                                 $campagne->idCampagne,
-
-    //                             'prefecture_id' =>
-    //                                 $prefectureId,
-    //                         ],
-
-    //                         [
-    //                             'statut' =>
-    //                                 'notifiee',
-    //                         ]
-    //                     );
-
-
-    //                 if (
-    //                     $deploiement->wasRecentlyCreated
-    //                 ) {
-
-    //                     $nombreNouveauxDeploiements++;
-    //                 }
-    //             }
-    //         }
-    //     );
-
-
-    //     if ($nombreNouveauxDeploiements === 0) {
-
-    //         return back()->with(
-    //             'info',
-    //             'Cette campagne a déjà été déployée auprès des préfectures concernées.'
-    //         );
-    //     }
-
-
-    //     return back()->with(
-    //         'success',
-    //         $nombreNouveauxDeploiements .
-    //         ' préfecture(s) ont été notifiées du déploiement de la campagne.'
-    //     );
-    // }
-
+    
 
 
         public function deploy(
@@ -2032,11 +1508,192 @@ class CampagneRecensementController extends Controller
     }
 
 
+
+    private function synchroniserDeploiements(
+        CampagneRecensement $campagne
+        ): void {
+
+        /*
+        |--------------------------------------------------------------------------
+        | PRÉFECTURES CONCERNÉES
+        |--------------------------------------------------------------------------
+        */
+
+        $prefectureIds = collect();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CAMPAGNE NATIONALE
+        |--------------------------------------------------------------------------
+        */
+
+        if ($campagne->portee === 'nationale') {
+
+            $prefectureIds =
+                Prefecture::query()
+                    ->pluck('idPrefecture');
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CAMPAGNE RÉGIONALE
+        |--------------------------------------------------------------------------
+        */
+
+        elseif ($campagne->portee === 'regionale') {
+
+            /*
+            |----------------------------------------------------------------------
+            | RÉGIONS
+            |----------------------------------------------------------------------
+            */
+
+            $regionIds = $campagne->zones()
+                ->whereNotNull('region_id')
+                ->pluck('region_id')
+                ->unique();
+
+
+            /*
+            |----------------------------------------------------------------------
+            | PRÉFECTURES DES RÉGIONS
+            |----------------------------------------------------------------------
+            |
+            | Exemple :
+            |
+            | Centrale → Mô
+            | Savanes → Cinkassé, Tône, Kpendjal...
+            |
+            */
+
+            $prefectureIdsDepuisRegions =
+                Prefecture::query()
+                    ->whereIn(
+                        'region_id',
+                        $regionIds
+                    )
+                    ->pluck('idPrefecture');
+
+
+            /*
+            |----------------------------------------------------------------------
+            | PRÉFECTURES SÉLECTIONNÉES DIRECTEMENT
+            |----------------------------------------------------------------------
+            */
+
+            $prefectureIdsDirectes =
+                $campagne->zones()
+                    ->whereNotNull('prefecture_id')
+                    ->pluck('prefecture_id');
+
+
+            /*
+            |----------------------------------------------------------------------
+            | FUSION
+            |----------------------------------------------------------------------
+            */
+
+            $prefectureIds =
+                $prefectureIdsDepuisRegions
+                    ->merge($prefectureIdsDirectes)
+                    ->filter()
+                    ->unique()
+                    ->values();
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CAMPAGNE PRÉFECTORALE
+        |--------------------------------------------------------------------------
+        */
+
+        elseif ($campagne->portee === 'prefectorale') {
+
+            $prefectureIds =
+                $campagne->zones()
+                    ->with([
+                        'prefecture',
+                        'commune.prefecture',
+                        'canton.commune.prefecture',
+                        'village.canton.commune.prefecture',
+                    ])
+                    ->get()
+                    ->map(
+                        fn ($zone) =>
+                            $zone->prefecture_rattachee?->idPrefecture
+                    )
+                    ->filter()
+                    ->unique()
+                    ->values();
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PORTÉE INVALIDE
+        |--------------------------------------------------------------------------
+        */
+
+        else {
+
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | AUCUNE PRÉFECTURE
+        |--------------------------------------------------------------------------
+        */
+
+        if ($prefectureIds->isEmpty()) {
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CRÉATION DES DÉPLOIEMENTS MANQUANTS
+        |--------------------------------------------------------------------------
+        */
+
+        DB::transaction(function () use (
+            $campagne,
+            $prefectureIds
+        ) {
+
+            foreach ($prefectureIds as $prefectureId) {
+
+                CampagneDeploiement::firstOrCreate(
+
+                    [
+                        'campagne_id' =>
+                            $campagne->idCampagne,
+
+                        'prefecture_id' =>
+                            $prefectureId,
+                    ],
+
+                    [
+                        'statut' =>
+                            'notifiee',
+                    ]
+                );
+            }
+        });
+    }
+
     /*
     |--------------------------------------------------------------------------
     | ARCHIVER
     |--------------------------------------------------------------------------
     */
+
+
+
 
     public function archive(
         CampagneRecensement $campagne

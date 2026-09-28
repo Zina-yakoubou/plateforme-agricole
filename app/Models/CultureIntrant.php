@@ -7,31 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CultureIntrant extends Model
 {
-    /**
-     * Nom de la table.
-     */
     protected $table = 'culture_intrants';
 
-    /**
-     * Clé primaire.
-     */
     protected $primaryKey = 'id';
 
-    /**
-     * Type de la clé primaire.
-     */
-    protected $keyType = 'int';
-
-    /**
-     * Clé primaire auto-incrémentée.
-     */
-    public $incrementing = true;
-
-    /**
-     * Champs pouvant être remplis en masse.
-     */
     protected $fillable = [
-        'culture_id',
+        'culture_parcelle_id',
         'intrant_id',
         'quantite',
         'nombreApplications',
@@ -39,30 +20,21 @@ class CultureIntrant extends Model
         'observations',
     ];
 
-    /**
-     * Conversion des attributs.
-     */
     protected $casts = [
-        'quantite'            => 'decimal:2',
-        'nombreApplications'  => 'integer',
-        'dateApplication'     => 'date',
+        'quantite' => 'decimal:2',
+        'nombreApplications' => 'integer',
+        'dateApplication' => 'date',
     ];
 
-    /**
-     * Culture concernée.
-     */
-    public function culture(): BelongsTo
+    public function cultureParcelle(): BelongsTo
     {
         return $this->belongsTo(
-            Culture::class,
-            'culture_id',
-            'idCulture'
+            CultureParcelle::class,
+            'culture_parcelle_id',
+            'idCultureParcelle'
         );
     }
 
-    /**
-     * Intrant utilisé.
-     */
     public function intrant(): BelongsTo
     {
         return $this->belongsTo(

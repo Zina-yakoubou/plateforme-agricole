@@ -8,6 +8,8 @@ use App\Models\Menage;
 use App\Models\Recensement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class MenageController extends Controller
@@ -38,33 +40,33 @@ class MenageController extends Controller
      * Formulaire d'ajout d'un ménage.
      */
     public function create(Recensement $recensement): View
-{
-    $this->verifierAccesRecensement($recensement);
+    {
+        $this->verifierAccesRecensement($recensement);
 
-    $recensement->load([
-        'campagne',
-        'maison.village.canton.commune.prefecture',
-    ]);
+        $recensement->load([
+            'campagne',
+            'maison.village.canton.commune.prefecture',
+        ]);
 
-    /*
-     * Déterminer automatiquement le prochain numéro
-     * de ménage pour ce recensement.
-     */
-    $dernierNumero = $recensement->menages()
-        ->max('numeroMenage');
+        /*
+         * Déterminer automatiquement le prochain numéro
+         * de ménage pour ce recensement (affichage uniquement).
+         */
+        $dernierNumero = $recensement->menages()
+            ->max('numeroMenage');
 
-    $prochainNumero = $dernierNumero
-        ? ((int) $dernierNumero + 1)
-        : 1;
+        $prochainNumero = $dernierNumero
+            ? ((int) $dernierNumero + 1)
+            : 1;
 
-    return view(
-        'menages.create',
-        compact(
-            'recensement',
-            'prochainNumero'
-        )
-    );
-}
+        return view(
+            'menages.create',
+            compact(
+                'recensement',
+                'prochainNumero'
+            )
+        );
+    }
 
     /**
      * Enregistrer un ménage.
@@ -76,27 +78,86 @@ class MenageController extends Controller
 
         $this->verifierAccesRecensement($recensement);
 
-        Menage::create(array_merge(
-            $request->validated(),
-            [
-                'recensement_id' => $recensement->idRecensement,
-            ]
-        ));
+        //DB::transaction(function () use ($request, $recensement) {
 
-        // Mise à jour de la date de modification du recensement
-        $recensement->update([
-            'dateDerniereModification' => now(),
-        ]);
+            /*
+             * Le numéro de ménage n'est jamais pris depuis le
+             * formulaire : il est calculé côté serveur, à
+             * l'intérieur de la transaction, avec un verrou,
+             * pour éviter les doublons en cas de créations
+             * concurrentes sur le même recensement.
+             */
+        //     $dernierNumero = $recensement->menages()
+        //         ->lockForUpdate()
+        //         ->max('numeroMenage');
 
-        return redirect()
-            ->route(
-                'agent.recensements.show',
-                $recensement
-            )
-            ->with(
-                'success',
-                'Le ménage a été ajouté avec succès.'
-            );
+        //     $nouveauNumero = $dernierNumero
+        //         ? ((int) $dernierNumero + 1)
+        //         : 1;
+
+        //     Menage::create(array_merge(
+        //         $request->validated(),
+        //         [
+        //             'recensement_id' => $recensement->idRecensement,
+        //             'numeroMenage' => $nouveauNumero,
+        //             'uid' => (string) Str::uuid(),
+        //         ]
+        //     ));
+
+        //     $recensement->update([
+        //         'dateDerniereModification' => now(),
+        //     ]);
+        // });
+
+        // return redirect()
+            // ->route(
+            //     'agent.recensements.show',
+            //     $recensement
+            // )
+            // ->with(
+            //     'success',
+            //     'Le ménage a été ajouté avec succès.'
+            // );
+
+            $menage = DB::transaction(function () use ($request, $recensement) {
+
+            $dernierNumero = $recensement->menages()
+                ->lockForUpdate()
+                ->max('numeroMenage');
+
+            $nouveauNumero = $dernierNumero
+                ? ((int) $dernierNumero + 1)
+                : 1;
+
+            $menage = Menage::create(array_merge(
+                $request->validated(),
+                [
+                    'recensement_id' => $recensement->idRecensement,
+                    'numeroMenage' => $nouveauNumero,
+                    'uid' => (string) Str::uuid(),
+                ]
+            ));
+
+            $recensement->update([
+                'dateDerniereModification' => now(),
+            ]);
+
+                return $menage;
+            });
+
+            if ($menage->possedeExploitation) {
+                return redirect()->route(
+                    'agent.recensements.menages.exploitants.create',
+                    [
+                        'recensement' => $recensement->idRecensement,
+                        'menage'      => $menage->idMenage,
+                    ]
+                )->with(
+                    'success',
+                    'Le ménage a été ajouté. Vous pouvez maintenant enregistrer l’exploitant.'
+                );
+            }
+           
     }
 
     /**

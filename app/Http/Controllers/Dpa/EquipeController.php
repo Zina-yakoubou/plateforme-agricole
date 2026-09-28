@@ -15,6 +15,35 @@ use Illuminate\View\View;
 
 class EquipeController extends Controller
 {
+
+    /**
+ * =========================================================================
+ * GÉNÉRER LE NUMÉRO AUTOMATIQUE DE L'ÉQUIPE
+ * =========================================================================
+ */
+    private function genererReference(): string
+    {
+        $dernierNumero = Equipe::query()
+            ->where('reference', 'like', 'EQ-%')
+            ->get()
+            ->map(function ($equipe) {
+                return (int) str_replace(
+                    'EQ-',
+                    '',
+                    $equipe->reference
+                );
+            })
+            ->max();
+
+        $numero = ($dernierNumero ?? 0) + 1;
+
+        return 'EQ-' . str_pad(
+            $numero,
+            3,
+            '0',
+            STR_PAD_LEFT
+        );
+    }
     /**
      * =========================================================================
      * PRÉFECTURE DU DPA
@@ -751,38 +780,7 @@ class EquipeController extends Controller
             );
     }
 
-    /**
-     * =========================================================================
-     * RÉFÉRENCE
-     * =========================================================================
-     */
-    private function genererReference(): string
-    {
-        do {
-
-            $reference =
-                'EQ-' .
-                now()->format('Y') .
-                '-' .
-                strtoupper(
-                    substr(
-                        bin2hex(
-                            random_bytes(3)
-                        ),
-                        0,
-                        6
-                    )
-                );
-
-        } while (
-            Equipe::where(
-                'reference',
-                $reference
-            )->exists()
-        );
-
-        return $reference;
-    }
+    
 
 
     

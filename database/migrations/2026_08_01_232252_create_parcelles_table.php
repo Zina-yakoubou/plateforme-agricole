@@ -12,28 +12,52 @@ return new class extends Migration
 
             $table->id('idParcelle');
 
-            // Identifiant technique permanent
-            $table->uuid('uid')->unique();
+            $table->uuid('uid')
+                ->unique();
 
-            // Exploitant auquel appartient la parcelle
-            $table->foreignId('exploitant_id')
-                ->constrained('exploitants', 'idExploitant')
+            /*
+             * L'exploitation est déterminée par le serveur.
+             */
+            $table->foreignId('exploitation_id')
+                ->constrained(
+                    'exploitations',
+                    'idExploitation'
+                )
                 ->cascadeOnDelete();
 
-            // Identification
+            /*
+             * Généré automatiquement :
+             * P-001, P-002, P-003...
+             */
             $table->string('numeroParcelle');
 
-            // Caractéristiques
+            /*
+             * Superficie calculée à partir des points GPS
+             * côté serveur.
+             */
             $table->decimal('superficie', 8, 2);
 
-            $table->string('typeSol')->nullable();
+            /*
+             * État de la parcelle.
+             */
+            $table->enum('statutParcelle', [
+                'exploitee',
+                'jachere',
+                'non_exploitee',
+            ])->default('exploitee');
+
+            /*
+             * Caractéristiques de la parcelle.
+             */
+            $table->string('typeSol')
+                ->nullable();
 
             $table->enum('modeFaireValoir', [
                 'proprietaire',
                 'location',
                 'pret',
                 'metayage',
-                'autre'
+                'autre',
             ]);
 
             $table->enum('modeIrrigation', [
@@ -41,26 +65,24 @@ return new class extends Migration
                 'gravitaire',
                 'pompage',
                 'aucun',
-                'autre'
+                'autre',
             ])->default('pluvial');
 
-            // Utilisation de la parcelle
-            $table->boolean('estCultivee')->default(true);
+            $table->boolean('presenceArbres')
+                ->default(false);
 
-            $table->boolean('estJachere')->default(false);
-
-            $table->boolean('presenceArbres')->default(false);
-
-            // Observations
-            $table->text('observations')->nullable();
+            $table->text('observations')
+                ->nullable();
 
             $table->timestamps();
 
-            // Un exploitant ne peut pas avoir deux fois
-            // le même numéro de parcelle.
+            /*
+             * Une exploitation ne peut pas avoir deux fois
+             * le même numéro de parcelle.
+             */
             $table->unique([
-                'exploitant_id',
-                'numeroParcelle'
+                'exploitation_id',
+                'numeroParcelle',
             ]);
         });
     }

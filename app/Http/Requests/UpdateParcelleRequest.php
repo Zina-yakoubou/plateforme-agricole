@@ -3,11 +3,12 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateParcelleRequest extends FormRequest
 {
     /**
-     * Autoriser la requête.
+     * Autorisation de la requête.
      */
     public function authorize(): bool
     {
@@ -20,42 +21,156 @@ class UpdateParcelleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'numeroParcelle' => [
-                'required',
-                'string',
-                'max:255',
+
+            /*
+            |--------------------------------------------------------------------------
+            | EXPLOITATION
+            |--------------------------------------------------------------------------
+            */
+
+            'typeExploitation' => [
+                'nullable',
+                Rule::in([
+                    'agricole',
+                    'elevage',
+                    'mixte',
+                    'aquacole',
+                    'autre',
+                ]),
             ],
 
-            'superficie' => [
+            'statutJuridique' => [
+                'nullable',
+                Rule::in([
+                    'individuelle',
+                    'familiale',
+                    'cooperative',
+                    'gie',
+                    'societe',
+                    'autre',
+                ]),
+            ],
+
+            'nombreTravailleursPermanents' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+
+            'nombreTravailleursSaisonniers' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+
+            'recoursMainOeuvreFamiliale' => [
+                'nullable',
+                'boolean',
+            ],
+
+            'possedeTracteur' => [
+                'nullable',
+                'boolean',
+            ],
+
+            'possedeMotopompe' => [
+                'nullable',
+                'boolean',
+            ],
+
+            'possedeCharrue' => [
+                'nullable',
+                'boolean',
+            ],
+
+            'activitePrincipale' => [
+                'nullable',
+                Rule::in([
+                    'culture_vivriere',
+                    'culture_rente',
+                    'elevage',
+                    'mixte',
+                ]),
+            ],
+
+            'destinationProduction' => [
+                'nullable',
+                Rule::in([
+                    'autoconsommation',
+                    'vente',
+                    'mixte',
+                ]),
+            ],
+
+            'accesCredit' => [
+                'nullable',
+                'boolean',
+            ],
+
+            'accesEncadrementTechnique' => [
+                'nullable',
+                'boolean',
+            ],
+
+            'exploitation_observations' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | GPS
+            |--------------------------------------------------------------------------
+            */
+
+            'points_gps' => [
                 'required',
-                'numeric',
-                'min:0.01',
+            ],
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | PARCELLE
+            |--------------------------------------------------------------------------
+            */
+
+            'statutParcelle' => [
+                'required',
+                Rule::in([
+                    'exploitee',
+                    'jachere',
+                    'non_exploitee',
+                ]),
             ],
 
             'typeSol' => [
                 'nullable',
                 'string',
-                'max:255',
+                'max:100',
             ],
 
             'modeFaireValoir' => [
                 'required',
-                'in:proprietaire,location,pret,metayage,autre',
+                Rule::in([
+                    'proprietaire',
+                    'location',
+                    'pret',
+                    'metayage',
+                    'autre',
+                ]),
             ],
 
             'modeIrrigation' => [
                 'required',
-                'in:pluvial,gravitaire,pompage,aucun,autre',
-            ],
-
-            'estCultivee' => [
-                'nullable',
-                'boolean',
-            ],
-
-            'estJachere' => [
-                'nullable',
-                'boolean',
+                Rule::in([
+                    'pluvial',
+                    'gravitaire',
+                    'pompage',
+                    'aucun',
+                    'autre',
+                ]),
             ],
 
             'presenceArbres' => [
@@ -66,44 +181,150 @@ class UpdateParcelleRequest extends FormRequest
             'observations' => [
                 'nullable',
                 'string',
+                'max:5000',
             ],
 
-            'statut' => [
+
+            /*
+            |--------------------------------------------------------------------------
+            | CULTURES
+            |--------------------------------------------------------------------------
+            */
+
+            'cultures' => [
+                'nullable',
+                'array',
+            ],
+
+            'cultures.*' => [
+                'array',
+            ],
+
+            'cultures.*.culture_id' => [
                 'required',
-                'in:brouillon,en_cours,terminee',
+                'integer',
+                'exists:cultures,idCulture',
+            ],
+
+            'cultures.*.campagneAgricole' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'cultures.*.modeCulture' => [
+                'required',
+                Rule::in([
+                    'principale',
+                    'associee',
+                ]),
+            ],
+
+            'cultures.*.superficieCultivee' => [
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
+
+            'cultures.*.dateSemis' => [
+                'nullable',
+                'date',
+            ],
+
+            'cultures.*.dateRecoltePrevue' => [
+                'nullable',
+                'date',
+            ],
+
+            'cultures.*.dateRecolteEffective' => [
+                'nullable',
+                'date',
+            ],
+
+            'cultures.*.irriguee' => [
+                'nullable',
+                'boolean',
+            ],
+
+            'cultures.*.etatCulture' => [
+                'nullable',
+                Rule::in([
+                    'semis',
+                    'croissance',
+                    'floraison',
+                    'recolte',
+                    'terminee',
+                ]),
+            ],
+
+            'cultures.*.observations' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | INTRANTS
+            |--------------------------------------------------------------------------
+            */
+
+            'cultures.*.intrants' => [
+                'nullable',
+                'array',
+            ],
+
+            'cultures.*.intrants.*' => [
+                'array',
+            ],
+
+            'cultures.*.intrants.*.intrant_id' => [
+                'required',
+                'integer',
+                'exists:intrants,idIntrant',
+            ],
+
+            'cultures.*.intrants.*.quantite' => [
+                'required',
+                'numeric',
+                'min:0.01',
+            ],
+
+            'cultures.*.intrants.*.nombreApplications' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
+
+            'cultures.*.intrants.*.dateApplication' => [
+                'nullable',
+                'date',
+            ],
+
+            'cultures.*.intrants.*.observations' => [
+                'nullable',
+                'string',
+                'max:5000',
             ],
         ];
     }
 
     /**
-     * Messages de validation.
+     * Messages personnalisés.
      */
     public function messages(): array
     {
         return [
-            'numeroParcelle.required' =>
-                'Le numéro de la parcelle est obligatoire.',
 
-            'numeroParcelle.string' =>
-                'Le numéro de la parcelle doit être une chaîne de caractères.',
+            'points_gps.required' =>
+                'Le contour GPS de la parcelle est obligatoire.',
 
-            'numeroParcelle.max' =>
-                'Le numéro de la parcelle ne peut pas dépasser 255 caractères.',
+            'statutParcelle.required' =>
+                'Le statut de la parcelle est obligatoire.',
 
-            'superficie.required' =>
-                'La superficie de la parcelle est obligatoire.',
-
-            'superficie.numeric' =>
-                'La superficie doit être une valeur numérique.',
-
-            'superficie.min' =>
-                'La superficie doit être supérieure à zéro.',
-
-            'typeSol.string' =>
-                'Le type de sol doit être une chaîne de caractères.',
-
-            'typeSol.max' =>
-                'Le type de sol ne peut pas dépasser 255 caractères.',
+            'statutParcelle.in' =>
+                'Le statut de la parcelle sélectionné est invalide.',
 
             'modeFaireValoir.required' =>
                 'Le mode de faire-valoir est obligatoire.',
@@ -117,40 +338,124 @@ class UpdateParcelleRequest extends FormRequest
             'modeIrrigation.in' =>
                 'Le mode d’irrigation sélectionné est invalide.',
 
-            'estCultivee.boolean' =>
-                'La valeur indiquant si la parcelle est cultivée est invalide.',
+            'cultures.*.culture_id.required' =>
+                'La culture est obligatoire.',
 
-            'estJachere.boolean' =>
-                'La valeur indiquant si la parcelle est en jachère est invalide.',
+            'cultures.*.culture_id.exists' =>
+                'La culture sélectionnée n’existe pas.',
 
-            'presenceArbres.boolean' =>
-                'La valeur indiquant la présence d’arbres est invalide.',
+            'cultures.*.modeCulture.required' =>
+                'Le mode de culture est obligatoire.',
 
-            'observations.string' =>
-                'Les observations doivent être une chaîne de caractères.',
+            'cultures.*.modeCulture.in' =>
+                'Le mode de culture sélectionné est invalide.',
 
-            'statut.required' =>
-                'Le statut de la parcelle est obligatoire.',
+            'cultures.*.superficieCultivee.numeric' =>
+                'La superficie cultivée doit être un nombre.',
 
-            'statut.in' =>
-                'Le statut sélectionné est invalide.',
+            'cultures.*.superficieCultivee.min' =>
+                'La superficie cultivée ne peut pas être négative.',
+
+            'cultures.*.dateSemis.date' =>
+                'La date de semis est invalide.',
+
+            'cultures.*.dateRecoltePrevue.date' =>
+                'La date de récolte prévue est invalide.',
+
+            'cultures.*.dateRecolteEffective.date' =>
+                'La date de récolte effective est invalide.',
+
+            'cultures.*.etatCulture.in' =>
+                'L’état de la culture sélectionné est invalide.',
+
+            'cultures.*.intrants.*.intrant_id.required' =>
+                'L’intrant est obligatoire.',
+
+            'cultures.*.intrants.*.intrant_id.exists' =>
+                'L’intrant sélectionné n’existe pas.',
+
+            'cultures.*.intrants.*.quantite.required' =>
+                'La quantité d’intrant est obligatoire.',
+
+            'cultures.*.intrants.*.quantite.numeric' =>
+                'La quantité d’intrant doit être un nombre.',
+
+            'cultures.*.intrants.*.quantite.min' =>
+                'La quantité d’intrant doit être supérieure à zéro.',
+
+            'cultures.*.intrants.*.nombreApplications.required' =>
+                'Le nombre d’applications est obligatoire.',
+
+            'cultures.*.intrants.*.nombreApplications.integer' =>
+                'Le nombre d’applications doit être un nombre entier.',
+
+            'cultures.*.intrants.*.nombreApplications.min' =>
+                'Le nombre d’applications doit être au moins égal à 1.',
         ];
     }
 
     /**
-     * Préparer les valeurs avant validation.
+     * Attributs lisibles.
      */
-    protected function prepareForValidation(): void
+    public function attributes(): array
     {
-        $this->merge([
-            'estCultivee' =>
-                $this->boolean('estCultivee'),
+        return [
+            'points_gps' =>
+                'contour GPS',
 
-            'estJachere' =>
-                $this->boolean('estJachere'),
+            'typeExploitation' =>
+                'type d’exploitation',
+
+            'statutJuridique' =>
+                'statut juridique',
+
+            'statutParcelle' =>
+                'statut de la parcelle',
+
+            'typeSol' =>
+                'type de sol',
+
+            'modeFaireValoir' =>
+                'mode de faire-valoir',
+
+            'modeIrrigation' =>
+                'mode d’irrigation',
 
             'presenceArbres' =>
-                $this->boolean('presenceArbres'),
-        ]);
+                'présence d’arbres',
+
+            'cultures.*.culture_id' =>
+                'culture',
+
+            'cultures.*.modeCulture' =>
+                'mode de culture',
+
+            'cultures.*.superficieCultivee' =>
+                'superficie cultivée',
+
+            'cultures.*.dateSemis' =>
+                'date de semis',
+
+            'cultures.*.dateRecoltePrevue' =>
+                'date de récolte prévue',
+
+            'cultures.*.dateRecolteEffective' =>
+                'date de récolte effective',
+
+            'cultures.*.etatCulture' =>
+                'état de la culture',
+
+            'cultures.*.intrants.*.intrant_id' =>
+                'intrant',
+
+            'cultures.*.intrants.*.quantite' =>
+                'quantité d’intrant',
+
+            'cultures.*.intrants.*.nombreApplications' =>
+                'nombre d’applications',
+
+            'cultures.*.intrants.*.dateApplication' =>
+                'date d’application',
+        ];
     }
 }

@@ -264,7 +264,42 @@ class RecensementController extends Controller
     /**
      * Tableau de bord du recensement.
      */
-    public function show(Recensement $recensement): View
+    // public function show(Recensement $recensement): View
+    // {
+    //     $recensement->load([
+    //         'campagne',
+    //         'maison.village.canton.commune.prefecture',
+    //         'affectation.equipe',
+    //         'affectation.village',
+    //         'agent',
+    //         'menages',
+    //     ]);
+
+    //     $this->verifierAccesRecensement($recensement);
+
+    //     return view('agent.recensements.show', compact('recensement'));
+    // }
+
+
+    //     public function show(Recensement $recensement): View
+    // {
+    //     $recensement->load([
+    //         'campagne',
+    //         'maison.village.canton.commune.prefecture',
+    //         'affectation.equipe',
+    //         'affectation.village',
+    //         'agent',
+    //         'menages.exploitants.exploitations',
+    //     ]);
+
+    //     $this->verifierAccesRecensement($recensement);
+
+    //     return view('agent.recensements.show', compact('recensement'));
+    // }
+
+
+
+        public function show(Recensement $recensement): View
     {
         $recensement->load([
             'campagne',
@@ -272,7 +307,7 @@ class RecensementController extends Controller
             'affectation.equipe',
             'affectation.village',
             'agent',
-            //'menages',
+            'menages.exploitants.exploitation',
         ]);
 
         $this->verifierAccesRecensement($recensement);

@@ -16,7 +16,7 @@ class CultureParcelle extends Model
         'uid',
         'parcelle_id',
         'culture_id',
-        'campagne_id',
+        'campagneAgricole',
         'modeCulture',
         'superficieCultivee',
         'dateSemis',
@@ -35,32 +35,30 @@ class CultureParcelle extends Model
         'irriguee' => 'boolean',
     ];
 
-    /* ============================
-     | RELATIONS
-     * ============================ */
-
     public function parcelle(): BelongsTo
     {
-        return $this->belongsTo(Parcelle::class, 'parcelle_id', 'idParcelle');
+        return $this->belongsTo(
+            Parcelle::class,
+            'parcelle_id',
+            'idParcelle'
+        );
     }
 
     public function culture(): BelongsTo
     {
-        return $this->belongsTo(Culture::class, 'culture_id', 'idCulture');
+        return $this->belongsTo(
+            Culture::class,
+            'culture_id',
+            'idCulture'
+        );
     }
 
-    public function campagne(): BelongsTo
+    public function intrants(): HasMany
     {
-        return $this->belongsTo(CampagneRecensement::class, 'campagne_id', 'idCampagne');
-    }
-
-    public function production(): HasMany
-    {
-        return $this->hasMany(Production::class, 'culture_parcelle_id', 'idCultureParcelle');
-    }
-
-    public function besoinsIntrants(): HasMany
-    {
-        return $this->hasMany(BesoinIntrant::class, 'culture_parcelle_id', 'idCultureParcelle');
+        return $this->hasMany(
+            CultureIntrant::class,
+            'culture_parcelle_id',
+            'idCultureParcelle'
+        );
     }
 }

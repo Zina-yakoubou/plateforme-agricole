@@ -21,6 +21,11 @@ class StoreMaisonRequest extends FormRequest
     public function rules(): array
     {
         return [
+             'repere' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
             'adresse' => [
                 'nullable',
                 'string',
@@ -53,6 +58,9 @@ class StoreMaisonRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'repere.string' =>
+                'Le repère doit être une chaîne de caractères.',
+                
             'adresse.string' =>
                 'L’adresse doit être une chaîne de caractères.',
 

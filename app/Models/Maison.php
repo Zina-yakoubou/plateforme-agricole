@@ -14,6 +14,8 @@ class Maison extends Model
 
     protected $fillable = [
         'uid',
+        'repere',
+
         'numeroMaison',
         'village_id',
         'latitude',

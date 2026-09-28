@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class Menage extends Model
 {
@@ -61,5 +63,12 @@ class Menage extends Model
             'recensement_id',
             'idRecensement'
         );
+    }
+
+
+
+    public function exploitants(): HasMany
+    {
+        return $this->hasMany(Exploitant::class, 'menage_id', 'idMenage');
     }
 }

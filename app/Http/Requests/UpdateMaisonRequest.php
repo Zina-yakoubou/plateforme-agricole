@@ -39,6 +39,12 @@ class UpdateMaisonRequest extends FormRequest
                     ->ignore($idMaison, 'idMaison'),
             ],
 
+            'repere' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
             'village_id' => [
                 'required',
                 'integer',
@@ -80,6 +86,9 @@ class UpdateMaisonRequest extends FormRequest
             'numeroMaison.max' => 'Le numéro de maison ne peut pas dépasser 100 caractères.',
             'numeroMaison.unique' => 'Ce numéro de maison est déjà utilisé.',
 
+            'repere.string' => 'Le repère doit être une chaîne de caractères.',
+            'repere.max' => 'Le repère ne peut pas dépasser 255 caractères.',
+
             'village_id.required' => 'Le village est obligatoire.',
             'village_id.integer' => 'Le village sélectionné est invalide.',
             'village_id.exists' => 'Le village sélectionné n’existe pas.',
@@ -103,6 +112,7 @@ class UpdateMaisonRequest extends FormRequest
     {
         return [
             'numeroMaison' => 'numéro de maison',
+            'repere' => 'repère',
             'village_id' => 'village',
             'latitude' => 'latitude',
             'longitude' => 'longitude',
