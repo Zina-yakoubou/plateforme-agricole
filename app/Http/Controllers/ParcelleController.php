@@ -198,10 +198,36 @@ class ParcelleController extends Controller
         | Au minimum 1 point GPS est nécessaire
         |--------------------------------------------------------------------------
         */
-        if (count($points) < 1) {
+        // if (count($points) < 1) {
+        //     throw ValidationException::withMessages([
+        //         'points_gps' =>
+        //             'Veuillez enregistrer au moins 1 point GPS.',
+        //     ]);
+        // }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Une parcelle doit avoir au minimum 3 points GPS
+        |--------------------------------------------------------------------------
+        */
+        if (count($points) < 3) {
             throw ValidationException::withMessages([
                 'points_gps' =>
-                    'Veuillez enregistrer au moins 1 point GPS.',
+                    'Veuillez enregistrer au moins 3 points GPS pour calculer la superficie de la parcelle.',
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Calcul automatique de la superficie
+        |--------------------------------------------------------------------------
+        */
+        $superficie = $this->calculerSuperficieHa($points);
+
+        if ($superficie <= 0) {
+            throw ValidationException::withMessages([
+                'points_gps' =>
+                    'Impossible de calculer une superficie valide à partir des points GPS. Vérifiez que les points GPS forment une parcelle.',
             ]);
         }
 
@@ -479,10 +505,38 @@ class ParcelleController extends Controller
         | au minimum 1 point GPS
         |--------------------------------------------------------------------------
         */
-        if (count($points) < 1) {
+        // if (count($points) < 1) {
+        //     throw ValidationException::withMessages([
+        //         'points_gps' =>
+        //             'Veuillez enregistrer au moins 1 point GPS.',
+        //     ]);
+        // }
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Une parcelle doit avoir au minimum 3 points GPS
+        |--------------------------------------------------------------------------
+        */
+        if (count($points) < 3) {
             throw ValidationException::withMessages([
                 'points_gps' =>
-                    'Veuillez enregistrer au moins 1 point GPS.',
+                    'Veuillez enregistrer au moins 3 points GPS pour calculer la superficie de la parcelle.',
+            ]);
+        }
+
+        /*6
+        |--------------------------------------------------------------------------
+        | Calcul automatique de la superficie
+        |--------------------------------------------------------------------------
+        */
+        $superficie = $this->calculerSuperficieHa($points);
+
+        if ($superficie <= 0) {
+            throw ValidationException::withMessages([
+                'points_gps' =>
+                    'Impossible de calculer une superficie valide à partir des points GPS. Vérifiez que les points GPS forment une parcelle.',
             ]);
         }
 

@@ -28,10 +28,10 @@ return new class extends Migration
             $table->enum('sexeChef', ['M', 'F']);
 
             // Composition du ménage
-            $table->unsignedSmallInteger('nombreHommes')->default(0);
-            $table->unsignedSmallInteger('nombreFemmes')->default(0);
-            $table->unsignedSmallInteger('nombreGarcons')->default(0);
-            $table->unsignedSmallInteger('nombreFilles')->default(0);
+            $table->unsignedSmallInteger('nombreHommes')->default(0)->nullable();
+            $table->unsignedSmallInteger('nombreFemmes')->default(0)->nullable();
+            $table->unsignedSmallInteger('nombreGarcons')->default(0)->nullable();
+            $table->unsignedSmallInteger('nombreFilles')->default(0)->nullable();
 
             // Situation agricole du ménage
             $table->boolean('possedeExploitation')->default(false);

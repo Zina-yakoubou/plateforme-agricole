@@ -335,7 +335,7 @@
 
 @endonce
 
-<script>
+{{-- <script>
 document.addEventListener('DOMContentLoaded', function () {
 
     const latitudeInput = document.getElementById('latitude');
@@ -600,6 +600,420 @@ document.addEventListener('DOMContentLoaded', function () {
                 {
                     enableHighAccuracy: true,
                     timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        }
+    );
+
+});
+</script> --}}
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Éléments du formulaire
+    |--------------------------------------------------------------------------
+    */
+
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+    const precisionInput = document.getElementById('precisionGPS');
+
+    const latitudeDisplay = document.getElementById('latitudeDisplay');
+    const longitudeDisplay = document.getElementById('longitudeDisplay');
+    const precisionDisplay = document.getElementById('precisionDisplay');
+
+    const btnLocaliser = document.getElementById('btnLocaliser');
+    const gpsStatus = document.getElementById('gpsStatus');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vérification des éléments
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        !latitudeInput ||
+        !longitudeInput ||
+        !precisionInput ||
+        !latitudeDisplay ||
+        !longitudeDisplay ||
+        !precisionDisplay ||
+        !btnLocaliser ||
+        !gpsStatus
+    ) {
+        console.error('Éléments GPS introuvables dans le formulaire.');
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Position initiale
+    |--------------------------------------------------------------------------
+    */
+
+    const latitudeInitiale = parseFloat(latitudeInput.value);
+    const longitudeInitiale = parseFloat(longitudeInput.value);
+
+    const latitudeValide = Number.isFinite(latitudeInitiale);
+    const longitudeValide = Number.isFinite(longitudeInitiale);
+
+    let latitudeCentre = latitudeValide
+        ? latitudeInitiale
+        : 8.6195;
+
+    let longitudeCentre = longitudeValide
+        ? longitudeInitiale
+        : 0.8248;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Carte Leaflet
+    |--------------------------------------------------------------------------
+    */
+
+    const map = L.map('map').setView(
+        [latitudeCentre, longitudeCentre],
+        latitudeValide && longitudeValide ? 17 : 7
+    );
+
+    L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+        }
+    ).addTo(map);
+
+    let marqueur = null;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Marqueur existant
+    |--------------------------------------------------------------------------
+    */
+
+    if (latitudeValide && longitudeValide) {
+
+        marqueur = L.marker([
+            latitudeInitiale,
+            longitudeInitiale
+        ])
+            .addTo(map)
+            .bindPopup('Position de la maison');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mise à jour de l'affichage
+    |--------------------------------------------------------------------------
+    */
+
+    function mettreAJourAffichage(
+        latitude,
+        longitude,
+        precision
+    ) {
+
+        latitudeDisplay.textContent =
+            latitude ?? '—';
+
+        longitudeDisplay.textContent =
+            longitude ?? '—';
+
+        precisionDisplay.textContent =
+            precision !== null && precision !== ''
+                ? `${precision} m`
+                : '—';
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Message GPS
+    |--------------------------------------------------------------------------
+    */
+
+    function afficherErreur(message) {
+
+        gpsStatus.textContent = message;
+
+        gpsStatus.classList.remove(
+            'text-slate-500',
+            'text-green-600'
+        );
+
+        gpsStatus.classList.add(
+            'text-red-600'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Bouton localisation
+    |--------------------------------------------------------------------------
+    */
+
+    btnLocaliser.addEventListener(
+        'click',
+        function () {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Vérification du support GPS
+            |--------------------------------------------------------------------------
+            */
+
+            if (!navigator.geolocation) {
+
+                afficherErreur(
+                    'La géolocalisation n’est pas disponible sur ce navigateur.'
+                );
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Vérification HTTPS
+            |--------------------------------------------------------------------------
+            |
+            | IMPORTANT POUR L'IPHONE :
+            | Une adresse du type http://192.168.x.x n'est généralement
+            | pas considérée comme un contexte sécurisé.
+            |
+            */
+
+            if (!window.isSecureContext) {
+
+                afficherErreur(
+                    'La localisation GPS nécessite une connexion HTTPS sur cet appareil. ' +
+                    'L’adresse actuelle du site n’est pas sécurisée.'
+                );
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | État du bouton
+            |--------------------------------------------------------------------------
+            */
+
+            btnLocaliser.disabled = true;
+
+            btnLocaliser.textContent =
+                'Localisation en cours...';
+
+            gpsStatus.textContent =
+                'Recherche de votre position GPS...';
+
+            gpsStatus.classList.remove(
+                'text-red-600',
+                'text-green-600'
+            );
+
+            gpsStatus.classList.add(
+                'text-slate-500'
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Géolocalisation
+            |--------------------------------------------------------------------------
+            */
+
+            navigator.geolocation.getCurrentPosition(
+
+                /*
+                |--------------------------------------------------------------------------
+                | SUCCÈS
+                |--------------------------------------------------------------------------
+                */
+
+                function (position) {
+
+                    const latitude =
+                        position.coords.latitude;
+
+                    const longitude =
+                        position.coords.longitude;
+
+                    const precision =
+                        position.coords.accuracy;
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Remplissage des champs cachés
+                    |--------------------------------------------------------------------------
+                    */
+
+                    latitudeInput.value =
+                        latitude.toFixed(7);
+
+                    longitudeInput.value =
+                        longitude.toFixed(7);
+
+                    precisionInput.value =
+                        precision.toFixed(2);
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Affichage
+                    |--------------------------------------------------------------------------
+                    */
+
+                    mettreAJourAffichage(
+                        latitude.toFixed(7),
+                        longitude.toFixed(7),
+                        precision.toFixed(2)
+                    );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Marqueur
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (marqueur) {
+
+                        map.removeLayer(
+                            marqueur
+                        );
+                    }
+
+                    marqueur = L.marker([
+                        latitude,
+                        longitude
+                    ])
+                        .addTo(map)
+                        .bindPopup(
+                            'Position de la maison'
+                        )
+                        .openPopup();
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Centrage
+                    |--------------------------------------------------------------------------
+                    */
+
+                    map.setView(
+                        [
+                            latitude,
+                            longitude
+                        ],
+                        18
+                    );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Message succès
+                    |--------------------------------------------------------------------------
+                    */
+
+                    gpsStatus.textContent =
+                        'Maison localisée avec succès.';
+
+                    gpsStatus.classList.remove(
+                        'text-slate-500',
+                        'text-red-600'
+                    );
+
+                    gpsStatus.classList.add(
+                        'text-green-600'
+                    );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Bouton
+                    |--------------------------------------------------------------------------
+                    */
+
+                    btnLocaliser.disabled = false;
+
+                    btnLocaliser.textContent =
+                        'Actualiser la localisation';
+
+                    console.log(
+                        'GPS SIRA-Mô :',
+                        {
+                            latitude: latitude,
+                            longitude: longitude,
+                            precision: precision
+                        }
+                    );
+                },
+
+                /*
+                |--------------------------------------------------------------------------
+                | ERREUR
+                |--------------------------------------------------------------------------
+                */
+
+                function (error) {
+
+                    console.error(
+                        'Erreur GPS SIRA-Mô :',
+                        error
+                    );
+
+                    let message =
+                        'Impossible de récupérer la position GPS.';
+
+                    /*
+                    | PERMISSION REFUSÉE
+                    */
+
+                    if (error.code === 1) {
+
+                        message =
+                            'L’accès à la localisation a été refusé. ' +
+                            'Vérifiez l’autorisation de localisation de Safari.';
+                    }
+
+                    /*
+                    | POSITION INDISPONIBLE
+                    */
+
+                    else if (error.code === 2) {
+
+                        message =
+                            'La position GPS est indisponible. ' +
+                            'Vérifiez que la localisation est activée sur l’iPhone.';
+                    }
+
+                    /*
+                    | DÉLAI DÉPASSÉ
+                    */
+
+                    else if (error.code === 3) {
+
+                        message =
+                            'La récupération de la position a expiré. ' +
+                            'Réessayez dans quelques secondes.';
+                    }
+
+                    afficherErreur(message);
+
+                    btnLocaliser.disabled = false;
+
+                    btnLocaliser.textContent =
+                        'Réessayer la localisation';
+                },
+
+                /*
+                |--------------------------------------------------------------------------
+                | OPTIONS GPS
+                |--------------------------------------------------------------------------
+                */
+
+                {
+                    enableHighAccuracy: true,
+                    timeout: 30000,
                     maximumAge: 0
                 }
             );

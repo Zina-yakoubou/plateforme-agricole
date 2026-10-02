@@ -25,11 +25,11 @@
             ->get()
             ->map(function ($point) {
                 return [
-                    'latitude'    => $point->latitude,
-                    'longitude'   => $point->longitude,
-                    'precisionGPS'=> $point->precisionGPS,
-                    'altitude'    => $point->altitude,
-                    'ordre'       => $point->ordre,
+                    'latitude'     => $point->latitude,
+                    'longitude'    => $point->longitude,
+                    'precisionGPS' => $point->precisionGPS,
+                    'altitude'     => $point->altitude,
+                    'ordre'        => $point->ordre,
                 ];
             })
             ->values()
@@ -65,11 +65,11 @@
                         ? $culture->intrants
                             ->map(function ($intrant) {
                                 return [
-                                    'intrant_id'          => $intrant->intrant_id,
-                                    'quantite'            => $intrant->quantite,
-                                    'nombreApplications'  => $intrant->nombreApplications ?? 1,
-                                    'dateApplication'     => $intrant->dateApplication,
-                                    'observations'        => $intrant->observations,
+                                    'intrant_id'         => $intrant->intrant_id,
+                                    'quantite'           => $intrant->quantite,
+                                    'nombreApplications' => $intrant->nombreApplications ?? 1,
+                                    'dateApplication'    => $intrant->dateApplication,
+                                    'observations'       => $intrant->observations,
                                 ];
                             })
                             ->values()
@@ -444,9 +444,13 @@
             </div>
 
 
-            {{-- Boutons GPS --}}
+            {{-- =====================================================
+                 BOUTONS GPS
+            ====================================================== --}}
+
             <div class="flex flex-wrap gap-3">
 
+                {{-- Obtenir position réelle --}}
                 <button
                     type="button"
                     @click="obtenirPosition()"
@@ -474,6 +478,7 @@
                 </button>
 
 
+                {{-- Marquer point réel --}}
                 <button
                     type="button"
                     @click="marquerPoint()"
@@ -500,6 +505,36 @@
                 </button>
 
 
+                {{-- =================================================
+                     POINTS GPS DE TEST
+                ================================================== --}}
+
+                <button
+                    type="button"
+                    @click="chargerPointsGPSTest()"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
+                >
+
+                    <svg
+                        class="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 12l2 2 4-4m5.5-2A7.5 7.5 0 1112 4.5"
+                        />
+                    </svg>
+
+                    Utiliser des points GPS de test
+
+                </button>
+
+
+                {{-- Effacer --}}
                 <button
                     type="button"
                     @click="effacerPoints()"
@@ -620,7 +655,7 @@
                                                     stroke-linecap="round"
                                                     stroke-linejoin="round"
                                                     stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3m-8 0h10"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6V7m-2-3h4M9 4h6"
                                                 />
                                             </svg>
 
@@ -1792,11 +1827,6 @@
 
                     dateRecolteEffective: '',
 
-                    /*
-                     * IMPORTANT :
-                     * La migration accepte :
-                     * semis|croissance|floraison|recolte|terminee
-                     */
                     etatCulture: 'semis',
 
                     irriguee: false,
@@ -2090,6 +2120,136 @@
 
             /*
             |--------------------------------------------------------------------------
+            | CHARGER DES POINTS GPS DE TEST
+            |--------------------------------------------------------------------------
+            |
+            | Fonction temporaire uniquement pour les tests.
+            |
+            | Elle ne fait aucun calcul de superficie.
+            | Elle remplit simplement pointsGPS avec 4 coordonnées.
+            |
+            */
+
+            chargerPointsGPSTest() {
+
+                const pointsTest = [
+
+                    {
+                        latitude: 8.1234560,
+                        longitude: 0.1234560,
+                        precisionGPS: 5,
+                        altitude: null,
+                        ordre: 1
+                    },
+
+                    {
+                        latitude: 8.1238000,
+                        longitude: 0.1237000,
+                        precisionGPS: 5,
+                        altitude: null,
+                        ordre: 2
+                    },
+
+                    {
+                        latitude: 8.1236000,
+                        longitude: 0.1240000,
+                        precisionGPS: 5,
+                        altitude: null,
+                        ordre: 3
+                    },
+
+                    {
+                        latitude: 8.1233000,
+                        longitude: 0.1238000,
+                        precisionGPS: 5,
+                        altitude: null,
+                        ordre: 4
+                    }
+
+                ];
+
+
+                /*
+                |--------------------------------------------------------------
+                | Remplacement des points actuels par les points de test
+                |--------------------------------------------------------------
+                */
+
+                this.pointsGPS = pointsTest;
+
+
+                /*
+                |--------------------------------------------------------------
+                | Réattribuer les ordres
+                |--------------------------------------------------------------
+                */
+
+                this.mettreAJourOrdres();
+
+
+                /*
+                |--------------------------------------------------------------
+                | Afficher le dernier point dans les champs courants
+                |--------------------------------------------------------------
+                */
+
+                const dernierPoint =
+                    this.pointsGPS[
+                        this.pointsGPS.length - 1
+                    ];
+
+                this.latitude =
+                    dernierPoint.latitude;
+
+                this.longitude =
+                    dernierPoint.longitude;
+
+                this.precisionGPS =
+                    dernierPoint.precisionGPS;
+
+
+                /*
+                |--------------------------------------------------------------
+                | Une position est maintenant disponible
+                |--------------------------------------------------------------
+                */
+
+                this.positionDisponible = true;
+
+
+                /*
+                |--------------------------------------------------------------
+                | Mettre à jour le champ hidden points_gps
+                |--------------------------------------------------------------
+                */
+
+                this.mettreAJourJsonGPS();
+
+
+                /*
+                |--------------------------------------------------------------
+                | Nettoyer les erreurs GPS
+                |--------------------------------------------------------------
+                */
+
+                this.gpsErreur = '';
+
+
+                /*
+                |--------------------------------------------------------------
+                | Message utilisateur
+                |--------------------------------------------------------------
+                */
+
+                this.gpsMessage =
+                    this.pointsGPS.length +
+                    ' points GPS de test chargés.';
+
+            },
+
+
+            /*
+            |--------------------------------------------------------------------------
             | MARQUER POINT
             |--------------------------------------------------------------------------
             */
@@ -2311,12 +2471,8 @@
             | SOUMISSION DU FORMULAIRE
             |--------------------------------------------------------------------------
             |
-            | IMPORTANT :
-            | On ne bloque plus ici la soumission.
-            |
-            | La validation réelle est faite par Laravel
-            | via StoreParcelleRequest / UpdateParcelleRequest
-            | et le contrôleur.
+            | Les points GPS sont synchronisés juste avant l'envoi.
+            | Aucun preventDefault() : Laravel reçoit normalement le formulaire.
             |
             */
 
@@ -2325,13 +2481,6 @@
                 this.mettreAJourOrdres();
 
                 this.mettreAJourJsonGPS();
-
-                /*
-                 * Ne pas utiliser event.preventDefault().
-                 *
-                 * Laravel reçoit maintenant le formulaire et
-                 * peut afficher les erreurs de validation.
-                 */
 
                 this.envoiEnCours = true;
 

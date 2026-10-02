@@ -34,31 +34,31 @@ class StoreMenageRequest extends FormRequest
             ],
 
             'nombreHommes' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
             ],
 
             'nombreFemmes' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
             ],
 
             'nombreGarcons' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
             ],
 
             'nombreFilles' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
             ],
 
             'possedeExploitation' => [
-                'required',
+                'nullable',
                 'boolean',
             ],
 

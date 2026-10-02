@@ -17,6 +17,30 @@ class MenageController extends Controller
     /**
      * Liste des ménages d'un recensement.
      */
+    // public function index(Recensement $recensement): View
+    // {
+    //     $this->verifierAccesRecensement($recensement);
+
+    //     $recensement->load([
+    //         'campagne',
+    //         'maison.village.canton.commune.prefecture',
+    //     ]);
+
+    //     $menages = $recensement->menages()
+    //         ->latest('idMenage')
+    //         ->paginate(15);
+
+    //     return view(
+    //         'menages.index',
+    //         compact('recensement', 'menages')
+    //     );
+    // }
+
+
+
+    /**
+     * Liste des ménages d'un recensement.
+     */
     public function index(Recensement $recensement): View
     {
         $this->verifierAccesRecensement($recensement);
@@ -26,16 +50,45 @@ class MenageController extends Controller
             'maison.village.canton.commune.prefecture',
         ]);
 
+        // Terme de recherche
+        $search = trim((string) request('search'));
+
         $menages = $recensement->menages()
+            ->when($search !== '', function ($query) use ($search) {
+
+                $query->where(function ($q) use ($search) {
+
+                    $q->where(
+                        'numeroMenage',
+                        'like',
+                        '%' . $search . '%'
+                    )
+                    ->orWhere(
+                        'nomChef',
+                        'like',
+                        '%' . $search . '%'
+                    )
+                    ->orWhere(
+                        'prenomChef',
+                        'like',
+                        '%' . $search . '%'
+                    );
+
+                });
+            })
             ->latest('idMenage')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return view(
             'menages.index',
-            compact('recensement', 'menages')
+            compact(
+                'recensement',
+                'menages',
+                'search'
+            )
         );
     }
-
     /**
      * Formulaire d'ajout d'un ménage.
      */
@@ -78,48 +131,7 @@ class MenageController extends Controller
 
         $this->verifierAccesRecensement($recensement);
 
-        //DB::transaction(function () use ($request, $recensement) {
-
-            /*
-             * Le numéro de ménage n'est jamais pris depuis le
-             * formulaire : il est calculé côté serveur, à
-             * l'intérieur de la transaction, avec un verrou,
-             * pour éviter les doublons en cas de créations
-             * concurrentes sur le même recensement.
-             */
-        //     $dernierNumero = $recensement->menages()
-        //         ->lockForUpdate()
-        //         ->max('numeroMenage');
-
-        //     $nouveauNumero = $dernierNumero
-        //         ? ((int) $dernierNumero + 1)
-        //         : 1;
-
-        //     Menage::create(array_merge(
-        //         $request->validated(),
-        //         [
-        //             'recensement_id' => $recensement->idRecensement,
-        //             'numeroMenage' => $nouveauNumero,
-        //             'uid' => (string) Str::uuid(),
-        //         ]
-        //     ));
-
-        //     $recensement->update([
-        //         'dateDerniereModification' => now(),
-        //     ]);
-        // });
-
-        // return redirect()
-            // ->route(
-            //     'agent.recensements.show',
-            //     $recensement
-            // )
-            // ->with(
-            //     'success',
-            //     'Le ménage a été ajouté avec succès.'
-            // );
-
-            $menage = DB::transaction(function () use ($request, $recensement) {
+        $menage = DB::transaction(function () use ($request, $recensement) {
 
             $dernierNumero = $recensement->menages()
                 ->lockForUpdate()
@@ -142,22 +154,41 @@ class MenageController extends Controller
                 'dateDerniereModification' => now(),
             ]);
 
-                return $menage;
-            });
+            return $menage;
+        });
 
-            if ($menage->possedeExploitation) {
-                return redirect()->route(
+        /*
+        * Si le ménage possède une exploitation,
+        * on poursuit directement vers l'enregistrement de l'exploitant.
+        */
+        if ($menage->possedeExploitation) {
+            return redirect()
+                ->route(
                     'agent.recensements.menages.exploitants.create',
                     [
                         'recensement' => $recensement->idRecensement,
-                        'menage'      => $menage->idMenage,
+                        'menage' => $menage->idMenage,
                     ]
-                )->with(
+                )
+                ->with(
                     'success',
                     'Le ménage a été ajouté. Vous pouvez maintenant enregistrer l’exploitant.'
                 );
-            }
-           
+        }
+
+        /*
+        * Si le ménage ne possède pas d'exploitation,
+        * on retourne simplement à la fiche du recensement.
+        */
+        return redirect()
+            ->route(
+                'agent.recensements.show',
+                $recensement
+            )
+            ->with(
+                'success',
+                'Le ménage a été ajouté avec succès.'
+            );
     }
 
     /**
