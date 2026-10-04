@@ -88,7 +88,7 @@
     <form
         method="POST"
         action="{{ route(
-            'dpa.planifications-prefectorales.update',
+            'planifications-prefectorales.update',
             ['planificationPrefectorale' => $planificationPrefectorale->idPlanificationPrefectorale]
         ) }}"
     >

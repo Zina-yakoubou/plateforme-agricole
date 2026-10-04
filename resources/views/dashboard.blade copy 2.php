@@ -419,7 +419,7 @@
                     <div class="border-t border-[#e5e7eb] pt-5">
 
                         <a
-                            href="{{ route('affectations-dpa.index') }}"
+                            href="{{ route('dpa.affectations.index') }}"
                             class="flex items-center justify-center rounded-lg bg-[#006a4f] px-4 py-2.5 font-poppins text-sm font-medium text-white transition hover:bg-[#005a43]"
                         >
                             Voir les affectations

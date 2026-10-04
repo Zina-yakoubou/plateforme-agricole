@@ -105,7 +105,7 @@
 
     <form
         method="GET"
-        action="{{ route('agent.affectations') }}"
+        action="{{ route('mes-affectations.index') }}"
     >
 
         <div class="flex flex-col gap-3 sm:flex-row">
@@ -448,7 +448,7 @@
 
                                     {{-- DÉTAIL DE L'AFFECTATION --}}
                                     <a
-                                        href="{{ route('agent.affectations.show', $affectation) }}"
+                                        href="{{ route('mes-affectations.show', $affectation) }}"
                                         title="Voir l'affectation"
                                         class="inline-flex h-9 w-9
                                                items-center justify-center

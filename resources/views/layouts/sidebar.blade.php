@@ -13,7 +13,7 @@
     class="fixed inset-0 z-40 bg-black/50 lg:hidden"
     aria-hidden="true"
 ></div>
-n
+
 
 {{-- ========================================================================
     SIDEBAR
@@ -21,11 +21,9 @@ n
 <aside
     x-cloak
 
-    {{-- Desktop : repliable --}}
     :class="[
         sidebarCollapsed ? 'lg:w-20' : 'lg:w-72',
 
-        {{-- Mobile : ouverte / fermée --}}
         sidebarOpen
             ? 'translate-x-0'
             : '-translate-x-full lg:translate-x-0'
@@ -42,7 +40,6 @@ n
            lg:sticky lg:top-0 lg:h-screen
            lg:translate-x-0"
 >
-
 
     {{-- ====================================================================
         EN-TÊTE
@@ -77,9 +74,7 @@ n
         </div>
 
 
-        {{-- ================================================================
-            FERMER MOBILE
-        ================================================================= --}}
+        {{-- FERMER MOBILE --}}
         <button
             type="button"
             @click="sidebarOpen = false"
@@ -111,9 +106,7 @@ n
         </button>
 
 
-        {{-- ================================================================
-            REPLIER / DÉPLIER DESKTOP
-        ================================================================= --}}
+        {{-- REPLIER / DÉPLIER DESKTOP --}}
         <button
             type="button"
             @click="sidebarCollapsed = !sidebarCollapsed"
@@ -134,7 +127,6 @@ n
                     : 'Replier le menu'
             "
         >
-
             <svg
                 class="w-4 h-4 transition-transform duration-200"
                 :class="sidebarCollapsed ? 'rotate-180' : ''"
@@ -149,11 +141,9 @@ n
                     d="M15 19l-7-7 7-7"
                 />
             </svg>
-
         </button>
 
     </div>
-
 
 
     {{-- ====================================================================
@@ -168,7 +158,6 @@ n
                overscroll-contain"
     >
 
-
         {{-- =================================================================
             TABLEAU DE BORD
         ================================================================== --}}
@@ -177,13 +166,12 @@ n
             @click="sidebarOpen = false"
             :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
             class="flex items-center gap-3 py-3 rounded-md mb-1
-                   transition-colors duration-150 ease-in-out
+                   transition-colors duration-150
                    {{ request()->routeIs('dashboard')
                         ? 'bg-green-50 text-green-700 font-semibold'
                         : 'text-text-secondary hover:bg-background-muted' }}"
             title="Tableau de bord"
         >
-
             <svg
                 class="w-5 h-5 shrink-0"
                 fill="none"
@@ -194,7 +182,10 @@ n
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="1.8"
-                    d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h4a1 1 0 001-1V10"
+                    d="M3 12l9-9 9 9
+                       M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-4
+                       a1 1 0 011-1h2a1 1 0 011 1v4
+                       a1 1 0 001 1h4a1 1 0 001-1V10"
                 />
             </svg>
 
@@ -205,28 +196,168 @@ n
             >
                 Tableau de bord
             </span>
-
         </a>
 
 
-
         {{-- =================================================================
-            STATISTIQUES
+            ADMINISTRATEUR
         ================================================================== --}}
-        @if($user->isAdmin() || $user->isDpa())
+        @if($user->isAdmin())
 
+            <div class="mt-6">
+
+                <p
+                    x-show="!sidebarCollapsed"
+                    class="px-1 mb-3 text-xs uppercase tracking-widest
+                           text-text-muted whitespace-nowrap"
+                >
+                    Administration
+                </p>
+
+
+                {{-- UTILISATEURS --}}
+                <a
+                    href="{{ route('users.index') }}"
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                           transition-colors duration-150
+                           {{ request()->routeIs('users.*')
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Utilisateurs"
+                >
+                    <svg
+                        class="w-5 h-5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M17 20h5v-2a4 4 0 00-3-3.87
+                               M9 20H4v-2a4 4 0 013-3.87
+                               m5-9.13a4 4 0 110 8 4 4 0 010-8
+                               m6 4a4 4 0 100 8"
+                        />
+                    </svg>
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition.opacity
+                        class="whitespace-nowrap"
+                    >
+                        Utilisateurs
+                    </span>
+                </a>
+
+
+                {{-- CAMPAGNES --}}
+                <a
+                    href="{{ route('campagnes.index') }}"
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                           transition-colors duration-150
+                           {{ request()->routeIs('campagnes.*')
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Campagnes"
+                >
+                    <svg
+                        class="w-5 h-5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M8 7V3
+                               m8 4V3
+                               M4 11h16
+                               M5 5h14a1 1 0 011 1v13
+                               a1 1 0 01-1 1H5
+                               a1 1 0 01-1-1V6
+                               a1 1 0 011-1z"
+                        />
+                    </svg>
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition.opacity
+                        class="whitespace-nowrap"
+                    >
+                        Campagnes
+                    </span>
+                </a>
+
+
+                {{-- TERRITOIRE --}}
+                <a
+                    href="{{ route('regions.index') }}"
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                           transition-colors duration-150
+                           {{ request()->routeIs(
+                                'regions.*',
+                                'prefectures.*',
+                                'communes.*',
+                                'cantons.*',
+                                'villages.*'
+                           )
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Territoire"
+                >
+                    <svg
+                        class="w-5 h-5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z"
+                        />
+                        <circle
+                            cx="12"
+                            cy="10"
+                            r="2.5"
+                            stroke-width="1.8"
+                        />
+                    </svg>
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition.opacity
+                        class="whitespace-nowrap"
+                    >
+                        Territoire
+                    </span>
+                </a>
+
+            </div>
+
+
+            {{-- STATISTIQUES ADMIN --}}
             <a
                 href="{{ route('statistiques.index') }}"
                 @click="sidebarOpen = false"
                 :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                class="flex items-center gap-3 py-3 rounded-md mb-1
-                       transition-colors duration-150 ease-in-out
+                class="mt-6 flex items-center gap-3 py-3 rounded-md mb-1
+                       transition-colors duration-150
                        {{ request()->routeIs('statistiques.*')
                             ? 'bg-green-50 text-green-700 font-semibold'
                             : 'text-text-secondary hover:bg-background-muted' }}"
                 title="Statistiques"
             >
-
                 <svg
                     class="w-5 h-5 shrink-0"
                     fill="none"
@@ -252,168 +383,9 @@ n
                 >
                     Statistiques
                 </span>
-
             </a>
 
         @endif
-
-
-
-        {{-- =================================================================
-            ADMINISTRATEUR
-        ================================================================== --}}
-        @if($user->isAdmin())
-
-            <div class="mt-6">
-
-                <p
-                    x-show="!sidebarCollapsed"
-                    class="text-xs uppercase tracking-widest
-                           text-text-muted mb-3 px-1 whitespace-nowrap"
-                >
-                    Administration
-                </p>
-
-
-                {{-- UTILISATEURS --}}
-                <a
-                    href="{{ route('users.index') }}"
-                    @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="flex items-center gap-3 py-3 rounded-md mb-1
-                           transition-colors duration-150
-                           {{ request()->routeIs('users.*')
-                                ? 'bg-green-50 text-green-700 font-semibold'
-                                : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Utilisateurs"
-                >
-
-                    <svg
-                        class="w-5 h-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M17 20h5v-2a4 4 0 00-3-3.87
-                               M9 20H4v-2a4 4 0 013-3.87
-                               m5-9.13a4 4 0 110 8 4 4 0 010-8
-                               m6 4a4 4 0 100 8"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Utilisateurs
-                    </span>
-
-                </a>
-
-
-                {{-- CAMPAGNES --}}
-                <a
-                    href="{{ route('campagnes.index') }}"
-                    @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="flex items-center gap-3 py-3 rounded-md mb-1
-                           transition-colors duration-150
-                           {{ request()->routeIs('campagnes.*')
-                                ? 'bg-green-50 text-green-700 font-semibold'
-                                : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Campagnes"
-                >
-
-                    <svg
-                        class="w-5 h-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M8 7V3
-                               m8 4V3
-                               M4 11h16
-                               M5 5h14a1 1 0 011 1v13
-                               a1 1 0 01-1 1H5
-                               a1 1 0 01-1-1V6
-                               a1 1 0 011-1z"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Campagnes
-                    </span>
-
-                </a>
-
-
-                {{-- TERRITOIRE --}}
-                <a
-                    href="{{ route('regions.index') }}"
-                    @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="flex items-center gap-3 py-3 rounded-md mb-1
-                           transition-colors duration-150
-                           {{ request()->routeIs(
-                                'regions.*',
-                                'prefectures.*',
-                                'communes.*',
-                                'cantons.*',
-                                'villages.*'
-                           )
-                                ? 'bg-green-50 text-green-700 font-semibold'
-                                : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Territoire"
-                >
-
-                    <svg
-                        class="w-5 h-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z"
-                        />
-
-                        <circle
-                            cx="12"
-                            cy="10"
-                            r="2.5"
-                            stroke-width="1.8"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Territoire
-                    </span>
-
-                </a>
-
-            </div>
-
-        @endif
-
 
 
         {{-- =================================================================
@@ -425,7 +397,7 @@ n
 
                 <p
                     x-show="!sidebarCollapsed"
-                    class="mb-3 px-1 text-xs uppercase tracking-widest
+                    class="px-1 mb-3 text-xs uppercase tracking-widest
                            text-text-muted whitespace-nowrap"
                 >
                     Gestion préfectorale
@@ -434,19 +406,18 @@ n
 
                 {{-- CAMPAGNES --}}
                 <a
-                    href="{{ route('dpa.campagnes.index') }}"
+                    href="{{ route('campagnes-deployees.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
                            transition-colors duration-150
                            {{ request()->routeIs('dpa.campagnes.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
                     title="Campagnes"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -472,25 +443,23 @@ n
                     >
                         Campagnes
                     </span>
-
                 </a>
 
 
                 {{-- PLANIFICATIONS --}}
                 <a
-                    href="{{ route('dpa.planifications-prefectorales.index') }}"
+                    href="{{ route('planifications-prefectorales.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
                            transition-colors duration-150
                            {{ request()->routeIs('dpa.planifications-prefectorales.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
                     title="Planifications"
                 >
-
                     <svg
-                        class="h-5 h-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -527,25 +496,23 @@ n
                     >
                         Planifications
                     </span>
-
                 </a>
 
 
                 {{-- AGENTS & SUPERVISEURS --}}
                 <a
-                    href="{{ route('dpa.agents.index') }}"
+                    href="{{ route('agents.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
                            transition-colors duration-150
                            {{ request()->routeIs('dpa.agents.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Agents recenseurs"
+                    title="Agents et superviseurs"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -577,27 +544,25 @@ n
                         x-transition.opacity
                         class="whitespace-nowrap"
                     >
-                        Agents & Superviseurs
+                        Agents & superviseurs
                     </span>
-
                 </a>
 
 
                 {{-- ÉQUIPES --}}
                 <a
-                    href="{{ route('dpa.equipes.index') }}"
+                    href="{{ route('equipes.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
                            transition-colors duration-150
                            {{ request()->routeIs('dpa.equipes.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
                     title="Équipes"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -632,30 +597,27 @@ n
                     >
                         Équipes
                     </span>
-
                 </a>
 
 
-                {{-- DÉPLOIEMENT --}}
+                {{-- AFFECTATIONS & DÉPLOIEMENT --}}
                 <a
-                    href="{{ route('dpa.affectations.index') }}"
+                    href="{{ route('affectations.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
                            transition-colors duration-150
                            {{ request()->routeIs('dpa.affectations.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Déploiement des agents"
+                    title="Affectations et déploiement"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                     >
-
                         <circle
                             cx="9"
                             cy="8"
@@ -675,8 +637,8 @@ n
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             d="M16 8h5
-                           m0 0l-3-3
-                           m3 3l-3 3"
+                               m0 0l-3-3
+                               m3 3l-3 3"
                         />
 
                         <path
@@ -684,10 +646,9 @@ n
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             d="M16 14h5
-                           m0 0l-3-3
-                           m3 3l-3 3"
+                               m0 0l-3-3
+                               m3 3l-3 3"
                         />
-
                     </svg>
 
                     <span
@@ -695,27 +656,25 @@ n
                         x-transition.opacity
                         class="whitespace-nowrap"
                     >
-                        Déploiement des agents
+                        Affectations & déploiement
                     </span>
-
                 </a>
 
 
-                {{-- SUIVI --}}
+                {{-- SUIVI & STATISTIQUES --}}
                 <a
                     href="{{ route('statistiques.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
                            transition-colors duration-150
                            {{ request()->routeIs('statistiques.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Suivi & statistiques"
+                    title="Suivi et statistiques"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -747,13 +706,11 @@ n
                     >
                         Suivi & statistiques
                     </span>
-
                 </a>
 
             </div>
 
         @endif
-
 
 
         {{-- =================================================================
@@ -765,28 +722,29 @@ n
 
                 <p
                     x-show="!sidebarCollapsed"
-                    class="mb-3 px-1 text-xs uppercase tracking-widest
+                    class="px-1 mb-3 text-xs uppercase tracking-widest
                            text-text-muted whitespace-nowrap"
                 >
-                    Recensement
+                    Collecte
                 </p>
 
 
                 {{-- MES AFFECTATIONS --}}
+                
+                {{-- MES AFFECTATIONS --}}
                 <a
-                    href="{{ route('agent.affectations') }}"
+                    href="{{ route('mes-affectations.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
-                           transition-colors duration-150
-                           {{ request()->routeIs('agent.affectations*')
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                        transition-colors duration-150
+                        {{ request()->routeIs('mes-affectations.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
                     title="Mes affectations"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -794,8 +752,10 @@ n
                         <path
                             stroke-width="1.8"
                             stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2
+                               stroke-linejoin="round"
+                            d="M9 5H7a2 2 0 00-2 2v12
+                               a2 2 0 002 2h10a2 2 0 002-2V7
+                               a2 2 0 00-2-2h-2
                                M9 5a3 3 0 006 0
                                M9 12h6
                                M9 16h4"
@@ -809,25 +769,24 @@ n
                     >
                         Mes affectations
                     </span>
-
                 </a>
 
 
                 {{-- MES RECENSEMENTS --}}
+                {{-- MES AFFECTATIONS --}}
                 <a
-                    href="{{ route('agent.recensements.index') }}"
+                    href="{{ route('mes-affectations.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
-                           transition-colors duration-150
-                           {{ request()->routeIs('agent.recensements*')
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                        transition-colors duration-150
+                        {{ request()->routeIs('mes-affectations.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Mes recensements"
+                    title="Mes affectations"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -853,64 +812,11 @@ n
                     >
                         Mes recensements
                     </span>
-
-                </a>
-
-
-                {{-- SYNCHRONISATION --}}
-                <a
-                    href="#"
-                    onclick="return false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
-                           text-gray-400 cursor-not-allowed"
-                    title="Bientôt disponible"
-                >
-
-                    <svg
-                        class="h-5 w-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M4 12a8 8 0 0114.9-4
-                               M20 12a8 8 0 01-14.9 4"
-                        />
-
-                        <path
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M19 4v4h-4
-                               M5 20v-4h4"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Synchronisation
-                    </span>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        class="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-[10px]"
-                    >
-                        Bientôt
-                    </span>
-
                 </a>
 
             </div>
 
         @endif
-
 
 
         {{-- =================================================================
@@ -922,7 +828,7 @@ n
 
                 <p
                     x-show="!sidebarCollapsed"
-                    class="mb-3 px-1 text-xs uppercase tracking-widest
+                    class="px-1 mb-3 text-xs uppercase tracking-widest
                            text-text-muted whitespace-nowrap"
                 >
                     Supervision
@@ -934,16 +840,15 @@ n
                     href="{{ route('superviseur.equipes.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
                            transition-colors duration-150
                            {{ request()->routeIs('superviseur.equipes.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
                     title="Mes équipes"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -978,25 +883,23 @@ n
                     >
                         Mes équipes
                     </span>
-
                 </a>
 
 
-                {{-- MES ZONES --}}
+                {{-- VILLAGES SUIVIS --}}
                 <a
                     href="{{ route('superviseur.zones.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
                            transition-colors duration-150
                            {{ request()->routeIs('superviseur.zones.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Mes zones"
+                    title="Villages suivis"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1005,10 +908,12 @@ n
                             stroke-width="1.8"
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.553-.832L9 7
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618
+                               a1 1 0 011.553-.832L9 7
                                m0 13l6-3
                                m-6 3V7
-                               m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4
+                               m6 10l5.447 2.724A1 1 0 0021 18.382V7.618
+                               a1 1 0 00-.553-.894L15 4
                                m0 13V4
                                m0 0L9 7"
                         />
@@ -1019,27 +924,25 @@ n
                         x-transition.opacity
                         class="whitespace-nowrap"
                     >
-                        Mes zones
+                        Villages suivis
                     </span>
-
                 </a>
 
 
-                {{-- SUIVI --}}
+                {{-- SUIVI DU RECENSEMENT --}}
                 <a
                     href="{{ route('superviseur.suivi.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
                            transition-colors duration-150
                            {{ request()->routeIs('superviseur.suivi.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
                     title="Suivi du recensement"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1064,25 +967,23 @@ n
                     >
                         Suivi du recensement
                     </span>
-
                 </a>
 
 
-                {{-- CONTRÔLE QUALITÉ --}}
+                {{-- VALIDATION --}}
                 <a
                     href="{{ route('superviseur.controle-qualite.index') }}"
                     @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-3'"
-                    class="flex items-center gap-3 rounded-lg py-2.5
-                           text-sm font-medium transition
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                           transition-colors duration-150
                            {{ request()->routeIs('superviseur.controle-qualite.*')
-                                ? 'bg-[#006a4f] text-white'
-                                : 'text-gray-700 hover:bg-gray-100' }}"
-                    title="Contrôle qualité"
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Validation"
                 >
-
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="w-5 h-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1104,10 +1005,50 @@ n
                     <span
                         x-show="!sidebarCollapsed"
                         x-transition.opacity
+                        class="whitespace-nowrap"
                     >
-                        Contrôle qualité
+                        Validation
                     </span>
+                </a>
 
+
+                {{-- STATISTIQUES --}}
+                <a
+                    href="{{ route('statistiques.index') }}"
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                           transition-colors duration-150
+                           {{ request()->routeIs('statistiques.*')
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Statistiques"
+                >
+                    <svg
+                        class="w-5 h-5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M4 19V5
+                               M4 19h16
+                               M8 16v-5
+                               M12 16V8
+                               M16 16v-8"
+                        />
+                    </svg>
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition.opacity
+                        class="whitespace-nowrap"
+                    >
+                        Statistiques
+                    </span>
                 </a>
 
             </div>
@@ -1115,7 +1056,6 @@ n
         @endif
 
     </nav>
-
 
 
     {{-- ====================================================================
@@ -1141,7 +1081,6 @@ n
                         : 'text-text-secondary hover:bg-background-muted' }}"
             title="Mon compte"
         >
-
             <svg
                 class="w-5 h-5 shrink-0"
                 fill="none"
@@ -1165,7 +1104,6 @@ n
             >
                 Mon compte
             </span>
-
         </a>
 
 
@@ -1185,7 +1123,6 @@ n
                        transition-colors duration-150"
                 title="Déconnexion"
             >
-
                 <svg
                     class="w-5 h-5 shrink-0"
                     fill="none"
@@ -1210,7 +1147,6 @@ n
                 >
                     Déconnexion
                 </span>
-
             </button>
 
         </form>

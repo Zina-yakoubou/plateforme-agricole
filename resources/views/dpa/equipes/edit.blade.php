@@ -13,7 +13,7 @@
         <div class="flex items-center gap-3">
 
             <a
-                href="{{ route('dpa.equipes.index') }}"
+                href="{{ route('equipes.index') }}"
                 class="inline-flex h-9 w-9 items-center justify-center
                        rounded-lg border border-gray-200
                        bg-white text-gray-500
@@ -102,7 +102,7 @@
 
     <form
         method="POST"
-        action="{{ route('dpa.equipes.update', $equipe) }}"
+        action="{{ route('equipes.update', $equipe) }}"
     >
 
         <div class="overflow-hidden rounded-xl
@@ -164,7 +164,7 @@
                         px-6 py-4">
 
                 <a
-                    href="{{ route('dpa.equipes.show', $equipe) }}"
+                    href="{{ route('equipes.show', $equipe) }}"
                     class="rounded-lg border border-gray-300
                            bg-white px-4 py-2.5
                            text-sm font-medium text-gray-700

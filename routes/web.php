@@ -94,7 +94,7 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| ROUTES AUTHENTIFIÉES
+| ROUTES AUTHENTIFIÉES COMMUNES
 |--------------------------------------------------------------------------
 */
 
@@ -153,379 +153,392 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth'])
-    ->group(function () {
-
-        /*
-        |--------------------------------------------------------------------------
-        | UTILISATEURS
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/users',
-            [UserController::class, 'index']
-        )->name('users.index');
-
-        Route::get(
-            '/users/create',
-            [UserController::class, 'create']
-        )->name('users.create');
-
-        Route::post(
-            '/users',
-            [UserController::class, 'store']
-        )->name('users.store');
-
-        Route::get(
-            '/users/{user}',
-            [UserController::class, 'show']
-        )->name('users.show');
-
-        Route::get(
-            '/users/{user}/edit',
-            [UserController::class, 'edit']
-        )->name('users.edit');
-
-        Route::put(
-            '/users/{user}',
-            [UserController::class, 'update']
-        )->name('users.update');
-
-        Route::delete(
-            '/users/{user}',
-            [UserController::class, 'destroy']
-        )->name('users.destroy');
-
-        Route::patch(
-            '/users/{user}/toggle-status',
-            [UserController::class, 'toggleStatus']
-        )->name('users.toggle-status');
-
-        Route::get(
-            '/agents-recenseurs',
-            [UserController::class, 'agents']
-        )->name('agents.index');
-
-        Route::post(
-            '/users/{user}/rattacher-prefecture',
-            [UserController::class, 'rattacherPrefecture']
-        )->name('users.rattacher-prefecture');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | RÉGIONS
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/regions',
-            [RegionController::class, 'index']
-        )->name('regions.index');
-
-        Route::get(
-            '/regions/create',
-            [RegionController::class, 'create']
-        )->name('regions.create');
-
-        Route::post(
-            '/regions',
-            [RegionController::class, 'store']
-        )->name('regions.store');
-
-        Route::get(
-            '/regions/{region}',
-            [RegionController::class, 'show']
-        )->name('regions.show');
-
-        Route::get(
-            '/regions/{region}/edit',
-            [RegionController::class, 'edit']
-        )->name('regions.edit');
-
-        Route::put(
-            '/regions/{region}',
-            [RegionController::class, 'update']
-        )->name('regions.update');
-
-        Route::delete(
-            '/regions/{region}',
-            [RegionController::class, 'destroy']
-        )->name('regions.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PRÉFECTURES
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/prefectures',
-            [PrefectureController::class, 'index']
-        )->name('prefectures.index');
-
-        Route::get(
-            '/prefectures/create',
-            [PrefectureController::class, 'create']
-        )->name('prefectures.create');
-
-        Route::post(
-            '/prefectures',
-            [PrefectureController::class, 'store']
-        )->name('prefectures.store');
-
-        Route::get(
-            '/prefectures/{prefecture}',
-            [PrefectureController::class, 'show']
-        )->name('prefectures.show');
-
-        Route::get(
-            '/prefectures/{prefecture}/edit',
-            [PrefectureController::class, 'edit']
-        )->name('prefectures.edit');
-
-        Route::put(
-            '/prefectures/{prefecture}',
-            [PrefectureController::class, 'update']
-        )->name('prefectures.update');
-
-        Route::delete(
-            '/prefectures/{prefecture}',
-            [PrefectureController::class, 'destroy']
-        )->name('prefectures.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | COMMUNES
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/communes',
-            [CommuneController::class, 'index']
-        )->name('communes.index');
-
-        Route::get(
-            '/communes/create',
-            [CommuneController::class, 'create']
-        )->name('communes.create');
-
-        Route::post(
-            '/communes',
-            [CommuneController::class, 'store']
-        )->name('communes.store');
-
-        Route::get(
-            '/communes/{commune}',
-            [CommuneController::class, 'show']
-        )->name('communes.show');
-
-        Route::get(
-            '/communes/{commune}/edit',
-            [CommuneController::class, 'edit']
-        )->name('communes.edit');
-
-        Route::put(
-            '/communes/{commune}',
-            [CommuneController::class, 'update']
-        )->name('communes.update');
-
-        Route::delete(
-            '/communes/{commune}',
-            [CommuneController::class, 'destroy']
-        )->name('communes.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CANTONS
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/cantons',
-            [CantonController::class, 'index']
-        )->name('cantons.index');
-
-        Route::get(
-            '/cantons/create',
-            [CantonController::class, 'create']
-        )->name('cantons.create');
-
-        Route::post(
-            '/cantons',
-            [CantonController::class, 'store']
-        )->name('cantons.store');
-
-        Route::get(
-            '/cantons/{canton}',
-            [CantonController::class, 'show']
-        )->name('cantons.show');
-
-        Route::get(
-            '/cantons/{canton}/edit',
-            [CantonController::class, 'edit']
-        )->name('cantons.edit');
-
-        Route::put(
-            '/cantons/{canton}',
-            [CantonController::class, 'update']
-        )->name('cantons.update');
-
-        Route::delete(
-            '/cantons/{canton}',
-            [CantonController::class, 'destroy']
-        )->name('cantons.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | VILLAGES
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/villages',
-            [VillageController::class, 'index']
-        )->name('villages.index');
-
-        Route::get(
-            '/villages/create',
-            [VillageController::class, 'create']
-        )->name('villages.create');
-
-        Route::post(
-            '/villages',
-            [VillageController::class, 'store']
-        )->name('villages.store');
-
-        Route::get(
-            '/villages/{village}',
-            [VillageController::class, 'show']
-        )->name('villages.show');
-
-        Route::get(
-            '/villages/{village}/edit',
-            [VillageController::class, 'edit']
-        )->name('villages.edit');
-
-        Route::put(
-            '/villages/{village}',
-            [VillageController::class, 'update']
-        )->name('villages.update');
-
-        Route::delete(
-            '/villages/{village}',
-            [VillageController::class, 'destroy']
-        )->name('villages.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CAMPAGNES DE RECENSEMENT
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/campagnes',
-            [CampagneRecensementController::class, 'index']
-        )->name('campagnes.index');
-
-        Route::get(
-            '/campagnes/create',
-            [CampagneRecensementController::class, 'create']
-        )->name('campagnes.create');
-
-        Route::post(
-            '/campagnes',
-            [CampagneRecensementController::class, 'store']
-        )->name('campagnes.store');
-
-        Route::get(
-            '/campagnes/{campagne}',
-            [CampagneRecensementController::class, 'show']
-        )->name('campagnes.show');
-
-        Route::get(
-            '/campagnes/{campagne}/edit',
-            [CampagneRecensementController::class, 'edit']
-        )->name('campagnes.edit');
-
-        Route::put(
-            '/campagnes/{campagne}',
-            [CampagneRecensementController::class, 'update']
-        )->name('campagnes.update');
-
-        Route::delete(
-            '/campagnes/{campagne}',
-            [CampagneRecensementController::class, 'destroy']
-        )->name('campagnes.destroy');
-
-        Route::patch(
-            '/campagnes/{campagne}/activate',
-            [CampagneRecensementController::class, 'activate']
-        )->name('campagnes.activate');
-
-        Route::patch(
-            '/campagnes/{campagne}/close',
-            [CampagneRecensementController::class, 'close']
-        )->name('campagnes.close');
-
-        Route::patch(
-            '/campagnes/{campagne}/archive',
-            [CampagneRecensementController::class, 'archive']
-        )->name('campagnes.archive');
-
-        Route::post(
-            '/campagnes/{campagne}/deploy',
-            [CampagneRecensementController::class, 'deploy']
-        )->name('campagnes.deploy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | AFFECTATIONS
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/affectations',
-            [AffectationController::class, 'index']
-        )->name('affectations.index');
-
-        Route::get(
-            '/affectations/create',
-            [AffectationController::class, 'create']
-        )->name('affectations.create');
-
-        Route::post(
-            '/affectations',
-            [AffectationController::class, 'store']
-        )->name('affectations.store');
-
-        Route::get(
-            '/affectations/{affectation}',
-            [AffectationController::class, 'show']
-        )->name('affectations.show');
-
-        Route::get(
-            '/affectations/{affectation}/edit',
-            [AffectationController::class, 'edit']
-        )->name('affectations.edit');
-
-        Route::put(
-            '/affectations/{affectation}',
-            [AffectationController::class, 'update']
-        )->name('affectations.update');
-
-        Route::delete(
-            '/affectations/{affectation}',
-            [AffectationController::class, 'destroy']
-        )->name('affectations.destroy');
-    });
+Route::middleware(['auth'])->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | UTILISATEURS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/users',
+        [UserController::class, 'index']
+    )->name('users.index');
+
+    Route::get(
+        '/users/create',
+        [UserController::class, 'create']
+    )->name('users.create');
+
+    Route::post(
+        '/users',
+        [UserController::class, 'store']
+    )->name('users.store');
+
+    Route::get(
+        '/users/{user}',
+        [UserController::class, 'show']
+    )->name('users.show');
+
+    Route::get(
+        '/users/{user}/edit',
+        [UserController::class, 'edit']
+    )->name('users.edit');
+
+    Route::put(
+        '/users/{user}',
+        [UserController::class, 'update']
+    )->name('users.update');
+
+    Route::delete(
+        '/users/{user}',
+        [UserController::class, 'destroy']
+    )->name('users.destroy');
+
+    Route::patch(
+        '/users/{user}/toggle-status',
+        [UserController::class, 'toggleStatus']
+    )->name('users.toggle-status');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | AGENTS RECENSEURS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/agents-recenseurs',
+        [UserController::class, 'agents']
+    )->name('agents-recenseurs.index');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RATTACHEMENT À UNE PRÉFECTURE
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post(
+        '/users/{user}/rattacher-prefecture',
+        [UserController::class, 'rattacherPrefecture']
+    )->name('users.rattacher-prefecture');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RÉGIONS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/regions',
+        [RegionController::class, 'index']
+    )->name('regions.index');
+
+    Route::get(
+        '/regions/create',
+        [RegionController::class, 'create']
+    )->name('regions.create');
+
+    Route::post(
+        '/regions',
+        [RegionController::class, 'store']
+    )->name('regions.store');
+
+    Route::get(
+        '/regions/{region}',
+        [RegionController::class, 'show']
+    )->name('regions.show');
+
+    Route::get(
+        '/regions/{region}/edit',
+        [RegionController::class, 'edit']
+    )->name('regions.edit');
+
+    Route::put(
+        '/regions/{region}',
+        [RegionController::class, 'update']
+    )->name('regions.update');
+
+    Route::delete(
+        '/regions/{region}',
+        [RegionController::class, 'destroy']
+    )->name('regions.destroy');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PRÉFECTURES
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/prefectures',
+        [PrefectureController::class, 'index']
+    )->name('prefectures.index');
+
+    Route::get(
+        '/prefectures/create',
+        [PrefectureController::class, 'create']
+    )->name('prefectures.create');
+
+    Route::post(
+        '/prefectures',
+        [PrefectureController::class, 'store']
+    )->name('prefectures.store');
+
+    Route::get(
+        '/prefectures/{prefecture}',
+        [PrefectureController::class, 'show']
+    )->name('prefectures.show');
+
+    Route::get(
+        '/prefectures/{prefecture}/edit',
+        [PrefectureController::class, 'edit']
+    )->name('prefectures.edit');
+
+    Route::put(
+        '/prefectures/{prefecture}',
+        [PrefectureController::class, 'update']
+    )->name('prefectures.update');
+
+    Route::delete(
+        '/prefectures/{prefecture}',
+        [PrefectureController::class, 'destroy']
+    )->name('prefectures.destroy');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | COMMUNES
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/communes',
+        [CommuneController::class, 'index']
+    )->name('communes.index');
+
+    Route::get(
+        '/communes/create',
+        [CommuneController::class, 'create']
+    )->name('communes.create');
+
+    Route::post(
+        '/communes',
+        [CommuneController::class, 'store']
+    )->name('communes.store');
+
+    Route::get(
+        '/communes/{commune}',
+        [CommuneController::class, 'show']
+    )->name('communes.show');
+
+    Route::get(
+        '/communes/{commune}/edit',
+        [CommuneController::class, 'edit']
+    )->name('communes.edit');
+
+    Route::put(
+        '/communes/{commune}',
+        [CommuneController::class, 'update']
+    )->name('communes.update');
+
+    Route::delete(
+        '/communes/{commune}',
+        [CommuneController::class, 'destroy']
+    )->name('communes.destroy');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CANTONS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/cantons',
+        [CantonController::class, 'index']
+    )->name('cantons.index');
+
+    Route::get(
+        '/cantons/create',
+        [CantonController::class, 'create']
+    )->name('cantons.create');
+
+    Route::post(
+        '/cantons',
+        [CantonController::class, 'store']
+    )->name('cantons.store');
+
+    Route::get(
+        '/cantons/{canton}',
+        [CantonController::class, 'show']
+    )->name('cantons.show');
+
+    Route::get(
+        '/cantons/{canton}/edit',
+        [CantonController::class, 'edit']
+    )->name('cantons.edit');
+
+    Route::put(
+        '/cantons/{canton}',
+        [CantonController::class, 'update']
+    )->name('cantons.update');
+
+    Route::delete(
+        '/cantons/{canton}',
+        [CantonController::class, 'destroy']
+    )->name('cantons.destroy');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | VILLAGES
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/villages',
+        [VillageController::class, 'index']
+    )->name('villages.index');
+
+    Route::get(
+        '/villages/create',
+        [VillageController::class, 'create']
+    )->name('villages.create');
+
+    Route::post(
+        '/villages',
+        [VillageController::class, 'store']
+    )->name('villages.store');
+
+    Route::get(
+        '/villages/{village}',
+        [VillageController::class, 'show']
+    )->name('villages.show');
+
+    Route::get(
+        '/villages/{village}/edit',
+        [VillageController::class, 'edit']
+    )->name('villages.edit');
+
+    Route::put(
+        '/villages/{village}',
+        [VillageController::class, 'update']
+    )->name('villages.update');
+
+    Route::delete(
+        '/villages/{village}',
+        [VillageController::class, 'destroy']
+    )->name('villages.destroy');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CAMPAGNES DE RECENSEMENT
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/campagnes',
+        [CampagneRecensementController::class, 'index']
+    )->name('campagnes.index');
+
+    Route::get(
+        '/campagnes/create',
+        [CampagneRecensementController::class, 'create']
+    )->name('campagnes.create');
+
+    Route::post(
+        '/campagnes',
+        [CampagneRecensementController::class, 'store']
+    )->name('campagnes.store');
+
+    Route::get(
+        '/campagnes/{campagne}',
+        [CampagneRecensementController::class, 'show']
+    )->name('campagnes.show');
+
+    Route::get(
+        '/campagnes/{campagne}/edit',
+        [CampagneRecensementController::class, 'edit']
+    )->name('campagnes.edit');
+
+    Route::put(
+        '/campagnes/{campagne}',
+        [CampagneRecensementController::class, 'update']
+    )->name('campagnes.update');
+
+    Route::delete(
+        '/campagnes/{campagne}',
+        [CampagneRecensementController::class, 'destroy']
+    )->name('campagnes.destroy');
+
+    Route::patch(
+        '/campagnes/{campagne}/activate',
+        [CampagneRecensementController::class, 'activate']
+    )->name('campagnes.activate');
+
+    Route::patch(
+        '/campagnes/{campagne}/close',
+        [CampagneRecensementController::class, 'close']
+    )->name('campagnes.close');
+
+    Route::patch(
+        '/campagnes/{campagne}/archive',
+        [CampagneRecensementController::class, 'archive']
+    )->name('campagnes.archive');
+
+    Route::post(
+        '/campagnes/{campagne}/deploy',
+        [CampagneRecensementController::class, 'deploy']
+    )->name('campagnes.deploy');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | AFFECTATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/affectations',
+        [AffectationController::class, 'index']
+    )->name('affectations.index');
+
+    Route::get(
+        '/affectations/create',
+        [AffectationController::class, 'create']
+    )->name('affectations.create');
+
+    Route::post(
+        '/affectations',
+        [AffectationController::class, 'store']
+    )->name('affectations.store');
+
+    Route::get(
+        '/affectations/{affectation}',
+        [AffectationController::class, 'show']
+    )->name('affectations.show');
+
+    Route::get(
+        '/affectations/{affectation}/edit',
+        [AffectationController::class, 'edit']
+    )->name('affectations.edit');
+
+    Route::put(
+        '/affectations/{affectation}',
+        [AffectationController::class, 'update']
+    )->name('affectations.update');
+
+    Route::delete(
+        '/affectations/{affectation}',
+        [AffectationController::class, 'destroy']
+    )->name('affectations.destroy');
+});
 
 
 /*
@@ -536,7 +549,6 @@ Route::middleware(['auth'])
 
 Route::middleware(['auth'])
     ->prefix('dpa')
-    ->name('dpa.')
     ->group(function () {
 
         /*
@@ -545,13 +557,43 @@ Route::middleware(['auth'])
         |--------------------------------------------------------------------------
         */
 
-        Route::resource(
-            'agents',
-            DpaAgentController::class
-        );
+        Route::get(
+            '/agents',
+            [DpaAgentController::class, 'index']
+        )->name('agents.index');
+
+        Route::get(
+            '/agents/create',
+            [DpaAgentController::class, 'create']
+        )->name('agents.create');
+
+        Route::post(
+            '/agents',
+            [DpaAgentController::class, 'store']
+        )->name('agents.store');
+
+        Route::get(
+            '/agents/{user}',
+            [DpaAgentController::class, 'show']
+        )->name('agents.show');
+
+        Route::get(
+            '/agents/{user}/edit',
+            [DpaAgentController::class, 'edit']
+        )->name('agents.edit');
+
+        Route::put(
+            '/agents/{user}',
+            [DpaAgentController::class, 'update']
+        )->name('agents.update');
+
+        Route::delete(
+            '/agents/{user}',
+            [DpaAgentController::class, 'destroy']
+        )->name('agents.destroy');
 
         Route::patch(
-            'agents/{user}/toggle-status',
+            '/agents/{user}/toggle-status',
             [DpaAgentController::class, 'toggleStatus']
         )->name('agents.toggle-status');
 
@@ -605,59 +647,59 @@ Route::middleware(['auth'])
 
         /*
         |--------------------------------------------------------------------------
-        | AFFECTATIONS
+        | AFFECTATIONS DES ÉQUIPES
         |--------------------------------------------------------------------------
         */
 
         Route::get(
             '/affectations',
             [AffectationController::class, 'index']
-        )->name('affectations.index');
+        )->name('affectations-dpa.index');
 
         Route::get(
             '/equipes/{equipe}/affectations',
             [AffectationController::class, 'index']
-        )->name('equipes.affectations.index');
+        )->name('equipe-affectations.index');
 
         Route::get(
             '/equipes/{equipe}/affectations/create',
             [AffectationController::class, 'create']
-        )->name('equipes.affectations.create');
+        )->name('equipe-affectations.create');
 
         Route::post(
             '/equipes/{equipe}/affectations',
             [AffectationController::class, 'store']
-        )->name('equipes.affectations.store');
+        )->name('equipe-affectations.store');
 
         Route::get(
             '/equipes/{equipe}/affectations/{affectation}/edit',
             [AffectationController::class, 'edit']
-        )->name('equipes.affectations.edit');
+        )->name('equipe-affectations.edit');
 
         Route::put(
             '/equipes/{equipe}/affectations/{affectation}',
             [AffectationController::class, 'update']
-        )->name('equipes.affectations.update');
+        )->name('equipe-affectations.update');
 
         Route::patch(
             '/equipes/{equipe}/affectations/{affectation}/desactiver',
             [AffectationController::class, 'desactiver']
-        )->name('equipes.affectations.desactiver');
+        )->name('equipe-affectations.desactiver');
 
         Route::get(
             '/affectations/{affectation}',
             [AffectationController::class, 'show']
-        )->name('affectations.show');
+        )->name('affectations-dpa.show');
 
         Route::delete(
             '/affectations/{affectation}',
             [AffectationController::class, 'destroy']
-        )->name('affectations.destroy');
+        )->name('affectations-dpa.destroy');
 
         Route::patch(
             '/affectations/{affectation}/reactiver',
             [AffectationController::class, 'reactiver']
-        )->name('affectations.reactiver');
+        )->name('affectations-dpa.reactiver');
 
 
         /*
@@ -669,7 +711,7 @@ Route::middleware(['auth'])
         Route::get(
             '/campagnes',
             [DpaCampagneController::class, 'index']
-        )->name('campagnes.index');
+        )->name('campagnes-deployees.index');
 
         Route::get(
             '/campagnes/planifications',
@@ -679,12 +721,12 @@ Route::middleware(['auth'])
         Route::get(
             '/campagnes/{deploiement}',
             [DpaCampagneController::class, 'show']
-        )->name('campagnes.show');
+        )->name('campagnes-deployees.show');
 
         Route::patch(
             '/campagnes/{deploiement}/receive',
             [DpaCampagneController::class, 'receive']
-        )->name('campagnes.receive');
+        )->name('campagnes-deployees.receive');
 
 
         /*
@@ -733,33 +775,32 @@ Route::middleware(['auth'])
 
 Route::middleware(['auth'])
     ->prefix('campagnes/{campagne}/planification')
-    ->name('campagnes.planification.')
     ->group(function () {
 
         Route::get(
             '/create',
             [CampagnePlanificationController::class, 'create']
-        )->name('create');
+        )->name('planification.create');
 
         Route::post(
             '/',
             [CampagnePlanificationController::class, 'store']
-        )->name('store');
+        )->name('planification.store');
 
         Route::get(
             '/',
             [CampagnePlanificationController::class, 'show']
-        )->name('show');
+        )->name('planification.show');
 
         Route::get(
             '/edit',
             [CampagnePlanificationController::class, 'edit']
-        )->name('edit');
+        )->name('planification.edit');
 
         Route::put(
             '/',
             [CampagnePlanificationController::class, 'update']
-        )->name('update');
+        )->name('planification.update');
     });
 
 
@@ -771,7 +812,6 @@ Route::middleware(['auth'])
 
 Route::middleware(['auth'])
     ->prefix('superviseur')
-    ->name('superviseur.')
     ->group(function () {
 
         /*
@@ -783,12 +823,12 @@ Route::middleware(['auth'])
         Route::get(
             '/mes-equipes',
             [EquipeController::class, 'mesEquipes']
-        )->name('equipes.index');
+        )->name('mes-equipes.index');
 
         Route::get(
             '/mes-equipes/{equipe:reference}',
             [EquipeController::class, 'showSuperviseur']
-        )->name('equipes.show');
+        )->name('mes-equipes.show');
 
 
         /*
@@ -800,12 +840,12 @@ Route::middleware(['auth'])
         Route::get(
             '/mes-zones',
             [AffectationController::class, 'mesZonesSupervision']
-        )->name('zones.index');
+        )->name('mes-zones.index');
 
         Route::get(
             '/mes-zones/{affectation:reference}',
             [AffectationController::class, 'zoneSupervision']
-        )->name('zones.show');
+        )->name('mes-zones.show');
 
 
         /*
@@ -860,7 +900,6 @@ Route::middleware(['auth'])
 
 Route::middleware(['auth'])
     ->prefix('agent')
-    ->name('agent.')
     ->group(function () {
 
         /*
@@ -872,12 +911,12 @@ Route::middleware(['auth'])
         Route::get(
             '/mes-affectations',
             [AffectationController::class, 'mesAffectations']
-        )->name('affectations');
+        )->name('mes-affectations.index');
 
         Route::get(
             '/mes-affectations/{affectation}',
             [AffectationController::class, 'detailAgent']
-        )->name('affectations.show');
+        )->name('mes-affectations.show');
 
 
         /*
@@ -899,7 +938,7 @@ Route::middleware(['auth'])
 
         /*
         |--------------------------------------------------------------------------
-        | COMMENCER UN RECENSEMENT SUR UNE MAISON EXISTANTE
+        | COMMENCER UN RECENSEMENT SUR UNE MAISON
         |--------------------------------------------------------------------------
         */
 
@@ -924,6 +963,159 @@ Route::middleware(['auth'])
             '/mes-recensements/{recensement}/terminer',
             [RecensementController::class, 'terminer']
         )->name('recensements.terminer');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | MÉNAGES — RECENSEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages',
+            [MenageController::class, 'index']
+        )->name('menages.index');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/create',
+            [MenageController::class, 'create']
+        )->name('menages.create');
+
+        Route::post(
+            '/mes-recensements/{recensement}/menages',
+            [MenageController::class, 'store']
+        )->name('menages.store');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/edit',
+            [MenageController::class, 'edit']
+        )->name('menages.edit');
+
+        Route::put(
+            '/mes-recensements/{recensement}/menages/{menage}',
+            [MenageController::class, 'update']
+        )->name('menages.update');
+
+        Route::delete(
+            '/mes-recensements/{recensement}/menages/{menage}',
+            [MenageController::class, 'destroy']
+        )->name('menages.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXPLOITANTS
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants',
+            [ExploitantController::class, 'index']
+        )->name('exploitants.index');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/create',
+            [ExploitantController::class, 'create']
+        )->name('exploitants.create');
+
+        Route::post(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants',
+            [ExploitantController::class, 'store']
+        )->name('exploitants.store');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/edit',
+            [ExploitantController::class, 'edit']
+        )->name('exploitants.edit');
+
+        Route::put(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}',
+            [ExploitantController::class, 'update']
+        )->name('exploitants.update');
+
+        Route::delete(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}',
+            [ExploitantController::class, 'destroy']
+        )->name('exploitants.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXPLOITATIONS
+        |--------------------------------------------------------------------------
+        |
+        | Une exploitation appartient à un exploitant.
+        | Les paramètres recensement + menage + exploitant
+        | restent dans l'URL pour respecter le parcours actuel.
+        |
+        */
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
+            [ExploitationController::class, 'index']
+        )->name('exploitations.index');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation/create',
+            [ExploitationController::class, 'create']
+        )->name('exploitations.create');
+
+        Route::post(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
+            [ExploitationController::class, 'store']
+        )->name('exploitations.store');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation/edit',
+            [ExploitationController::class, 'edit']
+        )->name('exploitations.edit');
+
+        Route::put(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
+            [ExploitationController::class, 'update']
+        )->name('exploitations.update');
+
+        Route::delete(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
+            [ExploitationController::class, 'destroy']
+        )->name('exploitations.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PARCELLES
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles',
+            [ParcelleController::class, 'index']
+        )->name('parcelles.index');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/create',
+            [ParcelleController::class, 'create']
+        )->name('parcelles.create');
+
+        Route::post(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles',
+            [ParcelleController::class, 'store']
+        )->name('parcelles.store');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/{parcelle}/edit',
+            [ParcelleController::class, 'edit']
+        )->name('parcelles.edit');
+
+        Route::put(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/{parcelle}',
+            [ParcelleController::class, 'update']
+        )->name('parcelles.update');
+
+        Route::delete(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/{parcelle}',
+            [ParcelleController::class, 'destroy']
+        )->name('parcelles.destroy');
     });
 
 
@@ -934,10 +1126,6 @@ Route::middleware(['auth'])
 |
 | Une Maison est permanente.
 | Le Recensement est lié à une campagne.
-|
-| Pour l'agent, l'affectation est transmise avec :
-|
-| ?affectation_id=...
 |
 */
 
@@ -985,7 +1173,8 @@ Route::middleware(['auth'])->group(function () {
 | MÉNAGES — RÉFÉRENTIEL EXISTANT
 |--------------------------------------------------------------------------
 |
-| Ces routes sont conservées pour ne pas casser le module existant.
+| Ces routes sont conservées pour ne pas casser
+| le module permanent/existant.
 |
 */
 
@@ -1030,203 +1219,9 @@ Route::middleware(['auth'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| MÉNAGES — AGENT / RECENSEMENT
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['auth'])->group(function () {
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages',
-        [MenageController::class, 'index']
-    )->name('agent.recensements.menages.index');
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/create',
-        [MenageController::class, 'create']
-    )->name('agent.recensements.menages.create');
-
-    Route::post(
-        '/agent/mes-recensements/{recensement}/menages',
-        [MenageController::class, 'store']
-    )->name('agent.recensements.menages.store');
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/edit',
-        [MenageController::class, 'edit']
-    )->name('agent.recensements.menages.edit');
-
-    Route::put(
-        '/agent/mes-recensements/{recensement}/menages/{menage}',
-        [MenageController::class, 'update']
-    )->name('agent.recensements.menages.update');
-
-    Route::delete(
-        '/agent/mes-recensements/{recensement}/menages/{menage}',
-        [MenageController::class, 'destroy']
-    )->name('agent.recensements.menages.destroy');
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| EXPLOITANTS — AGENT
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['auth'])->group(function () {
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants',
-        [ExploitantController::class, 'index']
-    )->name('agent.recensements.menages.exploitants.index');
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/create',
-        [ExploitantController::class, 'create']
-    )->name('agent.recensements.menages.exploitants.create');
-
-    Route::post(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants',
-        [ExploitantController::class, 'store']
-    )->name('agent.recensements.menages.exploitants.store');
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/edit',
-        [ExploitantController::class, 'edit']
-    )->name('agent.recensements.menages.exploitants.edit');
-
-    Route::put(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}',
-        [ExploitantController::class, 'update']
-    )->name('agent.recensements.menages.exploitants.update');
-
-    Route::delete(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}',
-        [ExploitantController::class, 'destroy']
-    )->name('agent.recensements.menages.exploitants.destroy');
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| EXPLOITATIONS — AGENT
-|--------------------------------------------------------------------------
-|
-| Exploitation liée à un exploitant.
-|
-*/
-
-Route::middleware(['auth'])->group(function () {
-
-    /*
-    |----------------------------------------------------------------------
-    | Parcours principal depuis le recensement
-    |----------------------------------------------------------------------
-    */
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation/create',
-        [ExploitationController::class, 'create']
-    )->name('agent.recensements.menages.exploitants.exploitation.create');
-
-    Route::post(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
-        [ExploitationController::class, 'store']
-    )->name('agent.recensements.menages.exploitants.exploitation.store');
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation/edit',
-        [ExploitationController::class, 'edit']
-    )->name('agent.recensements.menages.exploitants.exploitation.edit');
-
-    Route::put(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
-        [ExploitationController::class, 'update']
-    )->name('agent.recensements.menages.exploitants.exploitation.update');
-
-
-    /*
-    |----------------------------------------------------------------------
-    | Routes secondaires conservées
-    |----------------------------------------------------------------------
-    */
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
-        [ExploitationController::class, 'index']
-    )->name('agent.exploitations.index');
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation/create',
-        [ExploitationController::class, 'create']
-    )->name('agent.exploitations.create');
-
-    Route::post(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
-        [ExploitationController::class, 'store']
-    )->name('agent.exploitations.store');
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation/edit',
-        [ExploitationController::class, 'edit']
-    )->name('agent.exploitations.edit');
-
-    Route::put(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
-        [ExploitationController::class, 'update']
-    )->name('agent.exploitations.update');
-
-    Route::delete(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
-        [ExploitationController::class, 'destroy']
-    )->name('agent.exploitations.destroy');
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| PARCELLES — AGENT
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['auth'])->group(function () {
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles',
-        [ParcelleController::class, 'index']
-    )->name('agent.parcelles.index');
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/create',
-        [ParcelleController::class, 'create']
-    )->name('agent.parcelles.create');
-
-    Route::post(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles',
-        [ParcelleController::class, 'store']
-    )->name('agent.parcelles.store');
-
-    Route::get(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/{parcelle}/edit',
-        [ParcelleController::class, 'edit']
-    )->name('agent.parcelles.edit');
-
-    Route::put(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/{parcelle}',
-        [ParcelleController::class, 'update']
-    )->name('agent.parcelles.update');
-
-    Route::delete(
-        '/agent/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/{parcelle}',
-        [ParcelleController::class, 'destroy']
-    )->name('agent.parcelles.destroy');
-});
-
-
-/*
-|--------------------------------------------------------------------------
 | AUTHENTIFICATION BREEZE
 |--------------------------------------------------------------------------
 */
 
 require __DIR__.'/auth.php';
+

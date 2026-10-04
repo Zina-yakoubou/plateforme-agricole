@@ -15,7 +15,7 @@
             <div class="mb-2 flex items-center gap-2 text-sm text-gray-500">
 
                 <a
-                    href="{{ route('dpa.equipes.index') }}"
+                    href="{{ route('equipes.index') }}"
                     class="transition hover:text-[#006a4f]"
                 >
                     Équipes
@@ -102,7 +102,7 @@
         <div class="flex items-center gap-2">
 
             <a
-                href="{{ route('dpa.equipes.index') }}"
+                href="{{ route('equipes.index') }}"
                 class="inline-flex items-center gap-2
                        rounded-lg border border-[#e5e7eb]
                        bg-white px-4 py-2.5
@@ -132,7 +132,7 @@
             @if($equipe->statut === 'ACTIVE')
 
                 <a
-                    href="{{ route('dpa.equipes.edit', $equipe) }}"
+                    href="{{ route('equipes.edit', $equipe) }}"
                     class="inline-flex items-center gap-2
                            rounded-lg bg-[#006a4f]
                            px-4 py-2.5

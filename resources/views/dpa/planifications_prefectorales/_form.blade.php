@@ -519,7 +519,7 @@
     <div class="mt-8 flex justify-end gap-3">
 
         <a
-            href="{{ route('dpa.planifications-prefectorales.index') }}"
+            href="{{ route('planifications-prefectorales.index') }}"
             class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
         >
             Annuler

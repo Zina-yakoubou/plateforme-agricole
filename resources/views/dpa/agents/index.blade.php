@@ -31,7 +31,7 @@
             @if(auth()->user()->isDPA())
 
                 <a
-                    href="{{ route('dpa.agents.create') }}"
+                    href="{{ route('agents.create') }}"
                     class="inline-flex
                            items-center
                            gap-2
@@ -155,7 +155,7 @@
 
         <form
             method="GET"
-            action="{{ route('dpa.agents.index') }}"
+            action="{{ route('agents.index') }}"
         >
 
             <div class="flex flex-col gap-3 lg:flex-row">
@@ -720,7 +720,7 @@
                                     ================================================== --}}
 
                                     <a
-                                        href="{{ route('dpa.agents.show', $agent) }}"
+                                        href="{{ route('agents.show', $agent) }}"
                                         title="Voir le profil"
                                         class="inline-flex
                                                h-9 w-9
@@ -789,7 +789,7 @@
                                     )
 
                                         <a
-                                            href="{{ route('dpa.agents.edit', $agent) }}"
+                                            href="{{ route('agents.edit', $agent) }}"
                                             title="Modifier"
                                             class="inline-flex
                                                    h-9 w-9
@@ -839,7 +839,7 @@
 
                                         <form
                                             method="POST"
-                                            action="{{ route('dpa.agents.toggle-status', $agent) }}"
+                                            action="{{ route('agents.toggle-status', $agent) }}"
                                             class="inline"
                                         >
 

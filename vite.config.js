@@ -3,12 +3,11 @@ import laravel from 'laravel-vite-plugin';
 
 export default defineConfig({
     server: {
-        host: '0.0.0.0',
+        host: true, // Écoute sur toutes les adresses locales (0.0.0.0)
         port: 5173,
         strictPort: true,
         hmr: {
-            host: '192.168.1.80',
-            port: 5173,
+            host: 'localhost',
         },
     },
 

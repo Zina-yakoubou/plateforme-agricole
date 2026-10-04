@@ -305,8 +305,7 @@
                                 <div class="flex items-center justify-end gap-2">
 
                                     <a
-                                        href="{{ route('dpa.planifications-prefectorales.show', $planification->idPlanificationPrefectorale) }}"
-                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+href="{{ route('planifications-prefectorales.show', $planification->idPlanificationPrefectorale) }}"                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                     >
 
                                         <svg
@@ -336,8 +335,7 @@
 
 
                                     <a
-                                        href="{{ route('dpa.planifications-prefectorales.edit', $planification->idPlanificationPrefectorale) }}"
-                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                                        href="{{ route('planifications-prefectorales.edit', $planification->idPlanificationPrefectorale) }}"                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                     >
 
                                         <svg

@@ -4,13 +4,26 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Controllers
+| CONTROLLERS
+|--------------------------------------------------------------------------
+*/
+
+/*
+|--------------------------------------------------------------------------
+| GÉNÉRAL
 |--------------------------------------------------------------------------
 */
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\StatistiqueController;
+
+/*
+|--------------------------------------------------------------------------
+| RÉFÉRENTIEL GÉOGRAPHIQUE
+|--------------------------------------------------------------------------
+*/
 
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\PrefectureController;
@@ -18,18 +31,50 @@ use App\Http\Controllers\CommuneController;
 use App\Http\Controllers\CantonController;
 use App\Http\Controllers\VillageController;
 
+/*
+|--------------------------------------------------------------------------
+| CAMPAGNES
+|--------------------------------------------------------------------------
+*/
+
 use App\Http\Controllers\CampagneRecensementController;
 use App\Http\Controllers\CampagnePlanificationController;
 use App\Http\Controllers\DpaCampagneController;
 
+/*
+|--------------------------------------------------------------------------
+| AFFECTATIONS
+|--------------------------------------------------------------------------
+*/
+
 use App\Http\Controllers\AffectationController;
+
+/*
+|--------------------------------------------------------------------------
+| RÉFÉRENTIEL PERMANENT
+|--------------------------------------------------------------------------
+*/
 
 use App\Http\Controllers\MaisonController;
 use App\Http\Controllers\MenageController;
+use App\Http\Controllers\ExploitationController;
+use App\Http\Controllers\ExploitantController;
+use App\Http\Controllers\ParcelleController;
 
-use App\Http\Controllers\StatistiqueController;
+/*
+|--------------------------------------------------------------------------
+| SUPERVISION / RECENSEMENT
+|--------------------------------------------------------------------------
+*/
+
 use App\Http\Controllers\SuperviseurController;
 use App\Http\Controllers\RecensementController;
+
+/*
+|--------------------------------------------------------------------------
+| DPA
+|--------------------------------------------------------------------------
+*/
 
 use App\Http\Controllers\Dpa\PlanificationPrefectoraleController;
 use App\Http\Controllers\Dpa\EquipeController;
@@ -38,7 +83,7 @@ use App\Http\Controllers\Dpa\DpaAgentController;
 
 /*
 |--------------------------------------------------------------------------
-| ACCUEIL
+| ACCUEIL PUBLIC
 |--------------------------------------------------------------------------
 */
 
@@ -49,7 +94,7 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| ROUTES AUTHENTIFIÉES
+| ROUTES AUTHENTIFIÉES COMMUNES
 |--------------------------------------------------------------------------
 */
 
@@ -99,7 +144,16 @@ Route::middleware(['auth'])->group(function () {
         '/statistiques',
         [StatistiqueController::class, 'index']
     )->name('statistiques.index');
+});
 
+
+/*
+|--------------------------------------------------------------------------
+| ADMINISTRATEUR
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
@@ -147,10 +201,24 @@ Route::middleware(['auth'])->group(function () {
         [UserController::class, 'toggleStatus']
     )->name('users.toggle-status');
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | AGENTS RECENSEURS
+    |--------------------------------------------------------------------------
+    */
+
     Route::get(
         '/agents-recenseurs',
         [UserController::class, 'agents']
-    )->name('agents.index');
+    )->name('agents-recenseurs.index');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RATTACHEMENT À UNE PRÉFECTURE
+    |--------------------------------------------------------------------------
+    */
 
     Route::post(
         '/users/{user}/rattacher-prefecture',
@@ -370,7 +438,7 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | CAMPAGNES DE RECENSEMENT — ADMINISTRATION
+    | CAMPAGNES DE RECENSEMENT
     |--------------------------------------------------------------------------
     */
 
@@ -432,7 +500,7 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | AFFECTATIONS — ADMINISTRATION
+    | AFFECTATIONS
     |--------------------------------------------------------------------------
     */
 
@@ -470,95 +538,6 @@ Route::middleware(['auth'])->group(function () {
         '/affectations/{affectation}',
         [AffectationController::class, 'destroy']
     )->name('affectations.destroy');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | MAISONS — RÉFÉRENTIEL PERMANENT
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get(
-        '/villages/{village}/maisons',
-        [MaisonController::class, 'index']
-    )->name('villages.maisons.index');
-
-    Route::get(
-        '/villages/{village}/maisons/create',
-        [MaisonController::class, 'create']
-    )->name('villages.maisons.create');
-
-    Route::post(
-        '/villages/{village}/maisons',
-        [MaisonController::class, 'store']
-    )->name('villages.maisons.store');
-
-    Route::get(
-        '/maisons/{maison}',
-        [MaisonController::class, 'show']
-    )->name('maisons.show');
-
-    Route::get(
-        '/maisons/{maison}/edit',
-        [MaisonController::class, 'edit']
-    )->name('maisons.edit');
-
-    Route::put(
-        '/maisons/{maison}',
-        [MaisonController::class, 'update']
-    )->name('maisons.update');
-
-    Route::delete(
-        '/maisons/{maison}',
-        [MaisonController::class, 'destroy']
-    )->name('maisons.destroy');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | MENAGES
-    |--------------------------------------------------------------------------
-    |
-    | Ces routes sont conservées pour ne pas casser le module actuel.
-    | L'évolution Menage → Recensement sera faite séparément.
-    |
-    */
-
-    Route::get(
-        '/maisons/{maison}/menages',
-        [MenageController::class, 'index']
-    )->name('maisons.menages.index');
-
-    Route::get(
-        '/maisons/{maison}/menages/create',
-        [MenageController::class, 'create']
-    )->name('maisons.menages.create');
-
-    Route::post(
-        '/maisons/{maison}/menages',
-        [MenageController::class, 'store']
-    )->name('maisons.menages.store');
-
-    Route::get(
-        '/menages/{menage}',
-        [MenageController::class, 'show']
-    )->name('menages.show');
-
-    Route::get(
-        '/menages/{menage}/edit',
-        [MenageController::class, 'edit']
-    )->name('menages.edit');
-
-    Route::put(
-        '/menages/{menage}',
-        [MenageController::class, 'update']
-    )->name('menages.update');
-
-    Route::delete(
-        '/menages/{menage}',
-        [MenageController::class, 'destroy']
-    )->name('menages.destroy');
-
 });
 
 
@@ -566,30 +545,55 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 | DPA
 |--------------------------------------------------------------------------
-|
-| Tout ce qui concerne le travail du DPA est regroupé ici.
-| Aucun parcours Agent n'est déclaré dans ce groupe.
-|
 */
 
 Route::middleware(['auth'])
     ->prefix('dpa')
-    ->name('dpa.')
     ->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | AGENTS ET SUPERVISEURS
+        | AGENTS
         |--------------------------------------------------------------------------
         */
 
-        Route::resource(
-            'agents',
-            DpaAgentController::class
-        );
+        Route::get(
+            '/agents',
+            [DpaAgentController::class, 'index']
+        )->name('agents.index');
+
+        Route::get(
+            '/agents/create',
+            [DpaAgentController::class, 'create']
+        )->name('agents.create');
+
+        Route::post(
+            '/agents',
+            [DpaAgentController::class, 'store']
+        )->name('agents.store');
+
+        Route::get(
+            '/agents/{user}',
+            [DpaAgentController::class, 'show']
+        )->name('agents.show');
+
+        Route::get(
+            '/agents/{user}/edit',
+            [DpaAgentController::class, 'edit']
+        )->name('agents.edit');
+
+        Route::put(
+            '/agents/{user}',
+            [DpaAgentController::class, 'update']
+        )->name('agents.update');
+
+        Route::delete(
+            '/agents/{user}',
+            [DpaAgentController::class, 'destroy']
+        )->name('agents.destroy');
 
         Route::patch(
-            'agents/{user}/toggle-status',
+            '/agents/{user}/toggle-status',
             [DpaAgentController::class, 'toggleStatus']
         )->name('agents.toggle-status');
 
@@ -650,103 +654,79 @@ Route::middleware(['auth'])
         Route::get(
             '/affectations',
             [AffectationController::class, 'index']
-        )->name('affectations.index');
+        )->name('affectations-dpa.index');
 
         Route::get(
             '/equipes/{equipe}/affectations',
             [AffectationController::class, 'index']
-        )->name('equipes.affectations.index');
+        )->name('equipe-affectations.index');
 
         Route::get(
             '/equipes/{equipe}/affectations/create',
             [AffectationController::class, 'create']
-        )->name('equipes.affectations.create');
+        )->name('equipe-affectations.create');
 
         Route::post(
             '/equipes/{equipe}/affectations',
             [AffectationController::class, 'store']
-        )->name('equipes.affectations.store');
+        )->name('equipe-affectations.store');
 
         Route::get(
             '/equipes/{equipe}/affectations/{affectation}/edit',
             [AffectationController::class, 'edit']
-        )->name('equipes.affectations.edit');
+        )->name('equipe-affectations.edit');
 
         Route::put(
             '/equipes/{equipe}/affectations/{affectation}',
             [AffectationController::class, 'update']
-        )->name('equipes.affectations.update');
+        )->name('equipe-affectations.update');
 
         Route::patch(
             '/equipes/{equipe}/affectations/{affectation}/desactiver',
             [AffectationController::class, 'desactiver']
-        )->name('equipes.affectations.desactiver');
+        )->name('equipe-affectations.desactiver');
 
         Route::get(
             '/affectations/{affectation}',
             [AffectationController::class, 'show']
-        )->name('affectations.show');
+        )->name('affectations-dpa.show');
 
         Route::delete(
             '/affectations/{affectation}',
             [AffectationController::class, 'destroy']
-        )->name('affectations.destroy');
+        )->name('affectations-dpa.destroy');
 
         Route::patch(
             '/affectations/{affectation}/reactiver',
             [AffectationController::class, 'reactiver']
-        )->name('affectations.reactiver');
+        )->name('affectations-dpa.reactiver');
 
 
         /*
         |--------------------------------------------------------------------------
-        | CAMPAGNES DPA
+        | CAMPAGNES DÉPLOYÉES
         |--------------------------------------------------------------------------
         */
 
         Route::get(
             '/campagnes',
             [DpaCampagneController::class, 'index']
-        )->name('campagnes.index');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PLANIFICATIONS PRÉFECTORALES
-        |--------------------------------------------------------------------------
-        |
-        | Cette route doit rester AVANT /campagnes/{deploiement}.
-        |
-        */
+        )->name('campagnes-deployees.index');
 
         Route::get(
             '/campagnes/planifications',
             [PlanificationPrefectoraleController::class, 'index']
         )->name('planifications-prefectorales.index');
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | DÉTAIL D'UN DÉPLOIEMENT
-        |--------------------------------------------------------------------------
-        */
-
         Route::get(
             '/campagnes/{deploiement}',
             [DpaCampagneController::class, 'show']
-        )->name('campagnes.show');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | RÉCEPTION D'UN DÉPLOIEMENT
-        |--------------------------------------------------------------------------
-        */
+        )->name('campagnes-deployees.show');
 
         Route::patch(
             '/campagnes/{deploiement}/receive',
             [DpaCampagneController::class, 'receive']
-        )->name('campagnes.receive');
+        )->name('campagnes-deployees.receive');
 
 
         /*
@@ -795,33 +775,32 @@ Route::middleware(['auth'])
 
 Route::middleware(['auth'])
     ->prefix('campagnes/{campagne}/planification')
-    ->name('campagnes.planification.')
     ->group(function () {
 
         Route::get(
             '/create',
             [CampagnePlanificationController::class, 'create']
-        )->name('create');
+        )->name('planification.create');
 
         Route::post(
             '/',
             [CampagnePlanificationController::class, 'store']
-        )->name('store');
+        )->name('planification.store');
 
         Route::get(
             '/',
             [CampagnePlanificationController::class, 'show']
-        )->name('show');
+        )->name('planification.show');
 
         Route::get(
             '/edit',
             [CampagnePlanificationController::class, 'edit']
-        )->name('edit');
+        )->name('planification.edit');
 
         Route::put(
             '/',
             [CampagnePlanificationController::class, 'update']
-        )->name('update');
+        )->name('planification.update');
     });
 
 
@@ -833,7 +812,6 @@ Route::middleware(['auth'])
 
 Route::middleware(['auth'])
     ->prefix('superviseur')
-    ->name('superviseur.')
     ->group(function () {
 
         /*
@@ -845,12 +823,12 @@ Route::middleware(['auth'])
         Route::get(
             '/mes-equipes',
             [EquipeController::class, 'mesEquipes']
-        )->name('equipes.index');
+        )->name('mes-equipes.index');
 
         Route::get(
             '/mes-equipes/{equipe:reference}',
             [EquipeController::class, 'showSuperviseur']
-        )->name('equipes.show');
+        )->name('mes-equipes.show');
 
 
         /*
@@ -862,12 +840,12 @@ Route::middleware(['auth'])
         Route::get(
             '/mes-zones',
             [AffectationController::class, 'mesZonesSupervision']
-        )->name('zones.index');
+        )->name('mes-zones.index');
 
         Route::get(
             '/mes-zones/{affectation:reference}',
             [AffectationController::class, 'zoneSupervision']
-        )->name('zones.show');
+        )->name('mes-zones.show');
 
 
         /*
@@ -900,91 +878,342 @@ Route::middleware(['auth'])
 | AGENT RECENSEUR
 |--------------------------------------------------------------------------
 |
-| Parcours opérationnel :
+| Parcours :
 |
 | Mes affectations
 |       ↓
-| Zone de collecte
+| Détail de l'affectation
 |       ↓
-| Maisons du village
+| Maisons
 |       ↓
 | Recensement
+|       ↓
+| Ménages
+|       ↓
+| Exploitants
+|       ↓
+| Exploitations
+|       ↓
+| Parcelles
+|
+*/
+
+Route::middleware(['auth'])
+    ->prefix('agent')
+    ->group(function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | MES AFFECTATIONS
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/mes-affectations',
+            [AffectationController::class, 'mesAffectations']
+        )->name('mes-affectations.index');
+
+        Route::get(
+            '/mes-affectations/{affectation}',
+            [AffectationController::class, 'detailAgent']
+        )->name('mes-affectations.show');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | MES RECENSEMENTS
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/mes-recensements',
+            [RecensementController::class, 'index']
+        )->name('recensements.index');
+
+        Route::get(
+            '/mes-recensements/{recensement}',
+            [RecensementController::class, 'show']
+        )->name('recensements.show');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | COMMENCER UN RECENSEMENT SUR UNE MAISON
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post(
+            '/mes-affectations/{affectation}/maisons/{maison}/recensement',
+            [RecensementController::class, 'commencer']
+        )->name('recensements.commencer');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUIVI DU RECENSEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::patch(
+            '/mes-recensements/{recensement}/mettre-en-cours',
+            [RecensementController::class, 'mettreEnCours']
+        )->name('recensements.mettre-en-cours');
+
+        Route::patch(
+            '/mes-recensements/{recensement}/terminer',
+            [RecensementController::class, 'terminer']
+        )->name('recensements.terminer');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | MÉNAGES — RECENSEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages',
+            [MenageController::class, 'index']
+        )->name('menages.index');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/create',
+            [MenageController::class, 'create']
+        )->name('menages.create');
+
+        Route::post(
+            '/mes-recensements/{recensement}/menages',
+            [MenageController::class, 'store']
+        )->name('menages.store');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/edit',
+            [MenageController::class, 'edit']
+        )->name('menages.edit');
+
+        Route::put(
+            '/mes-recensements/{recensement}/menages/{menage}',
+            [MenageController::class, 'update']
+        )->name('menages.update');
+
+        Route::delete(
+            '/mes-recensements/{recensement}/menages/{menage}',
+            [MenageController::class, 'destroy']
+        )->name('menages.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXPLOITANTS
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants',
+            [ExploitantController::class, 'index']
+        )->name('exploitants.index');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/create',
+            [ExploitantController::class, 'create']
+        )->name('exploitants.create');
+
+        Route::post(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants',
+            [ExploitantController::class, 'store']
+        )->name('exploitants.store');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/edit',
+            [ExploitantController::class, 'edit']
+        )->name('exploitants.edit');
+
+        Route::put(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}',
+            [ExploitantController::class, 'update']
+        )->name('exploitants.update');
+
+        Route::delete(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}',
+            [ExploitantController::class, 'destroy']
+        )->name('exploitants.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXPLOITATIONS
+        |--------------------------------------------------------------------------
+        |
+        | Une exploitation appartient à un exploitant.
+        | Les paramètres recensement + menage + exploitant
+        | restent dans l'URL pour respecter le parcours actuel.
+        |
+        */
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
+            [ExploitationController::class, 'index']
+        )->name('exploitations.index');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation/create',
+            [ExploitationController::class, 'create']
+        )->name('exploitations.create');
+
+        Route::post(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
+            [ExploitationController::class, 'store']
+        )->name('exploitations.store');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation/edit',
+            [ExploitationController::class, 'edit']
+        )->name('exploitations.edit');
+
+        Route::put(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
+            [ExploitationController::class, 'update']
+        )->name('exploitations.update');
+
+        Route::delete(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/exploitation',
+            [ExploitationController::class, 'destroy']
+        )->name('exploitations.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PARCELLES
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles',
+            [ParcelleController::class, 'index']
+        )->name('parcelles.index');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/create',
+            [ParcelleController::class, 'create']
+        )->name('parcelles.create');
+
+        Route::post(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles',
+            [ParcelleController::class, 'store']
+        )->name('parcelles.store');
+
+        Route::get(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/{parcelle}/edit',
+            [ParcelleController::class, 'edit']
+        )->name('parcelles.edit');
+
+        Route::put(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/{parcelle}',
+            [ParcelleController::class, 'update']
+        )->name('parcelles.update');
+
+        Route::delete(
+            '/mes-recensements/{recensement}/menages/{menage}/exploitants/{exploitant}/parcelles/{parcelle}',
+            [ParcelleController::class, 'destroy']
+        )->name('parcelles.destroy');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| MAISONS — RÉFÉRENTIEL PERMANENT
+|--------------------------------------------------------------------------
+|
+| Une Maison est permanente.
+| Le Recensement est lié à une campagne.
 |
 */
 
 Route::middleware(['auth'])->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | MES AFFECTATIONS
-    |--------------------------------------------------------------------------
-    */
+    Route::get(
+        '/villages/{village}/maisons',
+        [MaisonController::class, 'index']
+    )->name('villages.maisons.index');
 
     Route::get(
-        '/mes-affectations',
-        [AffectationController::class, 'mesAffectations']
-    )->name('agent.affectations');
-
-    Route::get(
-        '/mes-affectations/{affectation}',
-        [AffectationController::class, 'detailAgent']
-    )->name('agent.affectations.show');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ZONE DE COLLECTE
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get(
-        '/mes-affectations/{affectation}/zone-collecte',
-        [RecensementController::class, 'zoneCollecte']
-    )->name('agent.zone.collecte.show');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | MES RECENSEMENTS
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get(
-        '/mes-recensements',
-        [RecensementController::class, 'index']
-    )->name('agent.recensements.index');
-
-    Route::get(
-        '/mes-recensements/{recensement}',
-        [RecensementController::class, 'show']
-    )->name('agent.recensements.show');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | COMMENCER UN RECENSEMENT
-    |--------------------------------------------------------------------------
-    |
-    | Cas : la Maison existe déjà dans le référentiel permanent.
-    |
-    */
+        '/villages/{village}/maisons/create',
+        [MaisonController::class, 'create']
+    )->name('villages.maisons.create');
 
     Route::post(
-        '/mes-affectations/{affectation}/maisons/{maison}/recensement',
-        [RecensementController::class, 'commencer']
-    )->name('agent.recensements.commencer');
+        '/villages/{village}/maisons',
+        [MaisonController::class, 'store']
+    )->name('villages.maisons.store');
+
+    Route::get(
+        '/maisons/{maison}',
+        [MaisonController::class, 'show']
+    )->name('maisons.show');
+
+    Route::get(
+        '/maisons/{maison}/edit',
+        [MaisonController::class, 'edit']
+    )->name('maisons.edit');
+
+    Route::put(
+        '/maisons/{maison}',
+        [MaisonController::class, 'update']
+    )->name('maisons.update');
+
+    Route::delete(
+        '/maisons/{maison}',
+        [MaisonController::class, 'destroy']
+    )->name('maisons.destroy');
+});
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | NOUVELLE MAISON + PREMIER RECENSEMENT
-    |--------------------------------------------------------------------------
-    |
-    | Cas : la Maison n'existe pas encore.
-    |
-    */
+/*
+|--------------------------------------------------------------------------
+| MÉNAGES — RÉFÉRENTIEL EXISTANT
+|--------------------------------------------------------------------------
+|
+| Ces routes sont conservées pour ne pas casser
+| le module permanent/existant.
+|
+*/
 
-   
+Route::middleware(['auth'])->group(function () {
+
+    Route::get(
+        '/maisons/{maison}/menages',
+        [MenageController::class, 'index']
+    )->name('maisons.menages.index');
+
+    Route::get(
+        '/maisons/{maison}/menages/create',
+        [MenageController::class, 'create']
+    )->name('maisons.menages.create');
+
+    Route::post(
+        '/maisons/{maison}/menages',
+        [MenageController::class, 'store']
+    )->name('maisons.menages.store');
+
+    Route::get(
+        '/menages/{menage}',
+        [MenageController::class, 'show']
+    )->name('menages.show');
+
+    Route::get(
+        '/menages/{menage}/edit',
+        [MenageController::class, 'edit']
+    )->name('menages.edit');
+
+    Route::put(
+        '/menages/{menage}',
+        [MenageController::class, 'update']
+    )->name('menages.update');
+
+    Route::delete(
+        '/menages/{menage}',
+        [MenageController::class, 'destroy']
+    )->name('menages.destroy');
 });
 
 
@@ -995,3 +1224,4 @@ Route::middleware(['auth'])->group(function () {
 */
 
 require __DIR__.'/auth.php';
+

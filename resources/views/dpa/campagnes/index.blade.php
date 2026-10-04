@@ -185,7 +185,7 @@
 
         <form
             method="GET"
-            action="{{ route('dpa.campagnes.index') }}"
+            action="{{ route('campagnes-deployees.index') }}"
         >
 
             <div class="flex flex-col gap-3 sm:flex-row">
@@ -675,7 +675,7 @@
 
                                     <a
                                         href="{{ route(
-                                            'dpa.campagnes.show',
+                                            'campagnes-deployees.show',
                                             $deploiement
                                         ) }}"
                                         title="Voir les détails"
@@ -821,7 +821,7 @@
 
                                             <a
                                                 href="{{ route(
-                                                    'dpa.planifications-prefectorales.create',
+                                                    'planifications-prefectorales.edit',
                                                     $deploiement
                                                 ) }}"
                                                 title="Planifier la campagne"
@@ -861,7 +861,7 @@
 
                                             <a
                                                 href="{{ route(
-                                                    'dpa.planifications-prefectorales.edit',
+                                                    'planifications-prefectorales.edit',
                                                     $deploiement->planificationPrefectorale
                                                 ) }}"
                                                 title="Modifier la planification"

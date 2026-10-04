@@ -82,7 +82,7 @@
 
     <div>
         <a
-            href="{{ route('dpa.campagnes.index') }}"
+            href="{{ route('campagnes-deployees.index') }}"
             class="inline-flex items-center gap-2 text-sm font-medium
                    text-text-secondary hover:text-primary transition"
         >
@@ -199,7 +199,7 @@
 
     <a
         href="{{ route(
-            'dpa.planifications-prefectorales.edit',
+            'planifications-prefectorales.edit',
             $planificationPrefectorale
         ) }}"
         class="inline-flex items-center gap-2

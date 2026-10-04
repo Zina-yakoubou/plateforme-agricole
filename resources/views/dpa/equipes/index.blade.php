@@ -36,7 +36,7 @@
              NOUVELLE ÉQUIPE
         ====================================================== --}}
         <a
-            href="{{ route('dpa.equipes.create') }}"
+            href="{{ route('equipes.create') }}"
             class="inline-flex items-center gap-2
                    rounded-lg
                    bg-[#006a4f]
@@ -150,7 +150,7 @@
 
         <form
             method="GET"
-            action="{{ route('dpa.equipes.index') }}"
+            action="{{ route('equipes.index') }}"
         >
 
             <div class="flex flex-col gap-3 sm:flex-row">
@@ -583,7 +583,7 @@
                                 @if($equipe->membres_count > 0)
 
                                     <a
-                                        href="{{ route('dpa.equipes.show', $equipe) }}"
+                                        href="{{ route('equipes.show', $equipe) }}"
                                         class="ml-2 text-xs
                                                font-semibold
                                                text-[#006a4f]
@@ -663,7 +663,7 @@
                                     {{-- VOIR --}}
 
                                     <a
-                                        href="{{ route('dpa.equipes.show', $equipe) }}"
+                                        href="{{ route('equipes.show', $equipe) }}"
                                         title="Voir l'équipe"
                                         class="inline-flex
                                                h-9 w-9
@@ -721,7 +721,7 @@
 
                                 {{-- AFFECTER / RECONDUIRE --}}
                                 <a
-                                    href="{{ route('dpa.equipes.affectations.create', $equipe) }}"
+                                    href="{{ route('equipe-affectations.create', $equipe) }}"
                                     title="Affecter / Reconduire"
                                     class="inline-flex
                                         h-9 w-9
@@ -769,7 +769,7 @@
 
                                 {{-- PREMIÈRE AFFECTATION --}}
                                 <a
-                                    href="{{ route('dpa.equipes.affectations.create', $equipe) }}"
+                                    href="{{ route('equipe-affectations.create', $equipe) }}"
                                     title="Affecter l'équipe"
                                     class="inline-flex
                                         h-9 w-9
@@ -821,7 +821,7 @@
                                                                     @if($equipe->statut === 'ACTIVE')
 
                                                                         <a
-                                                                            href="{{ route('dpa.equipes.edit', $equipe) }}"
+                                                                            href="{{ route('equipes.edit', $equipe) }}"
                                                                             title="Modifier"
                                                                             class="inline-flex
                                                                                 h-9 w-9
@@ -927,7 +927,7 @@
 
                                                                         <form
                                                                             method="POST"
-                                                                            action="{{ route('dpa.equipes.destroy', $equipe) }}"
+                                                                            action="{{ route('equipes.destroy', $equipe) }}"
                                                                             onsubmit="return confirm(
                                                                                 'Voulez-vous désactiver cette équipe ?'
                                                                             )"

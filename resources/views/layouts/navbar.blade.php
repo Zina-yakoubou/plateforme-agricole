@@ -80,16 +80,13 @@
                              M9 17a3 3 0 006 0" />
                 </svg>
 
-                {{-- Pastille --}}
                 <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#ab1717]"></span>
             </button>
 
-            {{-- Séparateur --}}
             <div class="w-px h-8 bg-[#e5e7eb] mx-2 hidden sm:block"></div>
 
-            {{-- Profil --}}
 
-            <div class="relative" x-data="{ profileOpen: false }" @click.outside="profileOpen = false">
+            {{-- <div class="relative" x-data="{ profileOpen: false }" @click.outside="profileOpen = false">
 
                 <button
                     type="button"
@@ -113,7 +110,6 @@
                     </svg>
                 </button>
 
-                {{-- Menu déroulant --}}
 
                 <div
                     x-show="profileOpen"
@@ -159,7 +155,7 @@
                     </form>
                 </div>
 
-            </div>
+            </div> --}}
 
         </div>
 

@@ -45,7 +45,9 @@ class RecensementController extends Controller
     {
         $user = Auth::user();
 
-        $recensement->loadMissing(['affectation']);
+        $recensement->loadMissing([
+            'affectation'
+        ]);
 
         abort_unless(
             $recensement->affectation,
@@ -76,7 +78,10 @@ class RecensementController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $search = trim($request->input('search', ''));
+
+        $search = trim(
+            $request->input('search', '')
+        );
 
         $recensements = Recensement::query()
             ->with([
@@ -84,37 +89,88 @@ class RecensementController extends Controller
                 'maison.village.canton.commune',
                 'affectation.equipe',
             ])
-            ->where('agent_id', $user->id)
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('maison', function ($maison) use ($search) {
-                        $maison->where('numeroMaison', 'like', "%{$search}%")
-                            ->orWhere('uid', 'like', "%{$search}%")
-                            ->orWhere('adresse', 'like', "%{$search}%");
-                    });
+            ->where(
+                'agent_id',
+                $user->id
+            )
+            ->when(
+                $search !== '',
+                function ($query) use ($search) {
+                    $query->where(
+                        function ($q) use ($search) {
 
-                    $q->orWhereHas('campagne', function ($campagne) use ($search) {
-                        $campagne->where('libelle', 'like', "%{$search}%")
-                            ->orWhere('code', 'like', "%{$search}%");
-                    });
+                            $q->whereHas(
+                                'maison',
+                                function ($maison) use ($search) {
+                                    $maison
+                                        ->where(
+                                            'numeroMaison',
+                                            'like',
+                                            "%{$search}%"
+                                        )
+                                        ->orWhere(
+                                            'uid',
+                                            'like',
+                                            "%{$search}%"
+                                        )
+                                        ->orWhere(
+                                            'adresse',
+                                            'like',
+                                            "%{$search}%"
+                                        );
+                                }
+                            );
 
-                    $q->orWhere('statut', 'like', "%{$search}%");
-                });
-            })
+                            $q->orWhereHas(
+                                'campagne',
+                                function ($campagne) use ($search) {
+                                    $campagne
+                                        ->where(
+                                            'libelle',
+                                            'like',
+                                            "%{$search}%"
+                                        )
+                                        ->orWhere(
+                                            'code',
+                                            'like',
+                                            "%{$search}%"
+                                        );
+                                }
+                            );
+
+                            $q->orWhere(
+                                'statut',
+                                'like',
+                                "%{$search}%"
+                            );
+                        }
+                    );
+                }
+            )
             ->latest('idRecensement')
             ->paginate(15)
             ->withQueryString();
 
-        return view('agent.recensements.index', compact('recensements', 'search'));
+        return view(
+            'agent.recensements.index',
+            compact(
+                'recensements',
+                'search'
+            )
+        );
     }
 
     /**
      * Affiche les maisons de la zone de collecte
      * correspondant à une affectation.
      */
-    public function zoneCollecte(Request $request, Affectation $affectation): View
-    {
-        $this->verifierAccesAffectation($affectation);
+    public function zoneCollecte(
+        Request $request,
+        Affectation $affectation
+    ): View {
+        $this->verifierAccesAffectation(
+            $affectation
+        );
 
         $affectation->load([
             'campagne',
@@ -122,44 +178,120 @@ class RecensementController extends Controller
             'equipe.superviseur',
         ]);
 
-        $search = trim($request->input('search', ''));
-        $filtre = $request->input('statut', 'tous');
+        $search = trim(
+            $request->input('search', '')
+        );
+
+        $filtre = $request->input(
+            'statut',
+            'tous'
+        );
 
         $campagneId = $affectation->campagne_id;
         $villageId = $affectation->village_id;
 
         $maisonsQuery = Maison::query()
-            ->where('village_id', $villageId)
+            ->where(
+                'village_id',
+                $villageId
+            )
             ->with([
                 'recensements' => function ($query) use ($campagneId) {
-                    $query->where('campagne_id', $campagneId)
-                        ->with(['agent', 'campagne'])
-                        ->latest('idRecensement');
+                    $query
+                        ->where(
+                            'campagne_id',
+                            $campagneId
+                        )
+                        ->with([
+                            'agent',
+                            'campagne'
+                        ])
+                        ->latest(
+                            'idRecensement'
+                        );
                 },
             ])
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('numeroMaison', 'like', "%{$search}%")
-                        ->orWhere('uid', 'like', "%{$search}%")
-                        ->orWhere('adresse', 'like', "%{$search}%");
-                });
-            });
+            ->when(
+                $search !== '',
+                function ($query) use ($search) {
+                    $query->where(
+                        function ($q) use ($search) {
+                            $q
+                                ->where(
+                                    'numeroMaison',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'uid',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'adresse',
+                                    'like',
+                                    "%{$search}%"
+                                );
+                        }
+                    );
+                }
+            );
 
-        // Filtre appliqué directement en SQL, avant pagination.
+        /*
+         * Filtre appliqué directement en SQL,
+         * avant pagination.
+         */
         if ($filtre === 'a_recense') {
-            $maisonsQuery->whereDoesntHave('recensements', function ($query) use ($campagneId) {
-                $query->where('campagne_id', $campagneId);
-            });
+
+            $maisonsQuery->whereDoesntHave(
+                'recensements',
+                function ($query) use ($campagneId) {
+                    $query->where(
+                        'campagne_id',
+                        $campagneId
+                    );
+                }
+            );
+
         } elseif ($filtre === 'en_cours') {
-            $maisonsQuery->whereHas('recensements', function ($query) use ($campagneId) {
-                $query->where('campagne_id', $campagneId)
-                    ->whereIn('statut', ['brouillon', 'en_cours']);
-            });
+
+            $maisonsQuery->whereHas(
+                'recensements',
+                function ($query) use ($campagneId) {
+                    $query
+                        ->where(
+                            'campagne_id',
+                            $campagneId
+                        )
+                        ->whereIn(
+                            'statut',
+                            [
+                                'brouillon',
+                                'en_cours'
+                            ]
+                        );
+                }
+            );
+
         } elseif ($filtre === 'termine') {
-            $maisonsQuery->whereHas('recensements', function ($query) use ($campagneId) {
-                $query->where('campagne_id', $campagneId)
-                    ->whereIn('statut', ['termine', 'valide']);
-            });
+
+            $maisonsQuery->whereHas(
+                'recensements',
+                function ($query) use ($campagneId) {
+                    $query
+                        ->where(
+                            'campagne_id',
+                            $campagneId
+                        )
+                        ->whereIn(
+                            'statut',
+                            [
+                                'termine',
+                                'valide'
+                            ]
+                        );
+                }
+            );
         }
 
         $maisons = $maisonsQuery
@@ -168,139 +300,215 @@ class RecensementController extends Controller
             ->withQueryString();
 
         $totalMaisons = Maison::query()
-            ->where('village_id', $villageId)
+            ->where(
+                'village_id',
+                $villageId
+            )
             ->count();
 
         $recensementsCampagneBase = Recensement::query()
-            ->where('campagne_id', $campagneId)
-            ->whereHas('maison', function ($query) use ($villageId) {
-                $query->where('village_id', $villageId);
-            });
+            ->where(
+                'campagne_id',
+                $campagneId
+            )
+            ->whereHas(
+                'maison',
+                function ($query) use ($villageId) {
+                    $query->where(
+                        'village_id',
+                        $villageId
+                    );
+                }
+            );
 
-        $nombreRecensees = (clone $recensementsCampagneBase)->count();
+        $nombreRecensees = (
+            clone $recensementsCampagneBase
+        )->count();
 
-        $nombreEnCours = (clone $recensementsCampagneBase)
-            ->whereIn('statut', ['brouillon', 'en_cours'])
+        $nombreEnCours = (
+            clone $recensementsCampagneBase
+        )
+            ->whereIn(
+                'statut',
+                [
+                    'brouillon',
+                    'en_cours'
+                ]
+            )
             ->count();
 
-        $nombreTerminees = (clone $recensementsCampagneBase)
-            ->whereIn('statut', ['termine', 'valide'])
+        $nombreTerminees = (
+            clone $recensementsCampagneBase
+        )
+            ->whereIn(
+                'statut',
+                [
+                    'termine',
+                    'valide'
+                ]
+            )
             ->count();
 
-        $nombreARecenser = max(0, $totalMaisons - $nombreRecensees);
+        $nombreARecenser = max(
+            0,
+            $totalMaisons - $nombreRecensees
+        );
 
         $pourcentage = $totalMaisons > 0
-            ? round(($nombreRecensees / $totalMaisons) * 100)
+            ? round(
+                (
+                    $nombreRecensees /
+                    $totalMaisons
+                ) * 100
+            )
             : 0;
 
-        return view('agent.recensements.zone', compact(
-            'affectation',
-            'maisons',
-            'search',
-            'filtre',
-            'totalMaisons',
-            'nombreRecensees',
-            'nombreEnCours',
-            'nombreTerminees',
-            'nombreARecenser',
-            'pourcentage'
-        ));
+        return view(
+            'agent.recensements.zone',
+            compact(
+                'affectation',
+                'maisons',
+                'search',
+                'filtre',
+                'totalMaisons',
+                'nombreRecensees',
+                'nombreEnCours',
+                'nombreTerminees',
+                'nombreARecenser',
+                'pourcentage'
+            )
+        );
     }
 
     /**
      * Crée ou reprend le recensement d'une maison existante
      * pour la campagne de l'affectation.
      */
-    public function commencer(Affectation $affectation, Maison $maison)
-    {
-        $this->verifierAccesAffectation($affectation);
+    public function commencer(
+        Affectation $affectation,
+        Maison $maison
+    ) {
+        $this->verifierAccesAffectation(
+            $affectation
+        );
 
         abort_unless(
-            (int) $maison->village_id === (int) $affectation->village_id,
+            (int) $maison->village_id ===
+            (int) $affectation->village_id,
             403,
             'Cette maison ne se trouve pas dans votre zone de collecte.'
         );
 
         $recensement = Recensement::query()
-            ->where('campagne_id', $affectation->campagne_id)
-            ->where('maison_id', $maison->idMaison)
+            ->where(
+                'campagne_id',
+                $affectation->campagne_id
+            )
+            ->where(
+                'maison_id',
+                $maison->idMaison
+            )
             ->first();
 
+        /*
+         * Si un recensement existe déjà pour cette maison
+         * et cette campagne, on le reprend.
+         */
         if ($recensement) {
+
             abort_unless(
-                (int) $recensement->affectation_id === (int) $affectation->idAffectation,
+                (int) $recensement->affectation_id ===
+                (int) $affectation->idAffectation,
                 403,
                 'Cette maison possède déjà un recensement pour cette campagne dans une autre affectation.'
             );
 
-            if ($recensement->statut === 'valide') {
+            /*
+             * Le recensement est déjà validé.
+             */
+            if (
+                $recensement->statut === 'valide'
+            ) {
                 return redirect()
-                    ->route('agent.recensements.show', $recensement)
-                    ->with('info', 'Ce recensement est déjà validé.');
+                    ->route(
+                        'recensements.show',
+                        $recensement
+                    )
+                    ->with(
+                        'info',
+                        'Ce recensement est déjà validé.'
+                    );
             }
 
+            /*
+             * Le recensement existe mais n'est pas encore validé.
+             */
             return redirect()
-                ->route('agent.recensements.show', $recensement)
-                ->with('info', 'Le recensement existant a été repris.');
+                ->route(
+                    'recensements.show',
+                    $recensement
+                )
+                ->with(
+                    'info',
+                    'Le recensement existant a été repris.'
+                );
         }
 
-        // La Maison existe déjà : on ne crée jamais de Maison ici.
+        /*
+         * La Maison existe déjà :
+         * on ne crée jamais de Maison ici.
+         */
         $recensement = Recensement::create([
             'uid' => (string) Str::uuid(),
-            'campagne_id' => $affectation->campagne_id,
-            'affectation_id' => $affectation->idAffectation,
-            'agent_id' => Auth::id(),
-            'maison_id' => $maison->idMaison,
-            'statut' => 'brouillon',
-            'dateDebut' => null,
-            'dateDerniereModification' => now(),
+
+            'campagne_id' =>
+                $affectation->campagne_id,
+
+            'affectation_id' =>
+                $affectation->idAffectation,
+
+            'agent_id' =>
+                Auth::id(),
+
+            'maison_id' =>
+                $maison->idMaison,
+
+            'statut' =>
+                'brouillon',
+
+            'dateDebut' =>
+                null,
+
+            'dateDerniereModification' =>
+                now(),
         ]);
 
+        /*
+         * IMPORTANT :
+         * après le POST, on redirige vers la route GET
+         * recensements.show.
+         *
+         * On ne redirige surtout pas vers
+         * recensements.commencer, car cette route accepte
+         * uniquement POST.
+         */
         return redirect()
-            ->route('agent.recensements.show', $recensement)
-            ->with('success', 'Le recensement a été créé. Vous pouvez maintenant commencer la collecte.');
+            ->route(
+                'recensements.show',
+                $recensement
+            )
+            ->with(
+                'success',
+                'Le recensement a été créé. Vous pouvez maintenant commencer la collecte.'
+            );
     }
 
     /**
      * Tableau de bord du recensement.
      */
-    // public function show(Recensement $recensement): View
-    // {
-    //     $recensement->load([
-    //         'campagne',
-    //         'maison.village.canton.commune.prefecture',
-    //         'affectation.equipe',
-    //         'affectation.village',
-    //         'agent',
-    //         'menages',
-    //     ]);
-
-    //     $this->verifierAccesRecensement($recensement);
-
-    //     return view('agent.recensements.show', compact('recensement'));
-    // }
-
-
-    //     public function show(Recensement $recensement): View
-    // {
-    //     $recensement->load([
-    //         'campagne',
-    //         'maison.village.canton.commune.prefecture',
-    //         'affectation.equipe',
-    //         'affectation.village',
-    //         'agent',
-    //         'menages.exploitants.exploitations',
-    //     ]);
-
-    //     $this->verifierAccesRecensement($recensement);
-
-    //     return view('agent.recensements.show', compact('recensement'));
-    // }
-
-
-
-        public function show(Recensement $recensement): View
-    {
+    public function show(
+        Recensement $recensement
+    ): View {
         $recensement->load([
             'campagne',
             'maison.village.canton.commune.prefecture',
@@ -310,60 +518,119 @@ class RecensementController extends Controller
             'menages.exploitants.exploitation',
         ]);
 
-        $this->verifierAccesRecensement($recensement);
+        $this->verifierAccesRecensement(
+            $recensement
+        );
 
-        return view('agent.recensements.show', compact('recensement'));
+        return view(
+            'agent.recensements.show',
+            compact('recensement')
+        );
     }
 
     /**
-     * Passe le recensement de "brouillon" à "en_cours".
+     * Passe le recensement de "brouillon"
+     * à "en_cours".
      */
-    public function mettreEnCours(Recensement $recensement)
-    {
-        $this->verifierAccesRecensement($recensement);
+    public function mettreEnCours(
+        Recensement $recensement
+    ) {
+        $this->verifierAccesRecensement(
+            $recensement
+        );
 
-        abort_if($recensement->statut === 'valide', 403, 'Ce recensement est déjà validé.');
-        abort_if($recensement->statut === 'termine', 422, 'Ce recensement est déjà terminé.');
+        abort_if(
+            $recensement->statut === 'valide',
+            403,
+            'Ce recensement est déjà validé.'
+        );
 
-        if ($recensement->statut === 'brouillon') {
+        abort_if(
+            $recensement->statut === 'termine',
+            422,
+            'Ce recensement est déjà terminé.'
+        );
+
+        if (
+            $recensement->statut === 'brouillon'
+        ) {
             $recensement->statut = 'en_cours';
-            $recensement->dateDebut = $recensement->dateDebut ?? now();
+
+            $recensement->dateDebut =
+                $recensement->dateDebut ??
+                now();
         }
 
-        $recensement->dateDerniereModification = now();
+        $recensement->dateDerniereModification =
+            now();
+
         $recensement->save();
 
         return redirect()
-            ->route('agent.recensements.show', $recensement)
-            ->with('success', 'Le recensement est maintenant en cours.');
+            ->route(
+                'recensements.show',
+                $recensement
+            )
+            ->with(
+                'success',
+                'Le recensement est maintenant en cours.'
+            );
     }
 
     /**
      * Termine le recensement.
      */
-    public function terminer(Recensement $recensement)
-    {
-        $this->verifierAccesRecensement($recensement);
+    public function terminer(
+        Recensement $recensement
+    ) {
+        $this->verifierAccesRecensement(
+            $recensement
+        );
 
-        abort_if($recensement->statut === 'valide', 403, 'Ce recensement est déjà validé.');
-        abort_if($recensement->statut === 'termine', 422, 'Ce recensement est déjà terminé.');
+        abort_if(
+            $recensement->statut === 'valide',
+            403,
+            'Ce recensement est déjà validé.'
+        );
+
+        abort_if(
+            $recensement->statut === 'termine',
+            422,
+            'Ce recensement est déjà terminé.'
+        );
 
         $recensement->update([
-            'statut' => 'termine',
-            'dateTerminaison' => now(),
-            'dateDerniereModification' => now(),
+            'statut' =>
+                'termine',
+
+            'dateTerminaison' =>
+                now(),
+
+            'dateDerniereModification' =>
+                now(),
         ]);
 
         return redirect()
-            ->route('agent.recensements.show', $recensement)
-            ->with('success', 'Le recensement a été terminé avec succès.');
+            ->route(
+                'recensements.show',
+                $recensement
+            )
+            ->with(
+                'success',
+                'Le recensement a été terminé avec succès.'
+            );
     }
 
-
+    /**
+     * Affiche la page de démarrage
+     * du recensement pour une affectation.
+     */
     public function demarrer(
         Affectation $affectation
     ): View {
-        $this->verifierAccesAffectation($affectation);
+        $this->verifierAccesAffectation(
+            $affectation
+        );
 
         $affectation->load([
             'campagne',
@@ -383,10 +650,14 @@ class RecensementController extends Controller
                             'campagne_id',
                             $affectation->campagne_id
                         )
-                        ->withCount('menages');
+                        ->withCount(
+                            'menages'
+                        );
                 },
             ])
-            ->orderBy('numeroMaison')
+            ->orderBy(
+                'numeroMaison'
+            )
             ->paginate(15);
 
         return view(
@@ -397,8 +668,4 @@ class RecensementController extends Controller
             )
         );
     }
-
-
-
-    
 }

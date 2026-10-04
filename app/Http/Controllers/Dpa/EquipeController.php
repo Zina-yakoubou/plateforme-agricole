@@ -706,7 +706,7 @@ class EquipeController extends Controller
 
         return redirect()
             ->route(
-                'dpa.equipes.show',
+                'equipes.index',
                 $equipe
             )
             ->with(

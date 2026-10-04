@@ -400,7 +400,7 @@ class PlanificationPrefectoraleController extends Controller
 
         return redirect()
             ->route(
-                'dpa.planifications-prefectorales.index'
+                'planifications-prefectorales.index'
             )
             ->with(
                 'success',
@@ -466,7 +466,7 @@ class PlanificationPrefectoraleController extends Controller
 
         return redirect()
             ->route(
-                'dpa.planifications-prefectorales.index'
+                'planifications-prefectorales.index'
             )
             ->with(
                 'success',
