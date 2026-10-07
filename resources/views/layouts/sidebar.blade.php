@@ -1121,7 +1121,7 @@ n
     {{-- ====================================================================
         PIED DE SIDEBAR
     ===================================================================== --}}
-    <div
+    {{-- <div
         class="border-t border-border
                p-3
                shrink-0
@@ -1129,7 +1129,6 @@ n
                bg-white"
     >
 
-        {{-- MON COMPTE --}}
         <a
             href="{{ route('profile.edit') }}"
             @click="sidebarOpen = false"
@@ -1169,7 +1168,6 @@ n
         </a>
 
 
-        {{-- DÉCONNEXION --}}
         <form
             method="POST"
             action="{{ route('logout') }}"
@@ -1215,6 +1213,96 @@ n
 
         </form>
 
-    </div>
+    </div> --}}
+
+           <div class="relative" x-data="{ profileOpen: false }" @click.outside="profileOpen = false">
+
+                <button
+                    type="button"
+                    @click="profileOpen = !profileOpen"
+                    class="flex items-center gap-2 pl-1 pr-2 sm:pr-3 py-1 rounded-lg
+                        hover:bg-[#e5f2ee] transition-colors duration-150"
+                >
+                    <div class="w-9 h-9 rounded-full bg-[#006a4f] text-white flex items-center
+                                justify-center font-poppins font-semibold text-sm shrink-0">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    </div>
+
+                    <div class="hidden sm:block text-left min-w-0">
+                        <p class="font-poppins text-sm font-medium text-[#212529] truncate max-w-[120px]">
+                            {{ auth()->user()->name }}
+                        </p>
+                    </div>
+
+                    <svg class="w-4 h-4 text-[#374151] hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M6 9l6 6 6-6"
+                        />
+                    </svg>
+                </button>
+
+                {{-- Menu déroulant vers le haut --}}
+
+                <div
+                    x-show="profileOpen"
+                    x-transition
+                    x-cloak
+                    class="absolute right-0 bottom-full mb-2 w-56 bg-white rounded-lg border border-[#e5e7eb]
+                        shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]
+                        py-2 z-40"
+                >
+                    <div class="px-4 py-2 border-b border-[#e5e7eb]">
+                        <p class="font-poppins text-sm font-semibold text-[#212529] truncate">
+                            {{ auth()->user()->name }}
+                        </p>
+
+                        <p class="font-poppins text-xs text-[#374151] truncate">
+                            {{ auth()->user()->role->nom ?? '' }}
+                        </p>
+                    </div>
+
+                    <a
+                        href="{{ route('profile.edit') }}"
+                        class="flex items-center gap-2 px-4 py-2 font-poppins text-sm text-[#434343]
+                            hover:bg-[#e5f2ee] hover:text-[#006a4f] transition-colors duration-150"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M20 21a8 8 0 00-16 0 M12 13a4 4 0 100-8 4 4 0 000 8z"
+                            />
+                        </svg>
+
+                        Modifier mon compte
+                    </a>
+
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+
+                        <button
+                            type="submit"
+                            class="w-full flex items-center gap-2 px-4 py-2 font-poppins text-sm
+                                text-[#ab1717] hover:bg-[#e5f2ee] transition-colors duration-150"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.8"
+                                    d="M15 12H3 M7 8l-4 4 4 4 M21 5v14a2 2 0 01-2 2h-6 M15 7V5a2 2 0 00-2-2H7"
+                                />
+                            </svg>
+
+                            Déconnexion
+                        </button>
+                    </form>
+                </div>
+
+            </div>
 
 </aside>

@@ -4,11 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Affectation;
 use App\Models\CampagneRecensement;
-use App\Models\Commune;
+use App\Models\Canton;
 use App\Models\Equipe;
+use App\Models\Exploitant;
+use App\Models\Exploitation;
+use App\Models\Menage;
+use App\Models\Parcelle;
 use App\Models\RattachementPrefecture;
+use App\Models\Recensement;
 use App\Models\User;
 use App\Models\Village;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -16,725 +23,72 @@ class DashboardController extends Controller
 {
     /**
      * Tableau de bord principal.
-     *
-     * Un seul dashboard pour tous les profils.
-     *
-     * - Administrateur : vision globale
-     * - DPA : vision de sa préfecture
-     * - Agent recenseur : vision de ses équipes et affectations
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         $user = Auth::user();
 
         /*
         |--------------------------------------------------------------------------
-        | CAMPAGNE ACTUELLE
+        | FILTRES
         |--------------------------------------------------------------------------
-        |
-        | Pour Admin et DPA :
-        |   priorité à la campagne active.
-        |
-        | Pour Agent :
-        |   la campagne active sera déterminée à partir de ses affectations.
-        |
         */
 
-        $campagne = CampagneRecensement::query()
-            ->where('statut', 'active')
-            ->orderByDesc('dateDebut')
-            ->first();
+        $campagneId = $request->filled('campagne_id')
+            ? (int) $request->input('campagne_id')
+            : null;
 
-        if (!$campagne) {
-            $campagne = CampagneRecensement::query()
-                ->where('statut', 'planifiee')
-                ->orderByDesc('dateDebut')
-                ->first();
-        }
+        $cantonId = $request->filled('canton_id')
+            ? (int) $request->input('canton_id')
+            : null;
+
+        $villageId = $request->filled('village_id')
+            ? (int) $request->input('village_id')
+            : null;
 
         /*
         |--------------------------------------------------------------------------
-        | ADMINISTRATEUR
+        | CAMPAGNES
         |--------------------------------------------------------------------------
         */
 
-        if ($user->isAdmin()) {
-            return $this->dashboardAdministrateur($campagne);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | DPA
-        |--------------------------------------------------------------------------
-        */
-
-        if ($user->isDpa()) {
-            return $this->dashboardDpa($user, $campagne);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | AGENT RECENSEUR
-        |--------------------------------------------------------------------------
-        */
-
-        if ($user->isAgent()) {
-            return $this->dashboardAgent($user);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | AUTRES UTILISATEURS
-        |--------------------------------------------------------------------------
-        */
-
-        return view('dashboard', [
-            'typeDashboard' => 'standard',
-            'campagne' => $campagne,
-        ]);
-    }
-
-
-    /**
-     * =========================================================================
-     * DASHBOARD ADMINISTRATEUR
-     * =========================================================================
-     */
-    private function dashboardAdministrateur(
-        ?CampagneRecensement $campagne
-    ): View {
-
-        /*
-        |--------------------------------------------------------------------------
-        | STATISTIQUES GÉNÉRALES
-        |--------------------------------------------------------------------------
-        */
-
-        $nombreCampagnes = CampagneRecensement::count();
-
-        $nombreEquipes = Equipe::count();
-
-        $nombreAgents = $this->nombreAgents();
-
-        $nombreVillages = Village::count();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | AFFECTATIONS
-        |--------------------------------------------------------------------------
-        */
-
-        $nombreAffectations = Affectation::query()
-            ->when(
-                $campagne,
-                fn ($query) =>
-                    $query->where(
-                        'campagne_id',
-                        $campagne->idCampagne
-                    )
-            )
-            ->count();
-
-        $affectationsActives = Affectation::query()
-            ->where('statut', 'active')
-            ->when(
-                $campagne,
-                fn ($query) =>
-                    $query->where(
-                        'campagne_id',
-                        $campagne->idCampagne
-                    )
-            )
-            ->count();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | VILLAGES AFFECTÉS
-        |--------------------------------------------------------------------------
-        */
-
-        $villagesAffectes = Affectation::query()
-            ->when(
-                $campagne,
-                fn ($query) =>
-                    $query->where(
-                        'campagne_id',
-                        $campagne->idCampagne
-                    )
-            )
-            ->distinct('village_id')
-            ->count('village_id');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PROGRESSION
-        |--------------------------------------------------------------------------
-        */
-
-        $progression = $nombreVillages > 0
-            ? round(
-                ($villagesAffectes / $nombreVillages) * 100
-            )
-            : 0;
-
-        $progression = min($progression, 100);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SITUATION PAR PRÉFECTURE
-        |--------------------------------------------------------------------------
-        */
-
-        $prefectures = collect();
-
-        if ($campagne) {
-
-            $prefectures = \App\Models\Prefecture::query()
-                ->orderBy('nom')
-                ->get()
-                ->map(function ($prefecture) use ($campagne) {
-
-                    /*
-                    | Les équipes sont comptées à partir de leurs
-                    | affectations dans la préfecture.
-                    |
-                    | On ne dépend donc pas de equipes.prefecture_id.
-                    */
-                    $equipes = Equipe::query()
-                        ->whereHas(
-                            'affectations.village.canton.commune',
-                            function ($query) use ($prefecture) {
-                                $query->where(
-                                    'prefecture_id',
-                                    $prefecture->idPrefecture
-                                );
-                            }
-                        )
-                        ->whereHas(
-                            'affectations',
-                            function ($query) use ($campagne) {
-                                $query->where(
-                                    'campagne_id',
-                                    $campagne->idCampagne
-                                );
-                            }
-                        )
-                        ->count();
-
-
-                    /*
-                    | Nombre total de villages de la préfecture.
-                    */
-                    $villages = Village::query()
-                        ->whereHas(
-                            'canton.commune',
-                            function ($query) use ($prefecture) {
-                                $query->where(
-                                    'prefecture_id',
-                                    $prefecture->idPrefecture
-                                );
-                            }
-                        )
-                        ->count();
-
-
-                    /*
-                    | Villages affectés pendant la campagne.
-                    */
-                    $villagesAffectes = Affectation::query()
-                        ->where(
-                            'campagne_id',
-                            $campagne->idCampagne
-                        )
-                        ->whereHas(
-                            'village.canton.commune',
-                            function ($query) use ($prefecture) {
-                                $query->where(
-                                    'prefecture_id',
-                                    $prefecture->idPrefecture
-                                );
-                            }
-                        )
-                        ->distinct('village_id')
-                        ->count('village_id');
-
-
-                    $progression = $villages > 0
-                        ? round(
-                            ($villagesAffectes / $villages) * 100
-                        )
-                        : 0;
-
-
-                    return [
-                        'id' => $prefecture->idPrefecture,
-                        'nom' => $prefecture->nom,
-                        'equipes' => $equipes,
-                        'villages' => $villages,
-                        'villages_affectes' => $villagesAffectes,
-                        'progression' => min($progression, 100),
-                    ];
-                });
-        }
-
-
-        return view('dashboard', [
-            'typeDashboard' => 'admin',
-
-            'campagne' => $campagne,
-
-            'nombreCampagnes' => $nombreCampagnes,
-            'nombreEquipes' => $nombreEquipes,
-            'nombreAgents' => $nombreAgents,
-            'nombreVillages' => $nombreVillages,
-
-            'nombreAffectations' => $nombreAffectations,
-            'affectationsActives' => $affectationsActives,
-
-            'villagesAffectes' => $villagesAffectes,
-            'progression' => $progression,
-
-            'prefectures' => $prefectures,
-        ]);
-    }
-
-
-    /**
-     * =========================================================================
-     * DASHBOARD DPA
-     * =========================================================================
-     */
-    private function dashboardDpa(
-        User $user,
-        ?CampagneRecensement $campagne
-    ): View {
-
-        /*
-        |--------------------------------------------------------------------------
-        | PRÉFECTURE DU DPA
-        |--------------------------------------------------------------------------
-        */
-
-        $prefectureId = $this->prefectureIdUtilisateur($user);
-
-        if (!$prefectureId) {
-            abort(
-                403,
-                'Aucune préfecture active n’est associée à votre compte.'
-            );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | ÉQUIPES
-        |--------------------------------------------------------------------------
-        |
-        | Une équipe est rattachée au territoire par ses affectations.
-        | On ne dépend donc pas de equipes.prefecture_id.
-        |
-        */
-
-        $equipesQuery = Equipe::query()
-            ->whereHas(
-                'affectations.village.canton.commune',
-                function ($query) use ($prefectureId) {
-                    $query->where(
-                        'prefecture_id',
-                        $prefectureId
-                    );
-                }
-            );
-
-        if ($campagne) {
-            $equipesQuery->whereHas(
-                'affectations',
-                function ($query) use ($campagne) {
-                    $query->where(
-                        'campagne_id',
-                        $campagne->idCampagne
-                    );
-                }
-            );
-        }
-
-        $nombreEquipes = $equipesQuery->count();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | AGENTS
-        |--------------------------------------------------------------------------
-        */
-
-        $nombreAgents = $this->nombreAgents(
-            $prefectureId
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SUPERVISEURS
-        |--------------------------------------------------------------------------
-        */
-
-        $nombreSuperviseurs = $this->nombreSuperviseurs(
-            $prefectureId
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | VILLAGES
-        |--------------------------------------------------------------------------
-        */
-
-        $nombreVillages = Village::query()
-            ->whereHas(
-                'canton.commune',
-                function ($query) use ($prefectureId) {
-                    $query->where(
-                        'prefecture_id',
-                        $prefectureId
-                    );
-                }
-            )
-            ->count();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | AFFECTATIONS
-        |--------------------------------------------------------------------------
-        */
-
-        $affectationsQuery = Affectation::query()
-            ->whereHas(
-                'village.canton.commune',
-                function ($query) use ($prefectureId) {
-                    $query->where(
-                        'prefecture_id',
-                        $prefectureId
-                    );
-                }
-            )
-            ->when(
-                $campagne,
-                fn ($query) =>
-                    $query->where(
-                        'campagne_id',
-                        $campagne->idCampagne
-                    )
-            );
-
-
-        $nombreAffectations = (clone $affectationsQuery)
-            ->count();
-
-
-        $affectationsActives = (clone $affectationsQuery)
-            ->where('statut', 'active')
-            ->count();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | VILLAGES AFFECTÉS
-        |--------------------------------------------------------------------------
-        */
-
-        $villagesAffectes = (clone $affectationsQuery)
-            ->distinct('village_id')
-            ->count('village_id');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | VILLAGES NON AFFECTÉS
-        |--------------------------------------------------------------------------
-        */
-
-        $villagesNonAffectes = max(
-            0,
-            $nombreVillages - $villagesAffectes
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PROGRESSION
-        |--------------------------------------------------------------------------
-        */
-
-        $progression = $nombreVillages > 0
-            ? round(
-                ($villagesAffectes / $nombreVillages) * 100
-            )
-            : 0;
-
-        $progression = min($progression, 100);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PROGRESSION PAR COMMUNE
-        |--------------------------------------------------------------------------
-        */
-
-        $communes = Commune::query()
-            ->where(
-                'prefecture_id',
-                $prefectureId
-            )
-            ->orderBy('nom')
-            ->get()
-            ->map(function ($commune) use ($campagne) {
-
-                $villages = Village::query()
-                    ->whereHas(
-                        'canton',
-                        function ($query) use ($commune) {
-                            $query->where(
-                                'commune_id',
-                                $commune->idCommune
-                            );
-                        }
-                    )
-                    ->count();
-
-
-                $villagesAffectes = Affectation::query()
-                    ->when(
-                        $campagne,
-                        fn ($query) =>
-                            $query->where(
-                                'campagne_id',
-                                $campagne->idCampagne
-                            )
-                    )
-                    ->whereHas(
-                        'village.canton',
-                        function ($query) use ($commune) {
-                            $query->where(
-                                'commune_id',
-                                $commune->idCommune
-                            );
-                        }
-                    )
-                    ->distinct('village_id')
-                    ->count('village_id');
-
-
-                $progression = $villages > 0
-                    ? round(
-                        ($villagesAffectes / $villages) * 100
-                    )
-                    : 0;
-
-
-                return [
-                    'nom' => $commune->nom,
-                    'villages' => $villages,
-                    'villages_affectes' => $villagesAffectes,
-                    'progression' => min($progression, 100),
-                ];
-            });
-
-
-        return view('dashboard', [
-            'typeDashboard' => 'dpa',
-
-            'campagne' => $campagne,
-
-            'prefecture' => $user->prefectureActuelle,
-
-            'nombreEquipes' => $nombreEquipes,
-            'nombreAgents' => $nombreAgents,
-            'nombreSuperviseurs' => $nombreSuperviseurs,
-            'nombreVillages' => $nombreVillages,
-
-            'nombreAffectations' => $nombreAffectations,
-            'affectationsActives' => $affectationsActives,
-
-            'villagesAffectes' => $villagesAffectes,
-            'villagesNonAffectes' => $villagesNonAffectes,
-
-            'progression' => $progression,
-
-            'communes' => $communes,
-        ]);
-    }
-
-
-    /**
-     * =========================================================================
-     * DASHBOARD AGENT RECENSEUR
-     * =========================================================================
-     *
-     * IMPORTANT :
-     *
-     * Une affectation appartient à une ÉQUIPE.
-     *
-     * L'agent est relié à l'équipe via :
-     *
-     *       users
-     *          ↓
-     *       equipe_membres
-     *          ↓
-     *       equipes
-     *          ↓
-     *       affectations
-     *          ↓
-     *       villages
-     *
-     * L'agent peut donc avoir :
-     * - plusieurs équipes dans le temps ;
-     * - plusieurs affectations ;
-     * - participé à plusieurs campagnes.
-     */
-    private function dashboardAgent(User $user): View
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | MES AFFECTATIONS
-        |--------------------------------------------------------------------------
-        |
-        | On récupère toutes les affectations des équipes auxquelles
-        | l'agent appartient.
-        |
-        */
-
-        $mesAffectations = Affectation::query()
-            ->with([
-                'campagne',
-                'equipe.superviseur',
-                'equipe.membres',
-                'village.canton.commune.prefecture',
-            ])
-            ->whereHas(
-                'equipe.membres',
-                function ($query) use ($user) {
-                    $query->where(
-                        'users.id',
-                        $user->id
-                    );
-                }
-            )
-            ->latest('idAffectation')
+        $campagnes = CampagneRecensement::query()
+            ->orderByDesc('annee')
+            ->orderByDesc('idCampagne')
             ->get();
 
-
         /*
-        |--------------------------------------------------------------------------
-        | MES CAMPAGNES
-        |--------------------------------------------------------------------------
-        |
-        | On ne suppose surtout pas que l'agent n'a participé qu'à
-        | une seule campagne.
-        |
-        | Les campagnes sont déduites de ses affectations.
-        |
+        | Si aucune campagne n'est sélectionnée :
+        | - campagne active en priorité ;
+        | - sinon première campagne disponible.
         */
+        if (!$campagneId) {
+            $campagneSelectionnee = $campagnes
+                ->firstWhere('statut', 'active')
+                ?? $campagnes->first();
 
-        $mesCampagnes = $mesAffectations
-            ->pluck('campagne')
-            ->filter()
-            ->unique('idCampagne')
-            ->sortByDesc('dateDebut')
-            ->values();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CAMPAGNE ACTUELLE DE L'AGENT
-        |--------------------------------------------------------------------------
-        |
-        | Priorité :
-        |
-        | 1. campagne active dans laquelle l'agent a une affectation ;
-        | 2. à défaut, dernière campagne planifiée à laquelle il participe ;
-        | 3. à défaut, dernière campagne connue de son historique.
-        |
-        */
-
-        $campagne = $mesCampagnes
-            ->firstWhere('statut', 'active');
-
-        if (!$campagne) {
-            $campagne = $mesCampagnes
-                ->firstWhere('statut', 'planifiee');
+            $campagneId = $campagneSelectionnee?->idCampagne;
         }
 
-        if (!$campagne) {
-            $campagne = $mesCampagnes->first();
-        }
+        $campagne = $campagneId
+            ? CampagneRecensement::find($campagneId)
+            : null;
 
+        /*
+        | Alias conservé pour éviter toute erreur si une ancienne partie
+        | du Blade utilise encore $campagneActive.
+        */
+        $campagneActive = $campagne;
 
         /*
         |--------------------------------------------------------------------------
-        | AFFECTATIONS DE LA CAMPAGNE ACTUELLE
+        | CANTONS
         |--------------------------------------------------------------------------
         */
 
-        $affectationsCampagne = $campagne
-            ? $mesAffectations
-                ->where(
-                    'campagne_id',
-                    $campagne->idCampagne
-                )
-                ->values()
-            : collect();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | MES ÉQUIPES
-        |--------------------------------------------------------------------------
-        |
-        | Un agent peut appartenir à plusieurs équipes.
-        |
-        */
-
-        $mesEquipes = $mesAffectations
-            ->pluck('equipe')
-            ->filter()
-            ->unique('idEquipe')
-            ->values();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | ÉQUIPE ACTUELLE
-        |--------------------------------------------------------------------------
-        |
-        | Pour l'affichage principal, on prend l'équipe qui possède
-        | une affectation dans la campagne actuelle.
-        |
-        */
-
-        $equipe = $affectationsCampagne
-            ->pluck('equipe')
-            ->filter()
-            ->unique('idEquipe')
-            ->first();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | STATISTIQUES
-        |--------------------------------------------------------------------------
-        */
-
-        $nombreAffectations = $affectationsCampagne->count();
-
-        $affectationsActives = $affectationsCampagne
-            ->where('statut', 'active')
-            ->count();
-
+        $cantons = Canton::query()
+            ->orderBy('nom')
+            ->get();
 
         /*
         |--------------------------------------------------------------------------
@@ -742,282 +96,1118 @@ class DashboardController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $nombreVillages = $affectationsCampagne
+        $villagesQuery = Village::query()
+            ->orderBy('nom');
+
+        if ($cantonId) {
+            $villagesQuery->whereHas(
+                'canton',
+                fn (Builder $query) => $query->where(
+                    'idCanton',
+                    $cantonId
+                )
+            );
+        }
+
+        $villages = $villagesQuery->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE
+        |--------------------------------------------------------------------------
+        */
+
+        $role = $user->role?->nom ?? 'Utilisateur';
+
+        /*
+        |--------------------------------------------------------------------------
+        | TABLEAU DE BORD PAR ROLE
+        |--------------------------------------------------------------------------
+        */
+
+        return match ($role) {
+            'Administrateur' => $this->dashboardAdministrateur(
+                $request,
+                $user,
+                $role,
+                $campagnes,
+                $campagne,
+                $campagneActive,
+                $cantons,
+                $villages,
+                $campagneId,
+                $cantonId,
+                $villageId
+            ),
+
+            'DPA' => $this->dashboardDpa(
+                $request,
+                $user,
+                $role,
+                $campagnes,
+                $campagne,
+                $campagneActive,
+                $cantons,
+                $villages,
+                $campagneId,
+                $cantonId,
+                $villageId
+            ),
+
+            'Superviseur' => $this->dashboardSuperviseur(
+                $request,
+                $user,
+                $role,
+                $campagnes,
+                $campagne,
+                $campagneActive,
+                $cantons,
+                $villages,
+                $campagneId,
+                $cantonId,
+                $villageId
+            ),
+
+            'Agent recenseur' => $this->dashboardAgent(
+                $request,
+                $user,
+                $role,
+                $campagnes,
+                $campagne,
+                $campagneActive,
+                $cantons,
+                $villages,
+                $campagneId,
+                $cantonId,
+                $villageId
+            ),
+
+            default => $this->dashboardAdministrateur(
+                $request,
+                $user,
+                $role,
+                $campagnes,
+                $campagne,
+                $campagneActive,
+                $cantons,
+                $villages,
+                $campagneId,
+                $cantonId,
+                $villageId
+            ),
+        };
+    }
+
+    /**
+     * Base des recensements avec les filtres sélectionnés.
+     */
+    private function requeteRecensements(
+        ?int $campagneId,
+        ?int $cantonId,
+        ?int $villageId
+    ): Builder {
+        $query = Recensement::query();
+
+        if ($campagneId) {
+            $query->where('campagne_id', $campagneId);
+        }
+
+        if ($cantonId) {
+            $query->whereHas(
+                'affectation.village.canton',
+                fn (Builder $q) => $q->where(
+                    'idCanton',
+                    $cantonId
+                )
+            );
+        }
+
+        if ($villageId) {
+            $query->whereHas(
+                'affectation',
+                fn (Builder $q) => $q->where(
+                    'village_id',
+                    $villageId
+                )
+            );
+        }
+
+        return $query;
+    }
+
+    /**
+     * Calcule les statistiques principales à partir d'une requête
+     * de recensements déjà filtrée.
+     */
+    private function statistiquesRecensement(
+        Builder $recensements
+    ): array {
+        $total = (clone $recensements)->count();
+
+        $brouillons = (clone $recensements)
+            ->where('statut', 'brouillon')
+            ->count();
+
+        $enCours = (clone $recensements)
+            ->where('statut', 'en_cours')
+            ->count();
+
+        $termines = (clone $recensements)
+            ->where('statut', 'termine')
+            ->count();
+
+        $valides = (clone $recensements)
+            ->where('statut', 'valide')
+            ->count();
+
+        /*
+        | Un dossier est considéré comme traité lorsqu'il est terminé
+        | ou validé.
+        */
+        $traites = $termines + $valides;
+
+        $progression = $total > 0
+            ? round(($traites / $total) * 100, 1)
+            : 0;
+
+        /*
+        | Une maison recensée correspond à une maison possédant
+        | un recensement dans le périmètre sélectionné.
+        */
+        $maisonsRecensees = (clone $recensements)
+            ->whereNotNull('maison_id')
+            ->distinct('maison_id')
+            ->count('maison_id');
+
+        return [
+            'total' => $total,
+            'brouillons' => $brouillons,
+            'enCours' => $enCours,
+            'termines' => $termines,
+            'valides' => $valides,
+            'traites' => $traites,
+            'progression' => $progression,
+            'maisonsRecensees' => $maisonsRecensees,
+        ];
+    }
+
+    /**
+     * Identifiants des recensements filtrés.
+     */
+    private function idsRecensements(Builder $recensements): Builder
+    {
+        return (clone $recensements)
+            ->select('idRecensement');
+    }
+
+    /**
+     * Statistiques ménages / exploitants / exploitations / parcelles.
+     */
+    private function statistiquesAgricoles(
+        Builder $recensements
+    ): array {
+        $ids = $this->idsRecensements($recensements);
+
+        $menages = Menage::query()
+            ->whereIn('recensement_id', $ids)
+            ->count();
+
+        $exploitants = Exploitant::query()
+            ->whereHas(
+                'menage',
+                fn (Builder $query) => $query->whereIn(
+                    'recensement_id',
+                    $this->idsRecensements($recensements)
+                )
+            )
+            ->count();
+
+        $exploitations = Exploitation::query()
+            ->whereHas(
+                'exploitant.menage',
+                fn (Builder $query) => $query->whereIn(
+                    'recensement_id',
+                    $this->idsRecensements($recensements)
+                )
+            )
+            ->count();
+
+        $parcellesQuery = Parcelle::query()
+            ->whereHas(
+                'exploitation.exploitant.menage',
+                fn (Builder $query) => $query->whereIn(
+                    'recensement_id',
+                    $this->idsRecensements($recensements)
+                )
+            );
+
+        $parcelles = (clone $parcellesQuery)->count();
+
+        $superficieTotale = (float) (
+            (clone $parcellesQuery)->sum('superficie')
+        );
+
+        return [
+            'menages' => $menages,
+            'exploitants' => $exploitants,
+            'exploitations' => $exploitations,
+            'parcelles' => $parcelles,
+            'superficieTotale' => $superficieTotale,
+        ];
+    }
+
+    /**
+     * Progression par village.
+     */
+    private function progressionVillages(
+        Builder $recensements,
+        ?int $campagneId,
+        ?int $cantonId,
+        ?int $villageId
+    ): array {
+        $affectationsQuery = Affectation::query()
+            ->with('village');
+
+        if ($campagneId) {
+            $affectationsQuery->where(
+                'campagne_id',
+                $campagneId
+            );
+        }
+
+        if ($cantonId) {
+            $affectationsQuery->whereHas(
+                'village.canton',
+                fn (Builder $query) => $query->where(
+                    'idCanton',
+                    $cantonId
+                )
+            );
+        }
+
+        if ($villageId) {
+            $affectationsQuery->where(
+                'village_id',
+                $villageId
+            );
+        }
+
+        $affectations = $affectationsQuery
+            ->get()
+            ->unique('village_id');
+
+        $recensementsCollection = (clone $recensements)
+            ->with('affectation.village')
+            ->get();
+
+        $resultats = [];
+
+        foreach ($affectations as $affectation) {
+            $village = $affectation->village;
+
+            if (!$village) {
+                continue;
+            }
+
+            $villageRecensements = $recensementsCollection
+                ->filter(
+                    fn (Recensement $recensement) =>
+                        $recensement->affectation?->village_id
+                        === $village->idVillage
+                );
+
+            $total = $villageRecensements->count();
+
+            $traites = $villageRecensements
+                ->whereIn('statut', ['termine', 'valide'])
+                ->count();
+
+            $progression = $total > 0
+                ? round(($traites / $total) * 100, 1)
+                : 0;
+
+            $resultats[] = [
+                'village' => $village,
+                'total' => $total,
+                'traites' => $traites,
+                'progression' => $progression,
+            ];
+        }
+
+        usort(
+            $resultats,
+            fn (array $a, array $b) =>
+                $b['progression'] <=> $a['progression']
+        );
+
+        return $resultats;
+    }
+
+    /**
+     * Tableau de bord Administrateur.
+     */
+    private function dashboardAdministrateur(
+        Request $request,
+        User $user,
+        string $role,
+        $campagnes,
+        $campagne,
+        $campagneActive,
+        $cantons,
+        $villages,
+        ?int $campagneId,
+        ?int $cantonId,
+        ?int $villageId
+    ): View {
+        $recensements = $this->requeteRecensements(
+            $campagneId,
+            $cantonId,
+            $villageId
+        );
+
+        $statsRecensement = $this->statistiquesRecensement(
+            $recensements
+        );
+
+        $statsAgricoles = $this->statistiquesAgricoles(
+            $recensements
+        );
+
+        $utilisateursTotal = User::count();
+
+        $utilisateursActifs = User::whereNotNull(
+            'last_login_at'
+        )->count();
+
+        /*
+        | Si last_login_at n'existe pas dans ta table users,
+        | cette partie doit être remplacée par ton vrai champ
+        | de connexion. Pour éviter une erreur SQL, on récupère
+        | ici les utilisateurs par rapport à leur statut si disponible.
+        */
+        try {
+            $utilisateursActifs = User::where(
+                'statut',
+                'actif'
+            )->count();
+
+            $utilisateursInactifs = max(
+                0,
+                $utilisateursTotal - $utilisateursActifs
+            );
+        } catch (\Throwable $e) {
+            $utilisateursActifs = $utilisateursTotal;
+            $utilisateursInactifs = 0;
+        }
+
+        /*
+        | Répartition des utilisateurs par rôle.
+        */
+        $utilisateursParRole = User::with('role')
+            ->get()
+            ->groupBy(
+                fn (User $item) =>
+                    $item->role?->nom ?? 'Sans rôle'
+            )
+            ->map(fn ($items) => $items->count());
+
+        /*
+        | Recensements par campagne.
+        */
+        $recensementsParCampagneBrut = Recensement::query()
+            ->selectRaw(
+                'campagne_id, COUNT(*) as total'
+            )
+            ->groupBy('campagne_id')
+            ->pluck('total', 'campagne_id');
+
+        $recensementsParCampagne = $campagnes->map(
+            function ($item) use ($recensementsParCampagneBrut) {
+                return [
+                    'campagne' => $item,
+                    'total' => (int) (
+                        $recensementsParCampagneBrut[
+                            $item->idCampagne
+                        ] ?? 0
+                    ),
+                ];
+            }
+        );
+
+        /*
+        | Derniers comptes.
+        */
+        $comptesRecents = User::with('role')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        /*
+        | Villages couverts pour la campagne sélectionnée.
+        */
+        $affectationsCampagne = Affectation::query()
+            ->with('village.canton.commune')
+            ->when(
+                $campagneId,
+                fn (Builder $q) =>
+                    $q->where('campagne_id', $campagneId)
+            )
+            ->get();
+
+        $villagesCouverts = $affectationsCampagne
             ->pluck('village_id')
             ->filter()
             ->unique()
             ->count();
 
+        $prefecturesCouvertes = $affectationsCampagne
+            ->map(
+                fn ($affectation) =>
+                    $affectation->village?->canton?->commune?->prefecture_id
+            )
+            ->filter()
+            ->unique()
+            ->count();
+
+        return view('dashboard', array_merge(
+            [
+                'user' => $user,
+                'role' => $role,
+
+                'campagnes' => $campagnes,
+                'campagne' => $campagne,
+                'campagneActive' => $campagneActive,
+
+                'cantons' => $cantons,
+                'villages' => $villages,
+
+                'campagneId' => $campagneId,
+                'cantonId' => $cantonId,
+                'villageId' => $villageId,
+
+                'utilisateursTotal' => $utilisateursTotal,
+                'utilisateursActifs' => $utilisateursActifs,
+                'utilisateursInactifs' => $utilisateursInactifs,
+
+                'prefecturesCouvertes' => $prefecturesCouvertes,
+                'villagesCouverts' => $villagesCouverts,
+
+                'utilisateursParRole' => $utilisateursParRole,
+                'recensementsParCampagne' => $recensementsParCampagne,
+                'comptesRecents' => $comptesRecents,
+
+                'progressionVillages' => $this->progressionVillages(
+                    $recensements,
+                    $campagneId,
+                    $cantonId,
+                    $villageId
+                ),
+            ],
+            $this->donneesCommunes(
+                $statsRecensement,
+                $statsAgricoles
+            )
+        ));
+    }
+
+    /**
+     * Tableau de bord DPA.
+     */
+    private function dashboardDpa(
+        Request $request,
+        User $user,
+        string $role,
+        $campagnes,
+        $campagne,
+        $campagneActive,
+        $cantons,
+        $villages,
+        ?int $campagneId,
+        ?int $cantonId,
+        ?int $villageId
+    ): View {
+        $recensements = $this->requeteRecensements(
+            $campagneId,
+            $cantonId,
+            $villageId
+        );
 
         /*
-        |--------------------------------------------------------------------------
-        | PROGRESSION
-        |--------------------------------------------------------------------------
-        |
-        | Pour l'instant, comme pour le DPA :
-        | la progression représente les villages couverts par
-        | les affectations.
-        |
+        | Rattachement préfectoral du DPA.
         */
+        $prefectureId = null;
 
-        $progression = 0;
+        try {
+            $prefectureId = RattachementPrefecture::query()
+                ->where('user_id', $user->id)
+                ->where(function ($query) {
+                    $query->whereNull('dateFin')
+                        ->orWhere('dateFin', '>=', now()->toDateString());
+                })
+                ->latest('dateDebut')
+                ->value('prefecture_id');
+        } catch (\Throwable $e) {
+            $prefectureId = null;
+        }
 
-        if ($nombreVillages > 0) {
+        /*
+        | On limite le DPA à sa préfecture lorsque le rattachement
+        | est disponible.
+        */
+        if ($prefectureId) {
+            $recensements->whereHas(
+                'affectation.village.canton.commune',
+                fn (Builder $query) =>
+                    $query->where(
+                        'prefecture_id',
+                        $prefectureId
+                    )
+            );
+        }
 
-            /*
-            | Ici on garde une base simple.
-            | Lorsque le module de collecte sera disponible,
-            | cette valeur sera remplacée par la vraie progression
-            | des villages recensés.
-            */
-            $progression = $affectationsActives > 0
-                ? round(
-                    ($affectationsActives / $nombreAffectations) * 100
+        $statsRecensement = $this->statistiquesRecensement(
+            $recensements
+        );
+
+        $statsAgricoles = $this->statistiquesAgricoles(
+            $recensements
+        );
+
+        /*
+        | Affectations de la campagne.
+        */
+        $affectations = Affectation::query()
+            ->with('village')
+            ->when(
+                $campagneId,
+                fn (Builder $q) =>
+                    $q->where('campagne_id', $campagneId)
+            )
+            ->when(
+                $cantonId,
+                fn (Builder $q) =>
+                    $q->whereHas(
+                        'village.canton',
+                        fn (Builder $v) =>
+                            $v->where('idCanton', $cantonId)
+                    )
+            )
+            ->when(
+                $villageId,
+                fn (Builder $q) =>
+                    $q->where('village_id', $villageId)
+            )
+            ->when(
+                $prefectureId,
+                fn (Builder $q) =>
+                    $q->whereHas(
+                        'village.canton.commune',
+                        fn (Builder $v) =>
+                            $v->where(
+                                'prefecture_id',
+                                $prefectureId
+                            )
+                    )
+            )
+            ->get();
+
+        $equipesConstituees = $affectations
+            ->pluck('equipe_id')
+            ->filter()
+            ->unique()
+            ->count();
+
+        $equipesAffectees = $affectations
+            ->where('statut', 'active')
+            ->pluck('equipe_id')
+            ->filter()
+            ->unique()
+            ->count();
+
+        $villagesDeployes = $affectations
+            ->pluck('village_id')
+            ->filter()
+            ->unique()
+            ->count();
+
+        /*
+        | Nombre total de villages de la préfecture.
+        */
+        $villagesTotalQuery = Village::query();
+
+        if ($prefectureId) {
+            $villagesTotalQuery->whereHas(
+                'canton.commune',
+                fn (Builder $query) =>
+                    $query->where(
+                        'prefecture_id',
+                        $prefectureId
+                    )
+            );
+        }
+
+        if ($cantonId) {
+            $villagesTotalQuery->whereHas(
+                'canton',
+                fn (Builder $query) =>
+                    $query->where(
+                        'idCanton',
+                        $cantonId
+                    )
+            );
+        }
+
+        if ($villageId) {
+            $villagesTotalQuery->where(
+                'idVillage',
+                $villageId
+            );
+        }
+
+        $villagesTotal = $villagesTotalQuery->count();
+
+        $villagesRestants = max(
+            0,
+            $villagesTotal - $villagesDeployes
+        );
+
+        /*
+        | Agents ayant effectivement des recensements dans le périmètre.
+        */
+        $nombreAgents = (clone $recensements)
+            ->whereNotNull('agent_id')
+            ->distinct('agent_id')
+            ->count('agent_id');
+
+        /*
+        | Progression par village.
+        */
+        $progressionVillages = $this->progressionVillages(
+            $recensements,
+            $campagneId,
+            $cantonId,
+            $villageId
+        );
+
+        /*
+        | Suivi des équipes.
+        */
+        $recensementsCollection = (clone $recensements)
+            ->with('affectation.equipe')
+            ->get();
+
+        $suiviEquipes = [];
+
+        foreach (
+            $affectations
+                ->unique('equipe_id')
+            as $affectation
+        ) {
+            $equipe = $affectation->equipe;
+
+            if (!$equipe) {
+                continue;
+            }
+
+            $items = $recensementsCollection->filter(
+                fn (Recensement $recensement) =>
+                    $recensement->affectation?->equipe_id
+                    === $equipe->idEquipe
+            );
+
+            $total = $items->count();
+
+            $traites = $items
+                ->whereIn(
+                    'statut',
+                    ['termine', 'valide']
                 )
+                ->count();
+
+            $progression = $total > 0
+                ? round(($traites / $total) * 100, 1)
                 : 0;
 
-            $progression = min($progression, 100);
+            $suiviEquipes[] = [
+                'equipe' => $equipe,
+                'total' => $total,
+                'traites' => $traites,
+                'progression' => $progression,
+            ];
         }
 
+        usort(
+            $suiviEquipes,
+            fn (array $a, array $b) =>
+                $b['progression'] <=> $a['progression']
+        );
 
         /*
-        |--------------------------------------------------------------------------
-        | MES ZONES DE TRAVAIL
-        |--------------------------------------------------------------------------
-        |
-        | On utilise les affectations de la campagne actuelle.
-        |
+        | File de contrôle :
+        | les dossiers terminés attendent la validation.
         */
+        $fileControle = (clone $recensements)
+            ->where('statut', 'termine')
+            ->with([
+                'affectation.village',
+                'agent',
+            ])
+            ->latest('dateDerniereModification')
+            ->take(10)
+            ->get();
 
-        $mesZones = $affectationsCampagne
-            ->map(function ($affectation) {
+        return view('dashboard', array_merge(
+            [
+                'user' => $user,
+                'role' => $role,
 
-                $village = $affectation->village;
+                'campagnes' => $campagnes,
+                'campagne' => $campagne,
+                'campagneActive' => $campagneActive,
 
-                if (!$village) {
-                    return null;
-                }
+                'cantons' => $cantons,
+                'villages' => $villages,
 
-                return [
-                    'id' => $village->idVillage,
+                'campagneId' => $campagneId,
+                'cantonId' => $cantonId,
+                'villageId' => $villageId,
 
-                    'village' => $village->nom,
+                'equipesConstituees' => $equipesConstituees,
+                'equipesAffectees' => $equipesAffectees,
 
-                    'canton' => $village->canton?->nom,
+                'villagesDeployes' => $villagesDeployes,
+                'villagesRestants' => $villagesRestants,
 
-                    'commune' => $village->canton?->commune?->nom,
+                'nombreAgents' => $nombreAgents,
 
-                    'prefecture' =>
-                        $village->canton?->commune?->prefecture?->nom,
+                'progressionVillages' => $progressionVillages,
+                'suiviEquipes' => $suiviEquipes,
+                'fileControle' => $fileControle,
+            ],
+            $this->donneesCommunes(
+                $statsRecensement,
+                $statsAgricoles
+            )
+        ));
+    }
 
-                    'statut' => $affectation->statut,
+    /**
+     * Tableau de bord Superviseur.
+     */
+    private function dashboardSuperviseur(
+        Request $request,
+        User $user,
+        string $role,
+        $campagnes,
+        $campagne,
+        $campagneActive,
+        $cantons,
+        $villages,
+        ?int $campagneId,
+        ?int $cantonId,
+        ?int $villageId
+    ): View {
+        /*
+        | Equipes supervisées.
+        */
+        $equipes = Equipe::query()
+            ->where('superviseur_id', $user->id)
+            ->get();
 
-                    'reference' => $affectation->reference,
-
-                    'dateDebut' => $affectation->dateDebut,
-
-                    'dateFin' => $affectation->dateFin,
-
-                    'equipe' => $affectation->equipe?->nom,
-                ];
-            })
+        $equipeIds = $equipes
+            ->pluck('idEquipe')
             ->filter()
-            ->unique('id')
             ->values();
 
+        $recensements = $this->requeteRecensements(
+            $campagneId,
+            $cantonId,
+            $villageId
+        );
 
-        /*
-        |--------------------------------------------------------------------------
-        | RETOUR VUE
-        |--------------------------------------------------------------------------
-        */
+        $recensements->whereHas(
+            'affectation',
+            fn (Builder $query) =>
+                $query->whereIn(
+                    'equipe_id',
+                    $equipeIds
+                )
+        );
 
-        return view('dashboard', [
+        $statsRecensement = $this->statistiquesRecensement(
+            $recensements
+        );
 
-            'typeDashboard' => 'agent',
+        $statsAgricoles = $this->statistiquesAgricoles(
+            $recensements
+        );
 
-            /*
-            | Campagne actuellement suivie par l'agent.
-            */
-            'campagne' => $campagne,
+        $villagesSuivis = Affectation::query()
+            ->when(
+                $campagneId,
+                fn (Builder $q) =>
+                    $q->where(
+                        'campagne_id',
+                        $campagneId
+                    )
+            )
+            ->whereIn(
+                'equipe_id',
+                $equipeIds
+            )
+            ->when(
+                $cantonId,
+                fn (Builder $q) =>
+                    $q->whereHas(
+                        'village.canton',
+                        fn (Builder $v) =>
+                            $v->where(
+                                'idCanton',
+                                $cantonId
+                            )
+                    )
+            )
+            ->when(
+                $villageId,
+                fn (Builder $q) =>
+                    $q->where(
+                        'village_id',
+                        $villageId
+                    )
+            )
+            ->distinct('village_id')
+            ->count('village_id');
 
-            /*
-            | Équipe principale dans la campagne actuelle.
-            */
-            'equipe' => $equipe,
+        $progressionAgents = [];
 
-            /*
-            | Toutes les équipes connues de l'agent.
-            */
-            'mesEquipes' => $mesEquipes,
+        $itemsAgents = (clone $recensements)
+            ->with('agent')
+            ->get()
+            ->groupBy('agent_id');
 
-            /*
-            | Affectations de la campagne actuelle.
-            */
-            'mesAffectations' => $affectationsCampagne,
+        foreach ($itemsAgents as $agentId => $items) {
+            $agent = $items->first()?->agent;
 
-            /*
-            | Historique des campagnes.
-            */
-            'mesCampagnes' => $mesCampagnes,
+            $total = $items->count();
 
-            /*
-            | Zones/villages de travail.
-            */
-            'mesZones' => $mesZones,
+            $traites = $items
+                ->whereIn(
+                    'statut',
+                    ['termine', 'valide']
+                )
+                ->count();
 
-            /*
-            | Statistiques.
-            */
-            'nombreAffectations' => $nombreAffectations,
-
-            'affectationsActives' => $affectationsActives,
-
-            'nombreVillages' => $nombreVillages,
-
-            'progression' => $progression,
-        ]);
-    }
-
-
-    /**
-     * =========================================================================
-     * NOMBRE D'AGENTS
-     * =========================================================================
-     *
-     * Le rôle est recherché par son nom.
-     * Aucun ID de rôle n'est utilisé.
-     */
-    private function nombreAgents(
-        ?int $prefectureId = null
-    ): int {
-
-        $query = User::query()
-            ->whereHas(
-                'role',
-                function ($query) {
-                    $query->where(
-                        'nom',
-                        'Agent recenseur'
-                    );
-                }
-            );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Si une préfecture est précisée
-        |--------------------------------------------------------------------------
-        */
-
-        if ($prefectureId !== null) {
-
-            /*
-            | On utilise le rattachement préfectoral.
-            |
-            | Cela évite de dépendre de users.prefecture_id.
-            */
-            $query->whereHas(
-                'rattachementsPrefecture',
-                function ($query) use ($prefectureId) {
-
-                    $query
-                        ->where(
-                            'prefecture_id',
-                            $prefectureId
-                        )
-                        ->where(
-                            'statut',
-                            'actif'
-                        )
-                        ->whereNull(
-                            'dateFin'
-                        );
-                }
-            );
+            $progressionAgents[] = [
+                'agent' => $agent,
+                'total' => $total,
+                'traites' => $traites,
+                'progression' => $total > 0
+                    ? round(
+                        ($traites / $total) * 100,
+                        1
+                    )
+                    : 0,
+            ];
         }
 
-        return $query->count();
+        usort(
+            $progressionAgents,
+            fn (array $a, array $b) =>
+                $b['progression'] <=> $a['progression']
+        );
+
+        $fileControle = (clone $recensements)
+            ->where('statut', 'termine')
+            ->with([
+                'affectation.village',
+                'agent',
+            ])
+            ->latest('dateDerniereModification')
+            ->take(10)
+            ->get();
+
+        $progressionVillages = $this->progressionVillages(
+            $recensements,
+            $campagneId,
+            $cantonId,
+            $villageId
+        );
+
+        return view('dashboard', array_merge(
+            [
+                'user' => $user,
+                'role' => $role,
+
+                'campagnes' => $campagnes,
+                'campagne' => $campagne,
+                'campagneActive' => $campagneActive,
+
+                'cantons' => $cantons,
+                'villages' => $villages,
+
+                'campagneId' => $campagneId,
+                'cantonId' => $cantonId,
+                'villageId' => $villageId,
+
+                'equipes' => $equipes,
+                'agents' => $itemsAgents->count(),
+                'villagesSuivis' => $villagesSuivis,
+
+                'progressionAgents' => $progressionAgents,
+                'fileControle' => $fileControle,
+                'progressionVillages' => $progressionVillages,
+            ],
+            $this->donneesCommunes(
+                $statsRecensement,
+                $statsAgricoles
+            )
+        ));
     }
 
-
     /**
-     * =========================================================================
-     * NOMBRE DE SUPERVISEURS
-     * =========================================================================
+     * Tableau de bord Agent recenseur.
      */
-    private function nombreSuperviseurs(
-        int $prefectureId
-    ): int {
-
-        return User::query()
-            ->whereHas(
-                'role',
-                function ($query) {
-                    $query->where(
-                        'nom',
-                        'Superviseur'
-                    );
-                }
-            )
-            ->whereHas(
-                'rattachementsPrefecture',
-                function ($query) use ($prefectureId) {
-
-                    $query
-                        ->where(
-                            'prefecture_id',
-                            $prefectureId
-                        )
-                        ->where(
-                            'statut',
-                            'actif'
-                        )
-                        ->whereNull(
-                            'dateFin'
-                        );
-                }
-            )
-            ->count();
-    }
-
-
-    /**
-     * =========================================================================
-     * PRÉFECTURE DE L'UTILISATEUR
-     * =========================================================================
-     */
-    private function prefectureIdUtilisateur(
-        User $user
-    ): ?int {
+    private function dashboardAgent(
+        Request $request,
+        User $user,
+        string $role,
+        $campagnes,
+        $campagne,
+        $campagneActive,
+        $cantons,
+        $villages,
+        ?int $campagneId,
+        ?int $cantonId,
+        ?int $villageId
+    ): View {
+        $recensements = $this->requeteRecensements(
+            $campagneId,
+            $cantonId,
+            $villageId
+        );
 
         /*
-        | Priorité au rattachement actif.
+        | L'agent ne voit que ses propres recensements.
         */
-        $rattachement = RattachementPrefecture::query()
-            ->where(
-                'user_id',
-                $user->id
-            )
-            ->where(
+        $recensements->where(
+            'agent_id',
+            $user->id
+        );
+
+        $statsRecensement = $this->statistiquesRecensement(
+            $recensements
+        );
+
+        $statsAgricoles = $this->statistiquesAgricoles(
+            $recensements
+        );
+
+        /*
+        | À faire :
+        | brouillons + recensements en cours.
+        */
+        $aFaire = (clone $recensements)
+            ->whereIn(
                 'statut',
-                'actif'
+                ['brouillon', 'en_cours']
             )
-            ->whereNull(
-                'dateFin'
-            )
-            ->first();
-
-        if ($rattachement) {
-            return (int) $rattachement->prefecture_id;
-        }
+            ->with([
+                'maison',
+                'affectation.village',
+            ])
+            ->latest('dateDerniereModification')
+            ->take(10)
+            ->get();
 
         /*
-        | Compatibilité si users.prefecture_id existe.
+        | Villages réellement rencontrés dans les recensements
+        | de l'agent.
         */
-        if (!empty($user->prefecture_id)) {
-            return (int) $user->prefecture_id;
-        }
+        $progressionVillages = $this->progressionVillages(
+            $recensements,
+            $campagneId,
+            $cantonId,
+            $villageId
+        );
 
-        return null;
+        return view('dashboard', array_merge(
+            [
+                'user' => $user,
+                'role' => $role,
+
+                'campagnes' => $campagnes,
+                'campagne' => $campagne,
+                'campagneActive' => $campagneActive,
+
+                'cantons' => $cantons,
+                'villages' => $villages,
+
+                'campagneId' => $campagneId,
+                'cantonId' => $cantonId,
+                'villageId' => $villageId,
+
+                'aFaire' => $aFaire,
+                'progressionVillages' => $progressionVillages,
+            ],
+            $this->donneesCommunes(
+                $statsRecensement,
+                $statsAgricoles
+            )
+        ));
+    }
+
+    /**
+     * Variables communes à tous les dashboards.
+     */
+    private function donneesCommunes(
+        array $statsRecensement,
+        array $statsAgricoles
+    ): array {
+        return [
+            /*
+            | Recensements
+            */
+            'nombreRecensements' =>
+                $statsRecensement['total'],
+
+            'maisonsRecensees' =>
+                $statsRecensement['maisonsRecensees'],
+
+            'dossiersBrouillon' =>
+                $statsRecensement['brouillons'],
+
+            'dossiersEnCours' =>
+                $statsRecensement['enCours'],
+
+            'dossiersTermines' =>
+                $statsRecensement['termines'],
+
+            'dossiersValides' =>
+                $statsRecensement['valides'],
+
+            'dossiersTraites' =>
+                $statsRecensement['traites'],
+
+            'progression' =>
+                $statsRecensement['progression'],
+
+            /*
+            | Données agricoles
+            */
+            'menages' =>
+                $statsAgricoles['menages'],
+
+            'exploitants' =>
+                $statsAgricoles['exploitants'],
+
+            'exploitations' =>
+                $statsAgricoles['exploitations'],
+
+            'parcelles' =>
+                $statsAgricoles['parcelles'],
+
+            'superficieTotale' =>
+                $statsAgricoles['superficieTotale'],
+        ];
     }
 }

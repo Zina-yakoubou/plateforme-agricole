@@ -85,11 +85,11 @@
             </button>
 
             {{-- Séparateur --}}
-            <div class="w-px h-8 bg-[#e5e7eb] mx-2 hidden sm:block"></div>
+            {{-- <div class="w-px h-8 bg-[#e5e7eb] mx-2 hidden sm:block"></div> --}}
 
             {{-- Profil --}}
 
-            <div class="relative" x-data="{ profileOpen: false }" @click.outside="profileOpen = false">
+            {{-- <div class="relative" x-data="{ profileOpen: false }" @click.outside="profileOpen = false">
 
                 <button
                     type="button"
@@ -113,7 +113,6 @@
                     </svg>
                 </button>
 
-                {{-- Menu déroulant --}}
 
                 <div
                     x-show="profileOpen"
@@ -159,7 +158,7 @@
                     </form>
                 </div>
 
-            </div>
+            </div> --}}
 
         </div>
 
