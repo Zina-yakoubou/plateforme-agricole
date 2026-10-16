@@ -243,7 +243,7 @@
                             $statutClasses = match ($statut) {
                                 'brouillon' => 'bg-slate-100 text-slate-700',
                                 'en_cours' => 'bg-amber-100 text-amber-700',
-                                'termine' => 'bg-blue-100 text-blue-700',
+                                'termine' => 'bg-emerald-100 text-emerald-800',
                                 'valide' => 'bg-emerald-100 text-emerald-700',
                                 default => 'bg-slate-100 text-slate-700',
                             };
@@ -290,12 +290,12 @@
                             <td class="px-5 py-4">
 
                                 <div class="text-sm font-medium text-slate-700">
-                                    {{ $recensement->maison?->village?->nomVillage ?? '—' }}
+                                    {{ $recensement->maison?->village?->nom?? '—' }}
                                 </div>
 
                                 @if($recensement->maison?->village?->canton)
                                     <div class="mt-0.5 text-xs text-slate-400">
-                                        {{ $recensement->maison->village->canton->nomCanton }}
+                                        {{ $recensement->maison->village->canton->nom }}
                                     </div>
                                 @endif
 
@@ -340,7 +340,7 @@
                             </td>
 
 
-                            {{-- Action --}}
+                            {{-- Action (Adaptée selon le statut réel en base) --}}
                             <td class="px-5 py-4 text-right">
 
                                 <a href="{{ route('agent.recensements.show', $recensement) }}"
@@ -351,13 +351,9 @@
                                           hover:text-emerald-700">
 
                                     @if(in_array($statut, ['brouillon', 'en_cours']))
-
                                         Continuer
-
                                     @else
-
                                         Consulter
-
                                     @endif
 
                                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -407,7 +403,7 @@
                     $statutClasses = match ($statut) {
                         'brouillon' => 'bg-slate-100 text-slate-700',
                         'en_cours' => 'bg-amber-100 text-amber-700',
-                        'termine' => 'bg-blue-100 text-blue-700',
+                        'termine' => 'bg-emerald-100 text-emerald-800',
                         'valide' => 'bg-emerald-100 text-emerald-700',
                         default => 'bg-slate-100 text-slate-700',
                     };
@@ -446,7 +442,7 @@
                                 </div>
 
                                 <div class="mt-0.5 text-xs text-slate-500">
-                                    {{ $recensement->maison?->village?->nomVillage ?? '—' }}
+                                    {{ $recensement->maison?->village?->nom ?? '—' }}
                                 </div>
 
                             </div>

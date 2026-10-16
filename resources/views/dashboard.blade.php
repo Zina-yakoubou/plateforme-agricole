@@ -4,84 +4,79 @@
 
 @section('content')
 
-<div class="min-h-screen bg-[#f7faf9]">
-
+<div class="space-y-6">
     {{-- =========================================================
         EN-TÊTE
     ========================================================== --}}
-    <div class="border-b border-gray-200 bg-white">
-        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <div class="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
-            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <p class="text-sm font-medium text-[#006a4f]">
+                    SIRA-Mô
+                </p>
 
-                <div>
-                    <p class="text-sm font-medium text-[#006a4f]">
-                        SIRA-Mô
-                    </p>
+                <h1 class="mt-1 text-2xl font-bold text-gray-900">
+                    Tableau de bord
+                </h1>
 
-                    <h1 class="mt-1 text-2xl font-bold text-gray-900">
-                        Tableau de bord
-                    </h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    {{ $role }}
+                </p>
+            </div>
 
-                    <p class="mt-1 text-sm text-gray-500">
-                        {{ $role }}
-                    </p>
-                </div>
+            @if($campagneActive)
 
-                @if($campagneActive)
+                <div class="rounded-xl border border-[#d7ebe4] bg-[#f2faf7] px-5 py-4">
 
-                    <div class="rounded-xl border border-[#d7ebe4] bg-[#f2faf7] px-5 py-4">
+                    <div class="flex items-center gap-3">
 
-                        <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#006a4f] text-white">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                            </svg>
+                        </div>
 
-                            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#006a4f] text-white">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="h-5 w-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
-                                </svg>
-                            </div>
+                        <div>
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                Campagne sélectionnée
+                            </p>
 
-                            <div>
-                                <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                    Campagne sélectionnée
-                                </p>
+                            <p class="font-semibold text-gray-900">
+                                {{ $campagneActive->libelle }}
+                            </p>
 
-                                <p class="font-semibold text-gray-900">
-                                    {{ $campagneActive->libelle }}
-                                </p>
-
-                                <p class="text-xs text-gray-500">
-                                    {{ $campagneActive->annee }}
-                                    —
-                                    {{ ucfirst($campagneActive->statut) }}
-                                </p>
-                            </div>
-
+                            <p class="text-xs text-gray-500">
+                                {{ $campagneActive->annee }}
+                                —
+                                {{ ucfirst($campagneActive->statut) }}
+                            </p>
                         </div>
 
                     </div>
 
-                @else
+                </div>
 
-                    <div class="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
-                        <p class="text-sm font-medium text-amber-800">
-                            Aucune campagne disponible.
-                        </p>
-                    </div>
+            @else
 
-                @endif
+                <div class="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+                    <p class="text-sm font-medium text-amber-800">
+                        Aucune campagne disponible.
+                    </p>
+                </div>
 
-            </div>
+            @endif
 
         </div>
     </div>
@@ -92,7 +87,7 @@
     ========================================================== --}}
     @if($role !== 'Agent recenseur')
 
-        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mb-6">
 
             <form
                 method="GET"
@@ -255,7 +250,7 @@
     {{-- =========================================================
         CONTENU
     ========================================================== --}}
-    <div class="mx-auto max-w-7xl space-y-6 px-4 pb-10 sm:px-6 lg:px-8">
+    <div class="w-full space-y-6 pb-10">
 
 
         {{-- =====================================================

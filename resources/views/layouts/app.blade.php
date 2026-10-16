@@ -23,12 +23,6 @@
         'resources/js/app.js'
     ])
 
-    {{-- Alpine JS --}}
-    <script
-        defer
-        src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
-    </script>
-
     {{-- Styles globaux --}}
     <style>
         [x-cloak]{
@@ -103,6 +97,19 @@
         <main class="flex-1">
 
             <div class="w-full px-3 py-4 sm:px-5 lg:px-8 lg:py-6">
+
+                {{-- Messages Flash bien positionnés et compacts --}}
+                @if(session('error'))
+                    <div class="mb-4 rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700 shadow-sm">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                @if(session('success'))
+                    <div class="mb-4 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-700 shadow-sm">
+                        {{ session('success') }}
+                    </div>
+                @endif
 
                 @yield('content')
 

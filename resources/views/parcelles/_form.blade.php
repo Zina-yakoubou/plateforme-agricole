@@ -271,7 +271,7 @@
         <div class="grid gap-5 p-5 sm:p-6 md:grid-cols-2">
 
             {{-- Numéro parcelle --}}
-            <div>
+            {{-- <div>
                 <label class="mb-2 block text-sm font-medium text-gray-700">
                     Numéro de parcelle
                 </label>
@@ -286,7 +286,7 @@
                 <p class="mt-1.5 text-xs text-gray-500">
                     Numéro généré automatiquement par le système.
                 </p>
-            </div>
+            </div> --}}
 
             {{-- Superficie calculée --}}
             <div>

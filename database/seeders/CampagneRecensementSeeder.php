@@ -10,161 +10,84 @@ class CampagneRecensementSeeder extends Seeder
 {
     public function run(): void
     {
-        /*
-        |--------------------------------------------------------------------------
-        | UTILISATEUR QUI ENREGISTRE LA CAMPAGNE DANS SIRA
-        |--------------------------------------------------------------------------
-        |
-        | Dans notre logique métier, la campagne a déjà été organisée
-        | et validée en dehors de SIRA.
-        |
-        | Une personne désignée par le ministère l'enregistre donc
-        | dans l'application.
-        |
-        */
-
         $createur = User::first();
 
-        /*
-        |--------------------------------------------------------------------------
-        | CAMPAGNE 1 — NATIONALE
-        |--------------------------------------------------------------------------
-        */
+        // 1. CINQ CAMPAGNES CLÔTURÉES (Pour tester l'historique et la lecture seule)
+        $anneesCloturees = [2021, 2022, 2023, 2024, 2025];
+        foreach ($anneesCloturees as $annee) {
+            CampagneRecensement::updateOrCreate(
+                ['codeCampagne' => "CAM-{$annee}-001"],
+                [
+                    'libelle' => "Recensement Agricole National {$annee} ",
+                    'description' => "Ancienne campagne nationale de recensement agricole de l'année {$annee}.",
+                    'objectifs' => "Collecter les données statistiques de l'année {$annee}.",
+                    'resultatsAttendus' => "Données consolidées et validées.",
+                    'methodologie' => "Recensement standardisé sur le terrain.",
+                    'instructions' => "Campagne close en lecture seule.",
+                    'portee' => 'nationale',
+                    'dateDebut' => "{$annee}-01-08 08:00:00",
+                    'dateFin' => "{$annee}-05-31 18:00:00",
+                    'estOfficielle' => true,
+                    'statut' => 'cloturee',
+                    'created_by' => $createur?->id,
+                ]
+            );
+        }
 
+        // 2. DEUX CAMPAGNES ACTIVES (Pour permettre la collecte en cours sur plusieurs fronts)
         CampagneRecensement::updateOrCreate(
-            [
-                'codeCampagne' => 'CAM-2026-001',
-            ],
+            ['codeCampagne' => 'CAM-2026-001'],
             [
                 'libelle' => 'Recensement Agricole National 2026',
-
-                'description' =>
-                    'Campagne nationale de recensement des exploitations agricoles.',
-
-                'objectifs' =>
-                    'Identifier les exploitants agricoles et collecter les données relatives aux exploitations agricoles sur l’ensemble du territoire national.',
-
-                'resultatsAttendus' =>
-                    'Disposer de données fiables et actualisées sur les exploitants, les exploitations agricoles et les activités agricoles.',
-
-                'methodologie' =>
-                    'Recensement de terrain réalisé par des agents formés selon une méthodologie nationale standardisée.',
-
-                'instructions' =>
-                    'Les équipes doivent respecter les procédures nationales de collecte et de contrôle des données.',
-
+                'description' => 'Campagne nationale active de recensement des exploitations agricoles.',
+                'objectifs' => 'Identifier les exploitants agricoles et collecter les données sur le terrain.',
+                'resultatsAttendus' => 'Données fiables et actualisées pour la campagne en cours.',
+                'methodologie' => 'Recensement de terrain par les agents formés.',
+                'instructions' => 'Respecter les procédures de collecte et de clôture des maisons.',
                 'portee' => 'nationale',
-
                 'dateDebut' => '2026-10-08 08:00:00',
-
                 'dateFin' => '2027-05-31 18:00:00',
-
-                /*
-                | La campagne est officielle dès son enregistrement
-                | dans SIRA, car sa validation est effectuée en dehors
-                | du système.
-                */
                 'estOfficielle' => true,
-
-                /*
-                | Elle n'est pas encore en cours d'exécution.
-                */
-                'statut' => 'planifiee',
-
-                /*
-                | Personne ayant enregistré la campagne dans SIRA.
-                */
+                'statut' => 'active',
                 'created_by' => $createur?->id,
             ]
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | CAMPAGNE 2 — RÉGIONALE
-        |--------------------------------------------------------------------------
-        */
-
         CampagneRecensement::updateOrCreate(
+            ['codeCampagne' => 'CAM-2026-002'],
             [
-                'codeCampagne' => 'CAM-2026-002',
-            ],
-            [
-                'libelle' =>
-                    'Recensement Agricole Région Centrale 2026',
-
-                'description' =>
-                    'Campagne de recensement agricole ciblée sur la région Centrale.',
-
-                'objectifs' =>
-                    'Actualiser les données agricoles de la région et identifier les exploitations nouvellement créées.',
-
-                'resultatsAttendus' =>
-                    'Disposer de données agricoles actualisées permettant d’améliorer la connaissance et le suivi des exploitations de la région.',
-
-                'methodologie' =>
-                    'Collecte de données auprès des exploitants agricoles dans les préfectures concernées.',
-
-                'instructions' =>
-                    'Les agents recenseurs doivent suivre les instructions nationales et assurer la validation des données collectées.',
-
+                'libelle' => 'Recensement Agricole Région Centrale 2026',
+                'description' => 'Campagne active ciblée sur la région Centrale.',
+                'objectifs' => 'Actualiser les données agricoles de la région.',
+                'resultatsAttendus' => 'Disposer de données régionales actualisées.',
+                'methodologie' => 'Collecte active de terrain.',
+                'instructions' => 'Suivre les consignes régionales.',
                 'portee' => 'regionale',
-
-                'dateDebut' => '2026-10-20 08:00:00',
-
-                'dateFin' => '2026-12-30 18:00:00',
-
+                'dateDebut' => '2026-09-01 08:00:00',
+                'dateFin' => '2026-12-31 18:00:00',
                 'estOfficielle' => true,
-
-                'statut' => 'planifiee',
-
+                'statut' => 'active',
                 'created_by' => $createur?->id,
             ]
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | CAMPAGNE 3 — PRÉFECTORALE
-        |--------------------------------------------------------------------------
-        */
-
+        // 3. DEUX CAMPAGNES PLANIFIÉES (Pour tester le blocage en amont)
         CampagneRecensement::updateOrCreate(
+            ['codeCampagne' => 'CAM-2026-003'],
             [
-                'codeCampagne' => 'CAM-2026-003',
-            ],
-            [
-                'libelle' =>
-                    'Recensement Agricole Préfecture de Mô 2026',
-
-                'description' =>
-                    'Campagne de recensement agricole dans la préfecture de Mô.',
-
-                'objectifs' =>
-                    'Recenser les exploitants, les exploitations agricoles et les ménages agricoles de la préfecture de Mô.',
-
-                'resultatsAttendus' =>
-                    'Disposer de données agricoles fiables et actualisées pour la préfecture de Mô.',
-
-                'methodologie' =>
-                    'Collecte de terrain réalisée par les agents recenseurs affectés aux différentes communes et villages.',
-
-                'instructions' =>
-                    'Les agents doivent effectuer la collecte conformément aux instructions du ministère et synchroniser régulièrement les données.',
-
+                'libelle' => 'Recensement Agricole Préfecture de Mô 2026 ',
+                'description' => 'Campagne future ciblée sur la préfecture de Mô.',
+                'objectifs' => 'Recenser les ménages et exploitants de Mô.',
+                'resultatsAttendus' => 'Disposer de données locales précises.',
+                'methodologie' => 'Collecte future.',
+                'instructions' => 'En attente de démarrage.',
                 'portee' => 'prefectorale',
-
-                'dateDebut' => '2026-10-20 08:00:00',
-
-                'dateFin' => '2026-06-30 18:00:00',
-
+                'dateDebut' => '2027-02-01 08:00:00',
+                'dateFin' => '2027-07-31 18:00:00',
                 'estOfficielle' => true,
-
                 'statut' => 'planifiee',
-
                 'created_by' => $createur?->id,
             ]
         );
     }
 }
-

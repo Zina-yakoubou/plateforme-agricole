@@ -130,8 +130,8 @@
             @endif
 
 
-            {{-- DÉPLOYER --}}
-            @if($campagne->statut === 'planifiee')
+            {{-- DÉPLOYER (UNIQUE : Seulement si planifiée et jamais déployée) --}}
+            @if($campagne->statut === 'planifiee' && $campagne->deploiements->count() === 0)
 
                 <form
                     method="POST"
@@ -172,21 +172,22 @@
                 </form>
 
             @endif
-@if(!$campagne->planification)
 
-    <a href="{{ route('campagnes.planification.create', $campagne) }}"
-       class="inline-flex items-center gap-2 rounded-lg  bg-green-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
-        Planifier la campagne
-    </a>
+            @if(!$campagne->planification)
 
-@elseif($campagne->statut === 'planifiee')
+                <a href="{{ route('campagnes.planification.create', $campagne) }}"
+                   class="inline-flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                    Planifier la campagne
+                </a>
 
-    <a href="{{ route('campagnes.planification.show', $campagne) }}"
-       class="inline-flex items-center gap-2 rounded-lg  bg-green-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700">
-        Voir la planification
-    </a>
+            @elseif($campagne->statut === 'planifiee')
 
-@endif
+                <a href="{{ route('campagnes.planification.show', $campagne) }}"
+                   class="inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700">
+                    Voir la planification
+                </a>
+
+            @endif
 
             {{-- CLÔTURER --}}
             @if($campagne->statut === 'active')
@@ -1397,9 +1398,11 @@
                                     <td class="px-4 py-4">
 
                                         <div class="font-semibold text-slate-800">
-                                            {{ $affectation->user?->name
+                                            {{-- {{ $affectation->user?->name
                                                 ?? 'Agent non défini'
-                                            }}
+                                            }} --}}
+
+                                            {{ $affectation->equipe?->nom ?? 'Équipe non définie' }}
                                         </div>
 
                                     </td>
@@ -1499,7 +1502,7 @@
          NOTE MÉTIER
          La planification n'est PAS gérée ici.
     ========================================================== --}}
-    @if($campagne->deploiements->count())
+    {{-- @if($campagne->deploiements->count())
 
         <div class="rounded-xl border border-blue-200 bg-blue-50 p-5">
 
@@ -1539,7 +1542,7 @@
 
         </div>
 
-    @endif
+    @endif --}}
     
 
 </div>

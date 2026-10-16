@@ -2,14 +2,12 @@
 
 @section('content')
 
-<div class="min-h-screen bg-slate-50">
-    
-<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+<div class="space-y-6">
 
     {{-- =========================================================
          EN-TÊTE
     ========================================================== --}}
-    <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
         <div>
 
@@ -34,17 +32,17 @@
 
                     <div class="flex items-center gap-2">
 
-                        <h1 class="text-2xl font-semibold tracking-tight text-[#212529]">
+                        <h1 class="text-2xl font-semibold tracking-tight text-slate-800">
                             Gestion des parcelles
                         </h1>
 
-                        <span class="rounded-full bg-[#e5f2ee] px-3 py-1 text-xs font-semibold text-[#006a4f]">
+                        <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
                             SIRA-Mô
                         </span>
 
                     </div>
 
-                    <p class="mt-1 text-sm text-gray-500">
+                    <p class="mt-1 text-sm text-slate-500">
                         Parcelles recensées pour cet exploitant agricole.
                     </p>
 
@@ -64,11 +62,11 @@
                     [$recensement, $menage]
                 ) }}"
                 class="inline-flex items-center justify-center gap-2
-                       rounded-lg border border-[#e5e7eb]
+                       rounded-xl border border-slate-200
                        bg-white px-4 py-2.5
-                       text-sm font-semibold text-gray-600
-                       transition hover:bg-gray-50
-                       hover:text-[#006a4f]"
+                       text-sm font-semibold text-slate-700 shadow-sm
+                       transition hover:border-emerald-300 hover:bg-emerald-50
+                       hover:text-emerald-700"
             >
 
                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -94,10 +92,10 @@
                     [$recensement, $menage, $exploitant]
                 ) }}"
                 class="inline-flex items-center justify-center gap-2
-                       rounded-lg bg-[#006a4f]
+                       rounded-xl bg-emerald-700
                        px-4 py-2.5
-                       text-sm font-semibold text-white
-                       transition hover:bg-[#156c52]"
+                       text-sm font-semibold text-white shadow-sm
+                       transition hover:bg-emerald-800"
             >
 
                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -125,9 +123,9 @@
     ========================================================== --}}
     @if(session('success'))
 
-        <div class="mb-6 rounded-lg border border-[#b7dfd2]
-                    bg-[#e5f2ee] px-4 py-3
-                    text-sm text-[#006a4f]">
+        <div class="rounded-2xl border border-emerald-200
+                    bg-emerald-50 px-4 py-3
+                    text-sm text-emerald-700">
 
             {{ session('success') }}
 
@@ -138,7 +136,7 @@
 
     @if(session('error'))
 
-        <div class="mb-6 rounded-lg border border-red-200
+        <div class="rounded-2xl border border-red-200
                     bg-red-50 px-4 py-3
                     text-sm text-red-700">
 
@@ -152,95 +150,91 @@
     {{-- =========================================================
          CONTEXTE
     ========================================================== --}}
-    <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    {{-- <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 
-        {{-- Campagne --}}
-        <div class="rounded-xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Campagne
             </p>
 
-            <p class="mt-2 font-semibold text-[#212529]">
+            <p class="mt-2 font-semibold text-slate-800">
                 {{ $recensement->campagne->libelle ?? '—' }}
             </p>
 
         </div>
 
 
-        {{-- Ménage --}}
-        <div class="rounded-xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Ménage
             </p>
 
-            <p class="mt-2 font-semibold text-[#212529]">
+            <p class="mt-2 font-semibold text-slate-800">
                 {{ $menage->numeroMenage ?? '—' }}
             </p>
 
         </div>
 
 
-        {{-- Exploitant --}}
-        <div class="rounded-xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Exploitant
             </p>
 
-            <p class="mt-2 font-semibold text-[#212529]">
+            <p class="mt-2 font-semibold text-slate-800">
                 {{ $exploitant->nom }} {{ $exploitant->prenom }}
             </p>
 
-            <p class="mt-1 text-xs text-gray-400">
+            <p class="mt-1 text-xs text-slate-400">
                 {{ $exploitant->uid }}
             </p>
 
         </div>
 
 
-        {{-- Parcelles --}}
-        <div class="rounded-xl border border-[#b7dfd2]
-                    bg-[#e5f2ee] p-5 shadow-sm">
+        <div class="rounded-2xl border border-emerald-200
+                    bg-emerald-50 p-5 shadow-sm">
 
-            <p class="text-xs font-semibold uppercase tracking-wide text-[#006a4f]">
+            <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">
                 Parcelles recensées
             </p>
 
-            <p class="mt-2 text-3xl font-bold text-[#006a4f]">
+            <p class="mt-2 text-3xl font-bold text-emerald-700">
                 {{ $parcelles->count() }}
             </p>
 
         </div>
 
-    </div>
+    </div> --}}
 
 
     {{-- =========================================================
          EXPLOITATION
     ========================================================== --}}
-    <div class="mb-6 rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
+    {{-- <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
 
-        <div class="border-b border-[#e5e7eb] px-6 py-5">
+        <div class="border-b border-slate-200 px-6 py-5">
 
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
                 <div>
 
-                    <h2 class="text-base font-semibold text-[#212529]">
+                    <h2 class="text-base font-semibold text-slate-800">
                         Exploitation
                     </h2>
 
-                    <p class="mt-1 text-xs text-gray-500">
+                    <p class="mt-1 text-xs text-slate-500">
                         Exploitation agricole associée à cet exploitant.
                     </p>
 
                 </div>
 
-                <span class="rounded-full bg-gray-50 px-3 py-1.5 text-sm text-gray-500">
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
 
-                    <span class="font-semibold text-[#006a4f]">
+                    <span class="font-semibold text-emerald-700">
                         {{ $exploitations->count() }}
                     </span>
 
@@ -259,11 +253,11 @@
 
                 @foreach($exploitations as $exploitation)
 
-                    <div class="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between transition hover:bg-slate-50">
 
                         <div class="flex items-center gap-3">
 
-                            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-[#006a4f]">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
 
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                      class="h-5 w-5"
@@ -280,11 +274,11 @@
 
                             <div>
 
-                                <p class="font-semibold text-[#212529]">
+                                <p class="font-semibold text-slate-800">
                                     {{ $exploitation->nomExploitation ?? 'Exploitation agricole' }}
                                 </p>
 
-                                <p class="mt-1 text-xs text-gray-400">
+                                <p class="mt-1 text-xs text-slate-400">
                                     {{ $exploitation->codeExploitation
                                         ?? $exploitation->uid
                                         ?? '—' }}
@@ -294,9 +288,9 @@
 
                         </div>
 
-                        <span class="text-sm text-gray-500">
+                        <span class="text-sm text-slate-500">
 
-                            <span class="font-semibold text-[#006a4f]">
+                            <span class="font-semibold text-emerald-700">
                                 {{ $exploitation->parcelles->count() }}
                             </span>
 
@@ -318,7 +312,7 @@
 
                     <div class="flex items-start gap-3">
 
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
 
                             <svg xmlns="http://www.w3.org/2000/svg"
                                  class="h-5 w-5"
@@ -335,14 +329,12 @@
 
                         <div>
 
-                            <p class="text-sm font-semibold text-[#212529]">
+                            <p class="text-sm font-semibold text-slate-800">
                                 Aucune exploitation enregistrée pour le moment
                             </p>
 
-                            <p class="mt-1 text-sm text-gray-500">
-                                L'exploitation doit être créée depuis le module
-                                de gestion des exploitations avant l'enregistrement
-                                des parcelles.
+                            <p class="mt-1 text-sm text-slate-500">
+                                L'exploitation doit être créée depuis le module de gestion des exploitations avant l'enregistrement des parcelles.
                             </p>
 
                         </div>
@@ -355,23 +347,23 @@
 
         @endif
 
-    </div>
+    </div> --}}
 
 
     {{-- =========================================================
          PARCELLES
     ========================================================== --}}
-    <div class="overflow-hidden rounded-xl
-                border border-[#e5e7eb]
+    <div class="overflow-hidden rounded-2xl
+                border border-slate-200
                 bg-white shadow-sm">
 
-        <div class="border-b border-[#e5e7eb] px-6 py-5">
+        <div class="border-b border-slate-200 px-6 py-5">
 
-            <h2 class="text-base font-semibold text-[#212529]">
+            <h2 class="text-base font-semibold text-slate-800">
                 Liste des parcelles
             </h2>
 
-            <p class="mt-1 text-xs text-gray-500">
+            <p class="mt-1 text-xs text-slate-500">
                 Toutes les parcelles recensées pour cet exploitant.
             </p>
 
@@ -382,37 +374,33 @@
 
             <div class="overflow-x-auto">
 
-                <table class="w-full min-w-[950px] text-sm">
+                <table class="w-full min-w-[850px] text-sm">
 
-                    <thead class="bg-[#f8faf9]">
+                    <thead class="bg-slate-50 border-b border-slate-200">
 
-                        <tr class="border-b border-[#e5e7eb]">
+                        <tr>
 
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                N°
+                            <th class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                Identifiant / UID
                             </th>
 
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Parcelle
-                            </th>
-
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            <th class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                                 Exploitation
                             </th>
 
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            <th class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                                 Superficie
                             </th>
 
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            <th class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                                 Faire-valoir
                             </th>
 
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            <th class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                                 Irrigation
                             </th>
 
-                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            <th class="px-6 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
                                 Actions
                             </th>
 
@@ -427,55 +415,41 @@
 
                             <tr class="transition hover:bg-slate-50">
 
-                                <td class="px-6 py-4 text-gray-500">
-                                    {{ $loop->iteration }}
+                                {{-- UID épuré sans colonne surchargeante pour le numéro --}}
+                                <td class="px-6 py-4 font-semibold text-slate-800">
+                                    {{ $parcelle->uid ?? 'Parcelle ' . $parcelle->id }}
                                 </td>
 
 
-                                <td class="px-6 py-4">
-
-                                    <p class="font-semibold text-[#212529]">
-                                        {{ $parcelle->numeroParcelle }}
-                                    </p>
-
-                                    <p class="mt-1 text-xs text-gray-400">
-                                        {{ $parcelle->uid }}
-                                    </p>
-
+                                {{-- Exploitation --}}
+                                <td class="px-6 py-4 font-medium text-slate-700">
+                                    {{ $parcelle->exploitation->nomExploitation ?? 'Exploitation agricole' }}
                                 </td>
 
 
-                                <td class="px-6 py-4">
-
-                                    <p class="font-medium text-[#212529]">
-                                        {{ $parcelle->exploitation->nomExploitation ?? 'Exploitation agricole' }}
-                                    </p>
-
-                                    <p class="mt-1 text-xs text-gray-400">
-                                        {{ $parcelle->exploitation->codeExploitation
-                                            ?? $parcelle->exploitation->uid
-                                            ?? '—' }}
-                                    </p>
-
+                                {{-- Superficie --}}
+                                <td class="px-6 py-4 font-semibold text-emerald-700">
+                                    {{ number_format($parcelle->superficie, 2, ',', ' ') }} ha
                                 </td>
 
 
-                                <td class="px-6 py-4 font-medium text-[#212529]">
-                                    {{ number_format($parcelle->superficie, 2, ',', ' ') }}
-                                    ha
+                                {{-- Mode de faire-valoir --}}
+                                <td class="px-6 py-4 text-slate-600">
+                                    <span class="inline-flex rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                                        {{ ucfirst(str_replace('_', ' ', $parcelle->modeFaireValoir)) }}
+                                    </span>
                                 </td>
 
 
-                                <td class="px-6 py-4 text-gray-600">
-                                    {{ ucfirst(str_replace('_', ' ', $parcelle->modeFaireValoir)) }}
+                                {{-- Mode d'irrigation --}}
+                                <td class="px-6 py-4 text-slate-600">
+                                    <span class="inline-flex rounded-lg bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 border border-emerald-100">
+                                        {{ ucfirst(str_replace('_', ' ', $parcelle->modeIrrigation)) }}
+                                    </span>
                                 </td>
 
 
-                                <td class="px-6 py-4 text-gray-600">
-                                    {{ ucfirst(str_replace('_', ' ', $parcelle->modeIrrigation)) }}
-                                </td>
-
-
+                                {{-- Actions --}}
                                 <td class="px-6 py-4">
 
                                     <div class="flex justify-end gap-2">
@@ -492,7 +466,7 @@
                                                 ]
                                             ) }}"
                                             title="Modifier"
-                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 transition shadow-sm"
                                         >
 
                                             <svg xmlns="http://www.w3.org/2000/svg"
@@ -530,7 +504,7 @@
                                             <button
                                                 type="submit"
                                                 title="Supprimer"
-                                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition shadow-sm"
                                             >
 
                                                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -566,7 +540,7 @@
 
             <div class="px-6 py-14 text-center">
 
-                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-50 text-slate-400">
+                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
 
                     <svg xmlns="http://www.w3.org/2000/svg"
                          class="h-7 w-7"
@@ -581,11 +555,11 @@
 
                 </div>
 
-                <h3 class="mt-4 text-sm font-semibold text-[#212529]">
+                <h3 class="mt-4 text-base font-bold text-slate-800">
                     Aucune parcelle enregistrée
                 </h3>
 
-                <p class="mt-1 text-sm text-gray-500">
+                <p class="mt-1 text-sm text-slate-500">
                     Commencez par enregistrer la première parcelle de cette exploitation.
                 </p>
 
@@ -594,7 +568,7 @@
                         'agent.parcelles.create',
                         [$recensement, $menage, $exploitant]
                     ) }}"
-                    class="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#006a4f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#156c52]"
+                    class="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800"
                 >
 
                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -617,9 +591,6 @@
         @endif
 
     </div>
-
-</div>
-
 
 </div>
 

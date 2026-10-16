@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="space-y-6">
 
 {{-- =========================================================
      EN-TÊTE
@@ -345,7 +345,7 @@
 
                                     </div>
 
-                                    @if($affectation->campagne?->codeCampagne)
+                                    {{-- @if($affectation->campagne?->codeCampagne)
 
                                         <div class="mt-1 font-mono text-xs
                                                     font-medium text-[#006a4f]">
@@ -354,7 +354,7 @@
 
                                         </div>
 
-                                    @endif
+                                    @endif --}}
 
                                 </div>
 
@@ -571,7 +571,6 @@
     @endif
 
 </div>
-
 
 </div>
 

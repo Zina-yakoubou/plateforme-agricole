@@ -516,12 +516,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ${escapeHtml(campagne.libelle)}
                 </div>
 
-                <div class="mt-0.5 text-xs text-gray-500">
-                    ${escapeHtml(campagne.codeCampagne ?? '')}
-                    ${campagne.statut
-                        ? ' • ' + escapeHtml(campagne.statut)
-                        : ''}
-                </div>
+                
             `;
 
             div.addEventListener('click', function () {
@@ -863,15 +858,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 ${escapeHtml(village.nom)}
                             </div>
 
-                            ${
-                                village.code
-                                ? `
-                                    <div class="text-xs text-gray-500">
-                                        ${escapeHtml(village.code)}
-                                    </div>
-                                  `
-                                : ''
-                            }
+                           
                         </div>
 
                         ${

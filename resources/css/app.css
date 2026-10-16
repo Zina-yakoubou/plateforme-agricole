@@ -1,6 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tom-select/dist/css/tom-select.css";
+
+@plugin "@tailwindcss/forms";
+
+@source "../views";
+@source "../js";
+
+@theme {
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+}
 
 [x-cloak] {
     display: none !important;

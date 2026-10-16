@@ -327,11 +327,11 @@
                             N°
                         </th>
 
-                        <th class="px-6 py-4 text-left text-xs
+                        {{-- <th class="px-6 py-4 text-left text-xs
                                    font-semibold uppercase tracking-wide
                                    text-gray-500">
                             Code
-                        </th>
+                        </th> --}}
 
                         <th class="px-6 py-4 text-left text-xs
                                    font-semibold uppercase tracking-wide
@@ -354,7 +354,7 @@
                         <th class="px-6 py-4 text-center text-xs
                                    font-semibold uppercase tracking-wide
                                    text-gray-500">
-                            Campagne
+                            Statut
                         </th>
 
                         <th class="px-6 py-4 text-center text-xs
@@ -496,13 +496,13 @@
                                  CODE
                             ================================================== --}}
 
-                            <td class="px-6 py-4">
+                            {{-- <td class="px-6 py-4">
 
                                 <span class="font-semibold text-[#006a4f]">
                                     {{ $campagne?->codeCampagne ?? '—' }}
                                 </span>
 
-                            </td>
+                            </td> --}}
 
 
                             {{-- =================================================
@@ -515,13 +515,13 @@
                                     {{ $campagne?->libelle ?? 'Campagne inconnue' }}
                                 </div>
 
-                                @if($campagne?->description)
+                                {{-- @if($campagne?->description)
 
                                     <div class="mt-1 max-w-xs truncate text-xs text-gray-400">
                                         {{ $campagne->description }}
                                     </div>
 
-                                @endif
+                                @endif --}}
 
                             </td>
 

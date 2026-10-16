@@ -124,10 +124,90 @@ class MenageController extends Controller
     /**
      * Enregistrer un ménage.
      */
+    // public function store(
+        
+    //     StoreMenageRequest $request,
+    //     Recensement $recensement
+    // ): RedirectResponse {
+
+    //     // 🔒 SÉCURITÉ : Bloquer si la campagne est fermée ou si le recensement est terminé
+    //     if (!$recensement->campagne->estModifiable() || $recensement->statut === 'termine') {
+    //         return back()->with('error', 'Action impossible : les données de cette campagne sont en lecture seule.');
+    //     }
+
+    //     $this->verifierAccesRecensement($recensement);
+
+    //     $menage = DB::transaction(function () use ($request, $recensement) {
+
+    //         $dernierNumero = $recensement->menages()
+    //             ->lockForUpdate()
+    //             ->max('numeroMenage');
+
+    //         $nouveauNumero = $dernierNumero
+    //             ? ((int) $dernierNumero + 1)
+    //             : 1;
+
+    //         $menage = Menage::create(array_merge(
+    //             $request->validated(),
+    //             [
+    //                 'recensement_id' => $recensement->idRecensement,
+    //                 'numeroMenage' => $nouveauNumero,
+    //                 'uid' => (string) Str::uuid(),
+    //             ]
+    //         ));
+
+    //         $recensement->update([
+    //             'dateDerniereModification' => now(),
+    //         ]);
+
+    //         return $menage;
+    //     });
+
+    //     /*
+    //     * Si le ménage possède une exploitation,
+    //     * on poursuit directement vers l'enregistrement de l'exploitant.
+    //     */
+    //     if ($menage->possedeExploitation) {
+    //         return redirect()
+    //             ->route(
+    //                 'agent.recensements.menages.exploitants.create',
+    //                 [
+    //                     'recensement' => $recensement->idRecensement,
+    //                     'menage' => $menage->idMenage,
+    //                 ]
+    //             )
+    //             ->with(
+    //                 'success',
+    //                 'Le ménage a été ajouté. Vous pouvez maintenant enregistrer l’exploitant.'
+    //             );
+    //     }
+
+    //     /*
+    //     * Si le ménage ne possède pas d'exploitation,
+    //     * on retourne simplement à la fiche du recensement.
+    //     */
+    //     return redirect()
+    //         ->route(
+    //             'agent.recensements.show',
+    //             $recensement
+    //         )
+    //         ->with(
+    //             'success',
+    //             'Le ménage a été ajouté avec succès.'
+    //         );
+    // }
+
+
+
     public function store(
-        StoreMenageRequest $request,
+        StoreMenageRequest $request, // On garde uniquement la Form Request validée
         Recensement $recensement
     ): RedirectResponse {
+
+        // 🔒 SÉCURITÉ : Bloquer si la campagne est fermée ou si le recensement est terminé
+        if (!$recensement->campagne->estModifiable() || $recensement->statut === 'termine') {
+            return back()->with('error', 'Action impossible : les données de cette campagne sont en lecture seule.');
+        }
 
         $this->verifierAccesRecensement($recensement);
 
@@ -158,9 +238,9 @@ class MenageController extends Controller
         });
 
         /*
-        * Si le ménage possède une exploitation,
-        * on poursuit directement vers l'enregistrement de l'exploitant.
-        */
+         * Si le ménage possède une exploitation,
+         * on poursuit directement vers l'enregistrement de l'exploitant.
+         */
         if ($menage->possedeExploitation) {
             return redirect()
                 ->route(
@@ -177,9 +257,9 @@ class MenageController extends Controller
         }
 
         /*
-        * Si le ménage ne possède pas d'exploitation,
-        * on retourne simplement à la fiche du recensement.
-        */
+         * Si le ménage ne possède pas d'exploitation,
+         * on retourne simplement à la fiche du recensement.
+         */
         return redirect()
             ->route(
                 'agent.recensements.show',

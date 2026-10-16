@@ -1767,64 +1767,74 @@ class AffectationController extends Controller
 
     
 
-    public function detailAgent(Affectation $affectation): View
-{
-    $user = Auth::user();
+    public function detailAgent(Request $request, Affectation $affectation): View
+    {
+        $user = Auth::user();
 
-    // Sécurité : l'agent ne peut consulter que ses propres affectations
-    $estMembre = $affectation->equipe()
-        ->whereHas('membres', function ($query) use ($user) {
-            $query->where('users.id', $user->id);
-        })
-        ->exists();
+        // Sécurité : l'agent ne peut consulter que ses propres affectations
+        $estMembre = $affectation->equipe()
+            ->whereHas('membres', function ($query) use ($user) {
+                $query->where('users.id', $user->id);
+            })
+            ->exists();
 
-    abort_unless($estMembre, 403);
+        abort_unless($estMembre, 403);
 
-    $affectation->load([
-        'campagne',
-        'equipe.superviseur',
-        'equipe.membres',
-        'village.canton.commune.prefecture',
-    ]);
+        $affectation->load([
+            'campagne',
+            'equipe.superviseur',
+            'equipe.membres',
+            'village.canton.commune.prefecture',
+        ]);
 
-    /*
-     * ============================================================
-     * MAISONS DU VILLAGE AFFECTÉ
-     * ============================================================
-     *
-     * On récupère les maisons permanentes du village.
-     *
-     * Pour chaque maison, on charge uniquement son recensement
-     * correspondant à la campagne de cette affectation.
-     */
-    $maisons = Maison::query()
-        ->where(
-            'village_id',
-            $affectation->village_id
-        )
-        ->with([
-            'recensements' => function ($query) use ($affectation) {
+        $search = trim($request->input('search', ''));
+        $statutFiltre = $request->input('statut', '');
 
-                $query
-                    ->where(
-                        'campagne_id',
-                        $affectation->campagne_id
-                    )
-                    ->withCount('menages');
-            },
-        ])
-        ->orderBy('numeroMaison')
-        ->get();
+        $query = Maison::query()
+            ->where('village_id', $affectation->village_id)
+            ->with([
+                'recensements' => function ($query) use ($affectation) {
+                    $query->where('campagne_id', $affectation->campagne_id)
+                        ->withCount('menages');
+                },
+            ]);
 
-    return view(
-        'agent.affectations.show',
-        compact(
-            'affectation',
-            'maisons'
-        )
-    );
-}
+        // Recherche par numéro ou adresse
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('numeroMaison', 'like', "%{$search}%")
+                ->orWhere('adresse', 'like', "%{$search}%");
+            });
+        }
 
+        // Filtre par statut du recensement
+        if ($statutFiltre !== '') {
+            if ($statutFiltre === 'non_commence') {
+                $query->whereDoesntHave('recensements', function ($q) use ($affectation) {
+                    $q->where('campagne_id', $affectation->campagne_id);
+                });
+            } else {
+                $query->whereHas('recensements', function ($q) use ($affectation, $statutFiltre) {
+                    $q->where('campagne_id', $affectation->campagne_id)
+                    ->where('statut', $statutFiltre);
+                });
+            }
+        }
+
+        $maisons = $query->orderBy('numeroMaison')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view(
+            'agent.affectations.show',
+            compact(
+                'affectation',
+                'maisons',
+                'search',
+                'statutFiltre'
+            )
+        );
+    }
 
 
     /**
@@ -2058,4 +2068,7 @@ public function mesZonesSupervision(
             )
         );
     }
+
+
+  
 }

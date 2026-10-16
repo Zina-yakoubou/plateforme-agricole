@@ -95,7 +95,7 @@ class RecensementController extends Controller
 
                     $q->orWhereHas('campagne', function ($campagne) use ($search) {
                         $campagne->where('libelle', 'like', "%{$search}%")
-                            ->orWhere('code', 'like', "%{$search}%");
+                            ->orWhere('codeCampagne', 'like', "%{$search}%");
                     });
 
                     $q->orWhere('statut', 'like', "%{$search}%");
@@ -309,6 +309,7 @@ class RecensementController extends Controller
             'agent',
             'menages.exploitants.exploitation',
         ]);
+        
 
         $this->verifierAccesRecensement($recensement);
 
@@ -398,6 +399,54 @@ class RecensementController extends Controller
         );
     }
 
+
+        /**
+         * Clôturer globalement le recensement de la maison.
+         */
+        public function cloturerMaison(Request $request, Recensement $recensement)
+        {
+            // 1. Vérifier s'il y a au moins un ménage enregistré pour cette maison
+            if ($recensement->menages()->count() === 0) {
+                return back()->with('error', 'Impossible de clôturer : aucun ménage n\'est enregistré pour cette maison.');
+            }
+
+            // 2. Vérifier que chaque ménage de ce recensement possède au moins un exploitant
+            foreach ($recensement->menages as $menage) {
+                if ($menage->exploitants()->count() === 0) {
+                    return back()->with('error', 'Impossible de clôturer : au moins un ménage ne contient aucun exploitant agricole.');
+                }
+            }
+
+            // 3. Valider et clôturer le recensement global
+            $recensement->update([
+                'statut' => 'termine',
+                'dateTerminaison' => now(),
+            ]);
+
+            return redirect()->route('agent.recensements.index')
+                ->with('success', 'La collecte pour cette maison a été clôturée et transmise avec succès.');
+        }
+    
+
+
+        // app/Http/Controllers/RecensementController.php
+
+    public function cloturer(Recensement $recensement)
+    {
+        // Sécurité : Vérifier qu'il est modifiable avant de clôturer
+        if (! $recensement->estModifiable()) {
+            return redirect()->back()->with('error', 'Ce recensement est déjà clôturé.');
+        }
+
+        // Basculement du statut vers "Terminé"
+        $recensement->update([
+            'statut' => 'termine',
+        ]);
+
+        return redirect()
+            ->route('agent.recensements.show', $recensement)
+            ->with('success', 'Le recensement de cette maison a été clôturé avec succès et verrouillé en mode consultation.');
+    }
 
 
     

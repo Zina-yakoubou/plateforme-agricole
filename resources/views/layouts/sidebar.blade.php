@@ -13,7 +13,7 @@
     class="fixed inset-0 z-40 bg-black/50 lg:hidden"
     aria-hidden="true"
 ></div>
-n
+
 
 {{-- ========================================================================
     SIDEBAR
@@ -194,7 +194,7 @@ n
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="1.8"
-                    d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h4a1 1 0 001-1V10"
+                    d="M3 12l9-9 9-9M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h4a1 1 0 001-1V10"
                 />
             </svg>
 
@@ -410,6 +410,43 @@ n
 
                 </a>
 
+
+
+                {{-- SAISONS DE DISTRIBUTION --}}
+                <a
+                    href="{{ route('saison-distributions.index') }}"
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                           transition-colors duration-150
+                           {{ request()->routeIs('saison-distributions.*')
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Saisons de Distribution"
+                >
+                    <svg
+                        class="w-5 h-5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                        />
+                    </svg>
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition.opacity
+                        class="whitespace-nowrap"
+                    >
+                        Saisons de Distribution
+                    </span>
+                </a>
+
             </div>
 
         @endif
@@ -490,7 +527,7 @@ n
                 >
 
                     <svg
-                        class="h-5 h-5 shrink-0"
+                        class="h-5 w-5 shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -820,7 +857,7 @@ n
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
                     class="mb-1 flex items-center gap-3 rounded-md py-3
                            transition-colors duration-150
-                           {{ request()->routeIs('agent.recensements*')
+                           {{ request()->routeIs('agent.recensements*') && !request()->has('statut')
                                 ? 'bg-green-50 text-green-700 font-semibold'
                                 : 'text-text-secondary hover:bg-background-muted' }}"
                     title="Mes recensements"
@@ -857,36 +894,30 @@ n
                 </a>
 
 
-                {{-- SYNCHRONISATION --}}
+                {{-- À RAPPELER / INCOMPLETS (Nouveau pour le terrain) --}}
                 <a
-                    href="#"
-                    onclick="return false"
+                    href="{{ route('agent.recensements.index', ['statut' => 'en_attente']) }}"
+                    @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
                     class="mb-1 flex items-center gap-3 rounded-md py-3
-                           text-gray-400 cursor-not-allowed"
-                    title="Bientôt disponible"
+                           transition-colors duration-150
+                           {{ request()->routeIs('agent.recensements*') && request('statut') === 'en_attente'
+                                ? 'bg-amber-50 text-amber-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Dossiers à rappeler ou incomplets"
                 >
 
                     <svg
-                        class="h-5 w-5 shrink-0"
+                        class="h-5 w-5 shrink-0 text-amber-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                     >
                         <path
-                            stroke-width="1.8"
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                            d="M4 12a8 8 0 0114.9-4
-                               M20 12a8 8 0 01-14.9 4"
-                        />
-
-                        <path
                             stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M19 4v4h-4
-                               M5 20v-4h4"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                     </svg>
 
@@ -895,14 +926,7 @@ n
                         x-transition.opacity
                         class="whitespace-nowrap"
                     >
-                        Synchronisation
-                    </span>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        class="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-[10px]"
-                    >
-                        Bientôt
+                        À rappeler / Incomplets
                     </span>
 
                 </a>
@@ -1119,190 +1143,99 @@ n
 
 
     {{-- ====================================================================
-        PIED DE SIDEBAR
+        PIED DE SIDEBAR (PROFIL & DÉCONNEXION)
     ===================================================================== --}}
-    {{-- <div
-        class="border-t border-border
-               p-3
-               shrink-0
-               space-y-1
-               bg-white"
-    >
+    <div class="relative border-t border-border p-3 shrink-0 bg-white" x-data="{ profileOpen: false }" @click.outside="profileOpen = false">
 
-        <a
-            href="{{ route('profile.edit') }}"
-            @click="sidebarOpen = false"
-            :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-3'"
-            class="flex items-center gap-3 py-2 rounded-md
-                   transition-colors duration-150
-                   {{ request()->routeIs('profile.edit')
-                        ? 'bg-green-50 text-green-700 font-semibold'
-                        : 'text-text-secondary hover:bg-background-muted' }}"
-            title="Mon compte"
+        <button
+            type="button"
+            @click="profileOpen = !profileOpen"
+            class="w-full flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-[#e5f2ee] transition-colors duration-150"
         >
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-9 h-9 rounded-full bg-[#006a4f] text-white flex items-center
+                            justify-center font-poppins font-semibold text-sm shrink-0">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </div>
 
-            <svg
-                class="w-5 h-5 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-            >
+                <div class="text-left min-w-0" x-show="!sidebarCollapsed" x-transition.opacity>
+                    <p class="font-poppins text-sm font-medium text-[#212529] truncate">
+                        {{ auth()->user()->name }}
+                    </p>
+                    <p class="font-poppins text-xs text-[#374151] truncate">
+                        {{ auth()->user()->role->nom ?? '' }}
+                    </p>
+                </div>
+            </div>
+
+            <svg class="w-4 h-4 text-[#374151] shrink-0" x-show="!sidebarCollapsed" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="1.8"
-                    d="M20 21a8 8 0 00-16 0
-                       M12 13a4 4 0 100-8
-                       4 4 0 000 8z"
+                    d="M6 9l6 6 6-6"
                 />
             </svg>
+        </button>
 
-            <span
-                x-show="!sidebarCollapsed"
-                x-transition.opacity
-                class="whitespace-nowrap"
-            >
-                Mon compte
-            </span>
-
-        </a>
-
-
-        <form
-            method="POST"
-            action="{{ route('logout') }}"
+        {{-- Menu déroulant vers le haut --}}
+        <div
+            x-show="profileOpen"
+            x-transition
+            x-cloak
+            class="absolute left-0 right-0 bottom-full mb-2 bg-white rounded-lg border border-[#e5e7eb]
+                   shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]
+                   py-2 z-40"
         >
-            @csrf
+            <div class="px-4 py-2 border-b border-[#e5e7eb]" x-show="sidebarCollapsed">
+                <p class="font-poppins text-sm font-semibold text-[#212529] truncate">
+                    {{ auth()->user()->name }}
+                </p>
 
-            <button
-                type="submit"
-                :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-3'"
-                class="w-full flex items-center gap-3 py-2 rounded-md
-                       text-accent-red
-                       hover:bg-red-50
-                       transition-colors duration-150"
-                title="Déconnexion"
+                <p class="font-poppins text-xs text-[#374151] truncate">
+                    {{ auth()->user()->role->nom ?? '' }}
+                </p>
+            </div>
+
+            <a
+                href="{{ route('profile.edit') }}"
+                class="flex items-center gap-2 px-4 py-2 font-poppins text-sm text-[#434343]
+                       hover:bg-[#e5f2ee] hover:text-[#006a4f] transition-colors duration-150"
             >
-
-                <svg
-                    class="w-5 h-5 shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="1.8"
-                        d="M15 12H3
-                           M7 8l-4 4 4 4
-                           M21 5v14a2 2 0 01-2 2h-6
-                           M15 7V5a2 2 0 00-2-2H7"
+                        d="M20 21a8 8 0 00-16 0 M12 13a4 4 0 100-8 4 4 0 000 8z"
                     />
                 </svg>
 
-                <span
-                    x-show="!sidebarCollapsed"
-                    x-transition.opacity
-                    class="whitespace-nowrap"
-                >
-                    Déconnexion
-                </span>
+                Modifier mon compte
+            </a>
 
-            </button>
-
-        </form>
-
-    </div> --}}
-
-           <div class="relative" x-data="{ profileOpen: false }" @click.outside="profileOpen = false">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
 
                 <button
-                    type="button"
-                    @click="profileOpen = !profileOpen"
-                    class="flex items-center gap-2 pl-1 pr-2 sm:pr-3 py-1 rounded-lg
-                        hover:bg-[#e5f2ee] transition-colors duration-150"
+                    type="submit"
+                    class="w-full flex items-center gap-2 px-4 py-2 font-poppins text-sm
+                           text-[#ab1717] hover:bg-[#e5f2ee] transition-colors duration-150"
                 >
-                    <div class="w-9 h-9 rounded-full bg-[#006a4f] text-white flex items-center
-                                justify-center font-poppins font-semibold text-sm shrink-0">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                    </div>
-
-                    <div class="hidden sm:block text-left min-w-0">
-                        <p class="font-poppins text-sm font-medium text-[#212529] truncate max-w-[120px]">
-                            {{ auth()->user()->name }}
-                        </p>
-                    </div>
-
-                    <svg class="w-4 h-4 text-[#374151] hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="1.8"
-                            d="M6 9l6 6 6-6"
+                            d="M15 12H3 M7 8l-4 4 4 4 M21 5v14a2 2 0 01-2 2h-6 M15 7V5a2 2 0 00-2-2H7"
                         />
                     </svg>
+
+                    Déconnexion
                 </button>
+            </form>
+        </div>
 
-                {{-- Menu déroulant vers le haut --}}
-
-                <div
-                    x-show="profileOpen"
-                    x-transition
-                    x-cloak
-                    class="absolute right-0 bottom-full mb-2 w-56 bg-white rounded-lg border border-[#e5e7eb]
-                        shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]
-                        py-2 z-40"
-                >
-                    <div class="px-4 py-2 border-b border-[#e5e7eb]">
-                        <p class="font-poppins text-sm font-semibold text-[#212529] truncate">
-                            {{ auth()->user()->name }}
-                        </p>
-
-                        <p class="font-poppins text-xs text-[#374151] truncate">
-                            {{ auth()->user()->role->nom ?? '' }}
-                        </p>
-                    </div>
-
-                    <a
-                        href="{{ route('profile.edit') }}"
-                        class="flex items-center gap-2 px-4 py-2 font-poppins text-sm text-[#434343]
-                            hover:bg-[#e5f2ee] hover:text-[#006a4f] transition-colors duration-150"
-                    >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M20 21a8 8 0 00-16 0 M12 13a4 4 0 100-8 4 4 0 000 8z"
-                            />
-                        </svg>
-
-                        Modifier mon compte
-                    </a>
-
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-
-                        <button
-                            type="submit"
-                            class="w-full flex items-center gap-2 px-4 py-2 font-poppins text-sm
-                                text-[#ab1717] hover:bg-[#e5f2ee] transition-colors duration-150"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.8"
-                                    d="M15 12H3 M7 8l-4 4 4 4 M21 5v14a2 2 0 01-2 2h-6 M15 7V5a2 2 0 00-2-2H7"
-                                />
-                            </svg>
-
-                            Déconnexion
-                        </button>
-                    </form>
-                </div>
-
-            </div>
+    </div>
 
 </aside>

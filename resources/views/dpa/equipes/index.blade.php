@@ -582,7 +582,7 @@
 
                                 @if($equipe->membres_count > 0)
 
-                                    <a
+                                    {{-- <a
                                         href="{{ route('dpa.equipes.show', $equipe) }}"
                                         class="ml-2 text-xs
                                                font-semibold
@@ -590,7 +590,111 @@
                                                hover:underline"
                                     >
                                         Voir
-                                    </a>
+                                    </a> --}}
+
+
+                                    <button
+                                        type="button"
+                                        onclick="document.getElementById('membres-{{ $equipe->idEquipe }}').showModal()"
+                                        class="text-xs font-semibold text-[#006a4f] hover:underline"
+                                    >
+                                        Voir
+                                    </button>
+
+                                    <dialog
+                                        id="membres-{{ $equipe->idEquipe }}"
+                                        onclick="if (event.target === this) this.close()"
+                                        class="m-auto w-full max-w-lg rounded-lg border border-[#e5e7eb] p-0 shadow-xl backdrop:bg-black/40"
+                                    >
+                                        <div class="bg-white">
+
+                                            {{-- En-tête --}}
+                                            <div class="flex items-start justify-between border-b border-[#e5e7eb] px-6 py-4">
+                                                <div>
+                                                    <h3 class="text-base font-semibold text-[#212529]">
+                                                        {{ $equipe->nom }}
+                                                    </h3>
+                                                    <p class="mt-0.5 text-xs text-gray-500">
+                                                        {{ $equipe->membres_count }} agent(s) dans cette équipe
+                                                    </p>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onclick="this.closest('dialog').close()"
+                                                    class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                                                    title="Fermer"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+
+                                            {{-- Liste des agents --}}
+                                            <ul class="max-h-80 divide-y divide-[#e5e7eb] overflow-y-auto">
+
+                                                @forelse($equipe->membres as $membre)
+
+                                                    <li class="flex items-center justify-between gap-3 px-6 py-3">
+
+                                                        <div class="flex min-w-0 items-center gap-3">
+
+                                                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e5f2ee] text-sm font-semibold text-[#006a4f]">
+                                                                {{ strtoupper(substr($membre->name, 0, 1)) }}
+                                                            </div>
+
+                                                            <div class="min-w-0">
+                                                                <div class="truncate text-sm font-semibold text-[#212529]">
+                                                                    {{ $membre->name }}
+                                                                </div>
+                                                                <div class="text-xs text-gray-500">
+                                                                    {{ $membre->telephone ?? '—' }}
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="flex shrink-0 items-center gap-3">
+
+                                                            @if($membre->statut)
+                                                                <span class="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">Actif</span>
+                                                            @else
+                                                                <span class="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700">Inactif</span>
+                                                            @endif
+
+                                                            <a
+                                                                href="{{ route('dpa.agents.show', $membre) }}"
+                                                                class="text-xs font-semibold text-[#006a4f] hover:underline"
+                                                            >
+                                                                Fiche
+                                                            </a>
+
+                                                        </div>
+
+                                                    </li>
+
+                                                @empty
+
+                                                    <li class="px-6 py-8 text-center text-sm text-gray-500">
+                                                        Aucun agent dans cette équipe.
+                                                    </li>
+
+                                                @endforelse
+
+                                            </ul>
+
+                                            {{-- Pied --}}
+                                            <div class="flex justify-end border-t border-[#e5e7eb] px-6 py-3">
+                                                <button
+                                                    type="button"
+                                                    onclick="this.closest('dialog').close()"
+                                                    class="rounded-lg border border-[#e5e7eb] bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-[#f8faf9]"
+                                                >
+                                                    Fermer
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </dialog>
 
                                 @endif
 

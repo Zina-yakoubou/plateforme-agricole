@@ -242,80 +242,7 @@ class CampagneRecensement extends Model
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | SYNCHRONISATION DU STATUT
-    |--------------------------------------------------------------------------
-    */
-
-    public function synchroniserStatut(): void
-    {
-        /*
-        |----------------------------------------------------------------------
-        | UNE CAMPAGNE ARCHIVÉE NE REVIENT JAMAIS EN ARRIÈRE
-        |----------------------------------------------------------------------
-        */
-
-        if ($this->statut === 'archivee') {
-            return;
-        }
-
-        $maintenant = now();
-
-
-        /*
-        |----------------------------------------------------------------------
-        | AVANT LE DÉBUT
-        |----------------------------------------------------------------------
-        */
-
-        if ($maintenant->lt($this->dateDebut)) {
-
-            $nouveauStatut = 'planifiee';
-        }
-
-
-        /*
-        |----------------------------------------------------------------------
-        | APRÈS LA FIN
-        |----------------------------------------------------------------------
-        */
-
-        elseif (
-            $this->dateFin !== null &&
-            $maintenant->gte($this->dateFin)
-        ) {
-
-            $nouveauStatut = 'cloturee';
-        }
-
-
-        /*
-        |----------------------------------------------------------------------
-        | PÉRIODE ACTIVE
-        |----------------------------------------------------------------------
-        */
-
-        else {
-
-            $nouveauStatut = 'active';
-        }
-
-
-        /*
-        |----------------------------------------------------------------------
-        | MISE À JOUR
-        |----------------------------------------------------------------------
-        */
-
-        if ($this->statut !== $nouveauStatut) {
-
-            $this->updateQuietly([
-                'statut' => $nouveauStatut,
-            ]);
-        }
-    }
-
+    
 
     /*
     |--------------------------------------------------------------------------
@@ -347,27 +274,43 @@ class CampagneRecensement extends Model
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | SYNCHRONISER TOUTES LES CAMPAGNES
-    |--------------------------------------------------------------------------
-    |
-    | Utilisée par le Scheduler.
-    |
-    */
-
-    public static function synchroniserToutes(): void
+   /**
+     * Synchronise automatiquement le statut de la campagne 
+     * en fonction de la date du jour (dateDebut et dateFin).
+     */
+    public function synchroniserStatut()
     {
-        static::query()
-            ->where('statut', '!=', 'archivee')
-            ->get()
-            ->each(function ($campagne) {
+        $maintenant = now();
 
-                $campagne->synchroniserStatut();
+        // 1. Si la campagne est 'planifiee' et que la date de début est atteinte ou dépassée
+        if ($this->statut === 'planifiee' && $maintenant->greaterThanOrEqualTo($this->dateDebut)) {
+            $this->update(['statut' => 'active']);
+        }
 
-            });
+        // 2. Si la campagne est 'active' et qu'il y a une date de fin dépassée
+        if ($this->statut === 'active' && $this->dateFin && $maintenant->greaterThan($this->dateFin)) {
+            $this->update(['statut' => 'cloturee']);
+        }
     }
 
+        /**
+         * Synchronise l'ensemble des campagnes de la base de données (utilisé par le contrôleur ou le scheduler).
+         */
+        public static function synchroniserToutes()
+        {
+            $maintenant = now();
+
+            // Activer les campagnes planifiées dont la date de début est atteinte
+            self::where('statut', 'planifiee')
+                ->where('dateDebut', '<=', $maintenant)
+                ->update(['statut' => 'active']);
+
+            // Clôturer les campagnes actives dont la date de fin est dépassée
+            self::where('statut', 'active')
+                ->whereNotNull('dateFin')
+                ->where('dateFin', '<', $maintenant)
+                ->update(['statut' => 'cloturee']);
+        }
 
     /*
     |--------------------------------------------------------------------------
@@ -389,4 +332,19 @@ class CampagneRecensement extends Model
             ->unique('idPrefecture')
             ->values();
     }
+
+
+    /**
+     * Vérifie si la campagne est encore modifiable (ni clôturée ni archivée).
+     */
+    public function estModifiable(): bool
+    {
+        $this->synchroniserStatut();
+
+        return !in_array($this->statut, ['cloturee', 'archivee']);
+    }
+
+
+
+    
 }

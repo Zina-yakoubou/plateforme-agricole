@@ -2,45 +2,30 @@
 
 @section('content')
 
+@php
+    $estActive = $equipe->statut === 'ACTIVE';
+
+    // Affectations de l'équipe, de la plus récente à la plus ancienne
+    $affectations = $equipe->affectations()
+        ->with(['campagne', 'village'])
+        ->latest('idAffectation')
+        ->get();
+@endphp
+
 <div class="space-y-6">
 
-    {{-- =========================================================
-         EN-TÊTE
-    ========================================================== --}}
+    {{-- EN-TÊTE --}}
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
         <div>
 
-            {{-- FIL D'ARIANE --}}
             <div class="mb-2 flex items-center gap-2 text-sm text-gray-500">
-
-                <a
-                    href="{{ route('dpa.equipes.index') }}"
-                    class="transition hover:text-[#006a4f]"
-                >
+                <a href="{{ route('dpa.equipes.index') }}" class="transition hover:text-[#006a4f]">
                     Équipes
                 </a>
-
-                <svg
-                    class="h-4 w-4 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="m9 5 7 7-7 7"
-                    />
-                </svg>
-
-                <span class="text-gray-700">
-                    {{ $equipe->reference }}
-                </span>
-
+                <span class="text-gray-400">›</span>
+                <span class="text-gray-700">{{ $equipe->reference }}</span>
             </div>
-
 
             <div class="flex flex-wrap items-center gap-3">
 
@@ -48,117 +33,38 @@
                     {{ $equipe->nom }}
                 </h1>
 
-
-                {{-- STATUT --}}
-                @if($equipe->statut === 'ACTIVE')
-
-                    <span
-                        class="inline-flex items-center gap-1.5
-                               rounded-full bg-green-50
-                               px-3 py-1
-                               text-xs font-semibold text-green-700"
-                    >
-
-                        <span
-                            class="h-1.5 w-1.5 rounded-full bg-green-500"
-                        ></span>
-
+                @if($estActive)
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
                         Active
-
                     </span>
-
                 @else
-
-                    <span
-                        class="inline-flex items-center gap-1.5
-                               rounded-full bg-gray-100
-                               px-3 py-1
-                               text-xs font-semibold text-gray-600"
-                    >
-
-                        <span
-                            class="h-1.5 w-1.5 rounded-full bg-gray-400"
-                        ></span>
-
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+                        <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
                         Inactive
-
                     </span>
-
                 @endif
 
             </div>
 
-
             <p class="mt-1 text-sm text-gray-500">
-                Détails de l'équipe et composition des agents recenseurs.
+                Composition de l'équipe et travaux qui lui sont confiés.
             </p>
 
         </div>
 
-
-        {{-- =====================================================
-             ACTIONS
-        ====================================================== --}}
         <div class="flex items-center gap-2">
 
-            <a
-                href="{{ route('dpa.equipes.index') }}"
-                class="inline-flex items-center gap-2
-                       rounded-lg border border-[#e5e7eb]
-                       bg-white px-4 py-2.5
-                       text-sm font-semibold text-gray-600
-                       transition hover:bg-gray-50"
-            >
-
-                <svg
-                    class="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 19l-7-7 7-7"
-                    />
-                </svg>
-
+            <a href="{{ route('dpa.equipes.index') }}"
+               class="inline-flex items-center gap-2 rounded-lg border border-[#e5e7eb] bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">
                 Retour
-
             </a>
 
-
-            @if($equipe->statut === 'ACTIVE')
-
-                <a
-                    href="{{ route('dpa.equipes.edit', $equipe) }}"
-                    class="inline-flex items-center gap-2
-                           rounded-lg bg-[#006a4f]
-                           px-4 py-2.5
-                           text-sm font-semibold text-white
-                           shadow-sm transition
-                           hover:bg-[#156c52]"
-                >
-
-                    <svg
-                        class="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 8.5-8.5z"
-                        />
-                    </svg>
-
+            @if($estActive)
+                <a href="{{ route('dpa.equipes.edit', $equipe) }}"
+                   class="inline-flex items-center gap-2 rounded-lg bg-[#006a4f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#156c52]">
                     Modifier
-
                 </a>
-
             @endif
 
         </div>
@@ -166,266 +72,68 @@
     </div>
 
 
-    {{-- =========================================================
-         MESSAGES
-    ========================================================== --}}
-
+    {{-- MESSAGES --}}
     @if(session('success'))
-
-        <div class="flex items-start gap-3 rounded-lg
-                    border border-[#b7dfd2]
-                    bg-[#e5f2ee]
-                    px-4 py-3 text-sm text-[#006a4f]">
-
-            <svg
-                class="mt-0.5 h-5 w-5 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"
-                />
-            </svg>
-
-            <span>{{ session('success') }}</span>
-
+        <div class="rounded-lg border border-[#b7dfd2] bg-[#e5f2ee] px-4 py-3 text-sm text-[#006a4f]">
+            {{ session('success') }}
         </div>
-
     @endif
-
 
     @if(session('error'))
-
-        <div class="flex items-start gap-3 rounded-lg
-                    border border-red-200
-                    bg-red-50
-                    px-4 py-3 text-sm text-red-700">
-
-            <svg
-                class="mt-0.5 h-5 w-5 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-            >
-                <path
-                    class="mt-0.5 h-5 w-5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0"
-                />
-            </svg>
-
-            <span>{{ session('error') }}</span>
-
+        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {{ session('error') }}
         </div>
-
     @endif
 
 
-    {{-- =========================================================
-         INFORMATIONS GÉNÉRALES
-    ========================================================== --}}
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    {{-- IDENTITÉ DE L'ÉQUIPE + SUPERVISEUR --}}
+    <div class="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
 
+        <div class="grid grid-cols-1 divide-y divide-[#e5e7eb] lg:grid-cols-2 lg:divide-x lg:divide-y-0">
 
-        {{-- =====================================================
-             CARTE ÉQUIPE
-        ====================================================== --}}
-        <div
-            class="rounded-lg border border-[#e5e7eb]
-                   bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
-        >
-
-            <div class="border-b border-[#e5e7eb] px-6 py-5">
-
-                <div class="flex items-center gap-3">
-
-                    <div
-                        class="flex h-10 w-10 items-center justify-center
-                               rounded-lg bg-[#e5f2ee]
-                               text-[#006a4f]"
-                    >
-
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m7-5a4 4 0 11-8 0 4 4 0 018 0zm5 1a3 3 0 10-6 0"
-                            />
-                        </svg>
-
-                    </div>
-
-                    <div>
-
-                        <h2 class="font-semibold text-[#212529]">
-                            Informations de l'équipe
-                        </h2>
-
-                        <p class="text-xs text-gray-500">
-                            Identification de l'équipe
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="space-y-5 px-6 py-5">
-
-                {{-- RÉFÉRENCE --}}
-                <div>
-
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">
-                        Référence
-                    </p>
-
-                    <p class="mt-1 font-mono text-sm font-semibold text-[#006a4f]">
-                        {{ $equipe->reference }}
-                    </p>
-
-                </div>
-
-
-                {{-- NOM --}}
-                <div>
-
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">
-                        Nom de l'équipe
-                    </p>
-
-                    <p class="mt-1 text-sm font-semibold text-[#212529]">
-                        {{ $equipe->nom }}
-                    </p>
-
-                </div>
-
-
-                {{-- CRÉATION --}}
-                <div>
-
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">
-                        Créée le
-                    </p>
-
-                    <p class="mt-1 text-sm text-gray-700">
-                        {{ $equipe->created_at?->format('d/m/Y à H:i') ?? '-' }}
-                    </p>
-
-                </div>
-
-
-                {{-- DERNIÈRE MODIFICATION --}}
-                <div>
-
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">
-                        Dernière modification
-                    </p>
-
-                    <p class="mt-1 text-sm text-gray-700">
-                        {{ $equipe->updated_at?->format('d/m/Y à H:i') ?? '-' }}
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        {{-- =====================================================
-             CARTE SUPERVISEUR
-        ====================================================== --}}
-        <div
-            class="rounded-lg border border-[#e5e7eb]
-                   bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
-        >
-
-            <div class="border-b border-[#e5e7eb] px-6 py-5">
-
-                <div class="flex items-center gap-3">
-
-                    <div
-                        class="flex h-10 w-10 items-center justify-center
-                               rounded-lg bg-blue-50
-                               text-blue-600"
-                    >
-
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M12 14l9-5-9-5-9 5 9 5z"
-                            />
-
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M12 14l6.16-3.42A12.08 12.08 0 0118 15c0 2.21-2.69 4-6 4s-6-1.79-6-4c0-1.51.68-2.86 1.84-3.78L12 14z"
-                            />
-                        </svg>
-
-                    </div>
-
-                    <div>
-
-                        <h2 class="font-semibold text-[#212529]">
-                            Superviseur
-                        </h2>
-
-                        <p class="text-xs text-gray-500">
-                            Responsable de l'équipe
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
+            {{-- Équipe --}}
             <div class="px-6 py-6">
+
+                <h2 class="text-base font-semibold text-[#212529]">Équipe</h2>
+
+                <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-5">
+
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Référence</dt>
+                        <dd class="mt-1 font-mono text-sm font-semibold text-[#006a4f]">{{ $equipe->reference }}</dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Nom</dt>
+                        <dd class="mt-1 text-sm font-semibold text-[#212529]">{{ $equipe->nom }}</dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Créée le</dt>
+                        <dd class="mt-1 text-sm text-gray-700">{{ $equipe->created_at?->format('d/m/Y à H:i') ?? '-' }}</dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Dernière modification</dt>
+                        <dd class="mt-1 text-sm text-gray-700">{{ $equipe->updated_at?->format('d/m/Y à H:i') ?? '-' }}</dd>
+                    </div>
+
+                </dl>
+
+            </div>
+
+            {{-- Superviseur --}}
+            <div class="px-6 py-6">
+
+                <h2 class="text-base font-semibold text-[#212529]">Superviseur</h2>
 
                 @if($equipe->superviseur)
 
-                    <div class="flex items-center gap-4">
+                    <div class="mt-4 flex items-center gap-4">
 
-                        <div
-                            class="flex h-14 w-14 shrink-0 items-center
-                                   justify-center rounded-full
-                                   bg-[#e5f2ee]
-                                   text-lg font-semibold
-                                   text-[#006a4f]"
-                        >
-                            {{ strtoupper(
-                                substr(
-                                    $equipe->superviseur->name,
-                                    0,
-                                    1
-                                )
-                            ) }}
+                        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#e5f2ee] text-lg font-semibold text-[#006a4f]">
+                            {{ strtoupper(substr($equipe->superviseur->name, 0, 1)) }}
                         </div>
-
 
                         <div class="min-w-0">
 
@@ -434,134 +142,23 @@
                             </p>
 
                             @if($equipe->superviseur->telephone)
-
-                                <p class="mt-1 text-sm text-gray-500">
-                                    {{ $equipe->superviseur->telephone }}
-                                </p>
-
+                                <p class="mt-1 text-sm text-gray-500">{{ $equipe->superviseur->telephone }}</p>
                             @endif
 
                             @if($equipe->superviseur->email)
-
-                                <p class="mt-1 truncate text-xs text-gray-400">
-                                    {{ $equipe->superviseur->email }}
-                                </p>
-
+                                <p class="mt-0.5 truncate text-xs text-gray-400">{{ $equipe->superviseur->email }}</p>
                             @endif
 
+                          
                         </div>
 
                     </div>
 
                 @else
 
-                    <div class="py-4 text-center">
-
-                        <p class="text-sm font-medium text-gray-500">
-                            Aucun superviseur affecté
-                        </p>
-
-                    </div>
+                    <p class="mt-4 text-sm text-gray-500">Aucun superviseur affecté.</p>
 
                 @endif
-
-            </div>
-
-        </div>
-
-
-        {{-- =====================================================
-             CARTE EFFECTIF
-        ====================================================== --}}
-        <div
-            class="rounded-lg border border-[#e5e7eb]
-                   bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
-        >
-
-            <div class="border-b border-[#e5e7eb] px-6 py-5">
-
-                <div class="flex items-center gap-3">
-
-                    <div
-                        class="flex h-10 w-10 items-center justify-center
-                               rounded-lg bg-purple-50
-                               text-purple-600"
-                    >
-
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m7-5a4 4 0 11-8 0 4 4 0 018 0zm5 1a3 3 0 10-6 0"
-                            />
-                        </svg>
-
-                    </div>
-
-                    <div>
-
-                        <h2 class="font-semibold text-[#212529]">
-                            Effectif
-                        </h2>
-
-                        <p class="text-xs text-gray-500">
-                            Composition de l'équipe
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="px-6 py-6">
-
-                <div class="flex items-center justify-between">
-
-                    <div>
-
-                        <p class="text-3xl font-semibold text-[#212529]">
-                            {{ $equipe->membres->count() }}
-                        </p>
-
-                        <p class="mt-1 text-sm text-gray-500">
-                            agent{{ $equipe->membres->count() > 1 ? 's' : '' }}
-                            recenseur{{ $equipe->membres->count() > 1 ? 's' : '' }}
-                        </p>
-
-                    </div>
-
-
-                    <div
-                        class="flex h-14 w-14 items-center justify-center
-                               rounded-full bg-[#e5f2ee]
-                               text-[#006a4f]"
-                    >
-
-                        <svg
-                            class="h-7 w-7"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.7"
-                                d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m7-5a4 4 0 11-8 0 4 4 0 018 0zm5 1a3 3 0 10-6 0"
-                            />
-                        </svg>
-
-                    </div>
-
-                </div>
 
             </div>
 
@@ -570,267 +167,177 @@
     </div>
 
 
-    {{-- =========================================================
-         MEMBRES DE L'ÉQUIPE
-    ========================================================== --}}
-    <div
-        class="overflow-hidden rounded-lg
-               border border-[#e5e7eb]
-               bg-white
-               shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
-    >
+    {{-- AGENTS RECENSEURS --}}
+    <div class="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
 
-        {{-- EN-TÊTE --}}
-        <div
-            class="flex flex-col gap-3
-                   border-b border-[#e5e7eb]
-                   px-6 py-5
-                   sm:flex-row sm:items-center sm:justify-between"
-        >
+        <div class="flex flex-col gap-3 border-b border-[#e5e7eb] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
 
             <div>
-
-                <h2 class="text-base font-semibold text-[#212529]">
-                    Agents recenseurs
-                </h2>
-
-                <p class="mt-1 text-xs text-gray-500">
-                    Membres composant cette équipe de terrain
-                </p>
-
+                <h2 class="text-base font-semibold text-[#212529]">Agents recenseurs</h2>
+                <p class="mt-1 text-xs text-gray-500">Membres de cette équipe de terrain</p>
             </div>
 
-
-            <span
-                class="rounded-full bg-[#f8faf9]
-                       px-3 py-1.5 text-sm text-gray-500"
-            >
-
-                <span class="font-semibold text-[#006a4f]">
-                    {{ $equipe->membres->count() }}
-                </span>
-
+            <span class="rounded-full bg-[#f8faf9] px-3 py-1.5 text-sm text-gray-500">
+                <span class="font-semibold text-[#006a4f]">{{ $equipe->membres->count() }}</span>
                 membre{{ $equipe->membres->count() > 1 ? 's' : '' }}
-
             </span>
 
         </div>
 
+        @forelse($equipe->membres as $agent)
 
-        {{-- LISTE --}}
-        @if($equipe->membres->count() > 0)
+            @if($loop->first)
+                <div class="divide-y divide-[#e5e7eb]">
+            @endif
 
-            <div class="divide-y divide-[#e5e7eb]">
+            <div class="flex flex-col gap-3 px-6 py-4 transition hover:bg-[#f8faf9] sm:flex-row sm:items-center sm:justify-between">
 
-                @foreach($equipe->membres as $agent)
+                <div class="flex items-center gap-4">
 
-                    <div
-                        class="flex flex-col gap-4 px-6 py-5
-                               transition hover:bg-[#f8faf9]
-                               sm:flex-row sm:items-center
-                               sm:justify-between"
-                    >
-
-                        {{-- IDENTITÉ --}}
-                        <div class="flex items-center gap-4">
-
-                            <div
-                                class="flex h-11 w-11 shrink-0
-                                       items-center justify-center
-                                       rounded-full
-                                       bg-[#e5f2ee]
-                                       text-sm font-semibold
-                                       text-[#006a4f]"
-                            >
-
-                                {{ strtoupper(
-                                    substr(
-                                        $agent->name,
-                                        0,
-                                        1
-                                    )
-                                ) }}
-
-                            </div>
-
-
-                            <div>
-
-                                <p class="font-semibold text-[#212529]">
-                                    {{ $agent->name }}
-                                </p>
-
-                                <div class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
-
-                                    @if($agent->telephone)
-
-                                        <span class="text-xs text-gray-500">
-                                            {{ $agent->telephone }}
-                                        </span>
-
-                                    @endif
-
-                                    @if($agent->email)
-
-                                        <span class="text-xs text-gray-400">
-                                            {{ $agent->email }}
-                                        </span>
-
-                                    @endif
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        {{-- RÔLE --}}
-                        <div>
-
-                            <span
-                                class="inline-flex items-center gap-1.5
-                                       rounded-full
-                                       bg-blue-50 px-3 py-1
-                                       text-xs font-semibold
-                                       text-blue-700"
-                            >
-
-                                <span
-                                    class="h-1.5 w-1.5 rounded-full
-                                           bg-blue-500"
-                                ></span>
-
-                                Agent recenseur
-
-                            </span>
-
-                        </div>
-
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#e5f2ee] text-sm font-semibold text-[#006a4f]">
+                        {{ strtoupper(substr($agent->name, 0, 1)) }}
                     </div>
 
-                @endforeach
+                    <div>
+                        <p class="font-semibold text-[#212529]">{{ $agent->name }}</p>
+                        <p class="mt-0.5 text-xs text-gray-500">{{ $agent->telephone ?? '—' }}</p>
+                    </div>
+
+                </div>
+
+                {{-- <div class="flex items-center gap-4">
+
+                    @if($agent->statut)
+                        <span class="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">Actif</span>
+                    @else
+                        <span class="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700">Inactif</span>
+                    @endif
+
+                    <a href="{{ route('dpa.agents.show', $agent) }}"
+                       class="text-xs font-semibold text-[#006a4f] hover:underline">
+                        Voir la fiche
+                    </a>
+
+                </div> --}}
+
+            </div>
+
+            @if($loop->last)
+                </div>
+            @endif
+
+        @empty
+
+            <div class="px-6 py-12 text-center">
+                <p class="font-semibold text-[#212529]">Aucun agent recenseur</p>
+                <p class="mt-1 text-sm text-gray-500">Aucun agent n'est actuellement membre de cette équipe.</p>
+
+                @if($estActive)
+                    <a href="{{ route('dpa.equipes.edit', $equipe) }}"
+                       class="mt-3 inline-block text-sm font-semibold text-[#006a4f] hover:underline">
+                        Modifier l'équipe
+                    </a>
+                @endif
+            </div>
+
+        @endforelse
+
+    </div>
+
+
+    {{-- AFFECTATIONS --}}
+    {{-- <div class="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+
+        <div class="flex flex-col gap-3 border-b border-[#e5e7eb] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+
+            <div>
+                <h2 class="text-base font-semibold text-[#212529]">Affectations</h2>
+                <p class="mt-1 text-xs text-gray-500">Campagnes et villages confiés à cette équipe</p>
+            </div>
+
+            @if($estActive)
+                <a href="{{ route('dpa.equipes.affectations.create', $equipe) }}"
+                   class="inline-flex items-center rounded-lg border border-[#e5e7eb] bg-white px-4 py-2 text-sm font-semibold text-[#006a4f] transition hover:border-[#006a4f] hover:bg-[#e5f2ee]">
+                    {{ $affectations->isNotEmpty() ? 'Affecter / Reconduire' : 'Affecter l\'équipe' }}
+                </a>
+            @endif
+
+        </div>
+
+        @if($affectations->isNotEmpty())
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full min-w-[800px] text-sm">
+
+                    <thead class="bg-[#f8faf9]">
+                        <tr class="border-b border-[#e5e7eb]">
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Campagne</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Village</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Période</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Statut</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-[#e5e7eb]">
+
+                        @foreach($affectations as $affectation)
+
+                            <tr class="transition hover:bg-[#f8faf9]">
+
+                                <td class="px-6 py-4">
+                                    <div class="font-semibold text-[#212529]">
+                                        {{ $affectation->campagne?->libelle ?? '—' }}
+                                    </div>
+                                    <div class="mt-0.5 font-mono text-xs text-gray-400">
+                                        {{ $affectation->reference ?? '' }}
+                                    </div>
+                                </td>
+
+                                <td class="px-6 py-4 text-[#434343]">
+                                    {{ $affectation->village?->nom ?? '—' }}
+                                </td>
+
+                                <td class="px-6 py-4 text-gray-600">
+                                    {{ $affectation->dateDebut?->format('d/m/Y') ?? '-' }}
+                                    au
+                                    {{ $affectation->dateFin?->format('d/m/Y') ?? '-' }}
+                                </td>
+
+                                <td class="px-6 py-4 text-center">
+
+                                    @if($affectation->statut === 'active')
+                                        <span class="inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">En cours</span>
+                                    @elseif($affectation->statut === 'terminee')
+                                        <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">Terminée</span>
+                                    @else
+                                        <span class="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                                            {{ ucfirst($affectation->statut ?? 'Annulée') }}
+                                        </span>
+                                    @endif
+
+                                </td>
+
+                            </tr>
+
+                        @endforeach
+
+                    </tbody>
+
+                </table>
 
             </div>
 
         @else
 
-            {{-- AUCUN MEMBRE --}}
-            <div class="px-6 py-16 text-center">
-
-                <div
-                    class="mx-auto mb-4 flex h-14 w-14
-                           items-center justify-center
-                           rounded-full
-                           bg-[#e5f2ee]
-                           text-[#006a4f]"
-                >
-
-                    <svg
-                        class="h-7 w-7"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.7"
-                            d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m7-5a4 4 0 11-8 0 4 4 0 018 0zm5 1a3 3 0 10-6 0"
-                        />
-                    </svg>
-
-                </div>
-
-
-                <p class="font-semibold text-[#212529]">
-                    Aucun agent recenseur
-                </p>
-
-                <p class="mt-1 text-sm text-gray-500">
-                    Aucun agent n'est actuellement membre de cette équipe.
-                </p>
-
-
-                @if($equipe->statut === 'ACTIVE')
-
-                    <a
-                        href="{{ route('dpa.equipes.edit', $equipe) }}"
-                        class="mt-4 inline-flex items-center gap-2
-                               text-sm font-semibold
-                               text-[#006a4f]
-                               hover:underline"
-                    >
-
-                        Modifier l'équipe
-
-                        <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="m9 18 6-6-6-6"
-                            />
-                        </svg>
-
-                    </a>
-
-                @endif
-
+            <div class="px-6 py-12 text-center">
+                <p class="font-semibold text-[#212529]">Aucune affectation</p>
+                <p class="mt-1 text-sm text-gray-500">Cette équipe n'a encore été affectée à aucune campagne.</p>
             </div>
 
         @endif
 
-    </div>
-
-
-    {{-- =========================================================
-         RAPPEL ARCHITECTURE
-    ========================================================== --}}
-    <div
-        class="rounded-lg border border-blue-200
-               bg-blue-50 px-5 py-4"
-    >
-
-        <div class="flex items-start gap-3">
-
-            <svg
-                class="mt-0.5 h-5 w-5 shrink-0 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="1.8"
-                    d="M13 16h-1v-4h-1m1-4h.01M12 21a9 9 0 100-18"
-                />
-            </svg>
-
-            <div>
-
-                <p class="text-sm font-semibold text-blue-800">
-                    Organisation de l'équipe
-                </p>
-
-                <p class="mt-1 text-sm leading-6 text-blue-700">
-                    Cette équipe est constituée d'un superviseur et
-                    d'un ou plusieurs agents recenseurs.
-                    Les zones de travail seront définies lors de
-                    l'affectation de l'équipe à une campagne.
-                </p>
-
-            </div>
-
-        </div>
-
-    </div>
+    </div> --}}
 
 </div>
 

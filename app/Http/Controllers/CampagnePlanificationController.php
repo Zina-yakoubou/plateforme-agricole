@@ -42,6 +42,13 @@ class CampagnePlanificationController extends Controller
         StoreCampagnePlanificationRequest $request,
         CampagneRecensement $campagne
     ) {
+
+        if (!$campagne->estModifiable()) {
+            return back()->with('error', 'Action impossible : cette campagne est clôturée ou archivée.');
+        }
+
+
+
         // Sécurité : une seule planification par campagne
         if ($campagne->planification()->exists()) {
             return redirect()
@@ -145,6 +152,11 @@ class CampagnePlanificationController extends Controller
         StoreCampagnePlanificationRequest $request,
         CampagneRecensement $campagne
     ) {
+
+        if (!$campagne->estModifiable()) {
+            return back()->with('error', 'Action impossible : cette campagne est clôturée ou archivée.');
+        }
+
         $planification = $campagne->planification()
             ->firstOrFail();
 

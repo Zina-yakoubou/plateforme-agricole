@@ -42,16 +42,17 @@
                 'dateDebut',
                 isset($campagne) && $campagne->dateDebut
                     ? $campagne->dateDebut->format('Y-m-d\TH:i')
-                    : ''
+                    : now()->format('Y-m-d\TH:i')
             ) }}"
-            min="{{ now()->format('Y-m-d\TH:i') }}"
+            {{-- On autorise à partir d'aujourd'hui (sans bloquer l'heure exacte si besoin de tester large) --}}
+            min="{{ now()->format('Y-m-d\T00:00') }}"
             required
             class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm
                 focus:border-green-500 focus:ring-green-500"
         >
 
         <p class="mt-1 text-xs text-gray-500">
-            La campagne doit commencer aujourd'hui ou à une date ultérieure.
+            Vous pouvez planifier la campagne pour aujourd'hui avec l'heure de votre choix.
         </p>
 
         @error('dateDebut')
@@ -65,7 +66,7 @@
     ================================================================= --}}
     <div>
         <label for="dateFin" class="block text-sm font-medium text-gray-700">
-            Date de fin
+            Date de fin <span class="text-red-500">*</span>
         </label>
 
         <input
@@ -78,18 +79,13 @@
                     ? $campagne->dateFin->format('Y-m-d\TH:i')
                     : ''
             ) }}"
-            min="{{ old(
-                'dateDebut',
-                isset($campagne) && $campagne->dateDebut
-                    ? $campagne->dateDebut->format('Y-m-d\TH:i')
-                    : now()->format('Y-m-d\TH:i')
-            ) }}"
+            required
             class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm
                 focus:border-green-500 focus:ring-green-500"
         >
 
         <p class="mt-1 text-xs text-gray-500">
-            La date de fin doit être postérieure ou égale à la date de début.
+            Définissez une heure de fin proche (quelques minutes ou heures plus tard le même jour).
         </p>
 
         @error('dateFin')
