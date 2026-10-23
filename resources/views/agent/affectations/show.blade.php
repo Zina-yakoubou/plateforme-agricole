@@ -5,6 +5,22 @@
 <div class="space-y-6">
 
     {{-- ============================================================
+        BANDEAU CAMPAGNE CLÔTURÉE
+    ============================================================ --}}
+    @if(! ($campagneModifiable ?? true))
+        <div class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <svg class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>
+                Cette campagne est clôturée ou cette affectation n'est plus active :
+                consultation uniquement.
+            </span>
+        </div>
+    @endif
+
+
+    {{-- ============================================================
         INFORMATIONS DE L'AFFECTATION
     ============================================================ --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -86,7 +102,11 @@
                         Maisons à recenser
                     </h2>
                     <p class="mt-1 text-sm text-slate-500">
-                        Sélectionnez une maison pour commencer ou reprendre son recensement.
+                        @if($campagneModifiable ?? true)
+                            Sélectionnez une maison pour commencer ou reprendre son recensement.
+                        @else
+                            Consultez les maisons recensées dans cette affectation.
+                        @endif
                     </p>
                 </div>
 
@@ -96,21 +116,24 @@
                         <span class="text-sm text-slate-500">maison(s)</span>
                     </div>
 
-                    <a
-                        href="{{ route('villages.maisons.create', $affectation->village) }}"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-                    >
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        Ajouter une maison
-                    </a>
+                    {{-- Bouton visible seulement si la campagne est modifiable --}}
+                    @if($campagneModifiable ?? true)
+                        <a
+                            href="{{ route('villages.maisons.create', $affectation->village) }}"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Ajouter une maison
+                        </a>
+                    @endif
                 </div>
             </div>
 
             {{-- Formulaire de recherche et de filtre par statut --}}
             <form method="GET" action="{{ route('agent.affectations.show', $affectation) }}" class="mt-5 flex flex-col gap-3 sm:flex-row">
-                
+
                 {{-- Barre de recherche --}}
                 <div class="relative flex-1">
                     <svg class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +143,7 @@
                         type="text"
                         name="search"
                         value="{{ $search ?? '' }}"
-                        placeholder="Rechercher par numéro de maison ou adresse..."
+                        placeholder="Rechercher par nom du chef ou adresse..."
                         class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-11 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
                     >
                 </div>
@@ -171,6 +194,13 @@
 
                 @php
                     $recensement = $maison->recensements->first();
+
+                    // Nom du chef de maison
+                    $menage = $recensement?->menages?->first();
+
+                    // ADAPTER : remplacez 'nomChef' par la vraie colonne du ménage
+                    // (ou par une relation : $menage?->chefMenage?->nom)
+                    $nomChef = $menage?->nomChef ?: $maison->nomChef;
                 @endphp
 
                 <div class="px-6 py-5 transition hover:bg-slate-50">
@@ -192,8 +222,9 @@
 
                                 <div class="flex flex-wrap items-center gap-2">
 
-                                    <h3 class="font-bold text-slate-800">
-                                        Maison {{ $maison->numeroMaison }}
+                                    {{-- Nom du chef de maison (le numéro n'est plus affiché) --}}
+                                    <h3 class="font-bold text-slate-800" title="N° {{ $maison->numeroMaison }}">
+                                        {{ $nomChef ?: 'Chef non renseigné' }}
                                     </h3>
 
                                     @if($recensement)
@@ -277,39 +308,52 @@
                         </div>
 
 
-                        {{-- Action --}}
-                        <div class="shrink-0">
+                        {{-- Action : aucun bouton si l'affectation est terminée --}}
+                        @if($campagneModifiable ?? true)
 
-                            @if($recensement)
+                            <div class="shrink-0">
 
-                                <a
-                                    href="{{ route('agent.recensements.show', $recensement) }}"
-                                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto"
-                                >
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                                    </svg>
-                                    Reprendre
-                                </a>
+                                @if($recensement)
 
-                            @else
+                                    {{-- Reprendre (campagne modifiable) --}}
+                                    <a
+                                        href="{{ route('agent.recensements.show', $recensement) }}"
+                                        class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto"
+                                    >
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                        </svg>
+                                        Reprendre
+                                    </a>
 
-                                <a
-                                    href="{{ route('agent.recensements.commencer', [
-                                        'affectation' => $affectation->idAffectation,
-                                        'maison' => $maison->idMaison,
-                                    ]) }}"
-                                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto"
-                                >
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                    </svg>
-                                    Commencer
-                                </a>
+                                @else
 
-                            @endif
+                                    {{-- Commencer (campagne modifiable) : formulaire POST --}}
+                                    <form
+                                        method="POST"
+                                        action="{{ route('agent.recensements.commencer', [
+                                            'affectation' => $affectation->idAffectation,
+                                            'maison' => $maison->idMaison,
+                                        ]) }}"
+                                    >
+                                        @csrf
 
-                        </div>
+                                        <button
+                                            type="submit"
+                                            class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto"
+                                        >
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                            </svg>
+                                            Commencer
+                                        </button>
+                                    </form>
+
+                                @endif
+
+                            </div>
+
+                        @endif
 
                     </div>
 

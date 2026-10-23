@@ -776,11 +776,24 @@
     ========================================================== --}}
 
 
-    @if($users->hasPages())
+    {{-- @if($users->hasPages())
         <div class="flex justify-center pt-2">
             {{ $users->links() }}
         </div>
-    @endif
+    @endif --}}
+
+     {{-- =====================================================
+             PAGINATION
+        ====================================================== --}}
+        @if($users->hasPages())
+
+            <div class="border-t border-[#e5e7eb] px-6 py-4">
+
+                {{ $users->withQueryString()->links() }}
+
+            </div>
+
+        @endif
 
 </div>
 

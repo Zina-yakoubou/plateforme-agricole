@@ -31,6 +31,7 @@ class UpdateMaisonRequest extends FormRequest
             : $maison;
 
         return [
+            'nomChef' => ['required', 'string', 'max:255'],
             'numeroMaison' => [
                 'required',
                 'string',

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CampagneDeploiement;
+use App\Models\CampagneRecensement;
 use App\Models\RattachementPrefecture;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -115,6 +116,22 @@ class DpaCampagneController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | AJOUT : SYNCHRONISATION DES STATUTS + ONGLET ACTIF
+        |--------------------------------------------------------------------------
+        |
+        | La synchronisation se fait AVANT la requête pour que le filtre
+        | « en cours / anciennes » s'appuie sur des statuts à jour.
+        |
+        */
+
+        CampagneRecensement::synchroniserToutes();
+
+        $vue = $request->query('vue') === 'anciennes'
+            ? 'anciennes'
+            : 'en_cours';
+
+        /*
+        |--------------------------------------------------------------------------
         | CAMPAGNES DE LA PRÉFECTURE
         |--------------------------------------------------------------------------
         */
@@ -181,6 +198,18 @@ class DpaCampagneController extends Controller
 
             /*
             |--------------------------------------------------------------------------
+            | AJOUT : FILTRE PAR ONGLET (EN COURS / ANCIENNES)
+            |--------------------------------------------------------------------------
+            */
+
+            ->whereHas('campagne', fn ($q) =>
+                $vue === 'anciennes'
+                    ? $q->anciennes()
+                    : $q->enCours()
+            )
+
+            /*
+            |--------------------------------------------------------------------------
             | ORDRE
             |--------------------------------------------------------------------------
             */
@@ -223,7 +252,8 @@ class DpaCampagneController extends Controller
             compact(
                 'deploiements',
                 'prefecture',
-                'search'
+                'search',
+                'vue' // AJOUT
             )
         );
     }
@@ -236,80 +266,10 @@ class DpaCampagneController extends Controller
      *
      * Le DPA ne peut consulter qu'une campagne
      * destinée à sa propre préfecture.
+     *
+     * La consultation reste possible même si la campagne est clôturée.
      */
-    // public function show(CampagneDeploiement $deploiement)
-    // {
-    //     $user = auth()->user();
-
-       
-
-    //     $rattachement = $user->rattachementsPrefecture()
-    //         ->where('statut', 'actif')
-    //         ->whereNull('dateFin')
-    //         ->first();
-
-    //     if (!$rattachement) {
-
-    //         abort(
-    //             403,
-    //             'Vous n’êtes rattaché à aucune préfecture active.'
-    //         );
-    //     }
-
-       
-
-    //     if (
-    //         (int) $deploiement->prefecture_id
-    //         !==
-    //         (int) $rattachement->prefecture_id
-    //     ) {
-
-    //         abort(
-    //             403,
-    //             'Cette campagne ne concerne pas votre préfecture.'
-    //         );
-    //     }
-
-       
-
-    //    $deploiement->load([
-    //         'campagne.createur',
-    //         'campagne.zones.region',
-    //         'campagne.zones.prefecture',
-
-    //         'prefecture.communes.cantons.villages',
-
-    //         'campagne.affectations.user',
-    //         'recuPar',
-    //     ]);
-    //     $prefecture = $deploiement->prefecture;
-    //     $prefecture->loadMissing('communes.cantons.villages');
-
-        
-
-    //     $campagne = $deploiement->campagne;
-
-        
-
-    //     $campagne?->synchroniserStatut();
-
-        
-
-    //     $prefecture = $deploiement->prefecture;
-
-        
-
-    //     return view(
-    //         'dpa.campagnes.show',
-    //         compact(
-    //             'deploiement',
-    //             'campagne',
-    //             'prefecture'
-    //         )
-    //     );
-    // }
-
-        public function show(CampagneDeploiement $deploiement)
+    public function show(CampagneDeploiement $deploiement)
     {
         $user = Auth::user();
 
@@ -450,6 +410,25 @@ class DpaCampagneController extends Controller
                 ->with(
                     'info',
                     'Cette campagne a déjà été réceptionnée.'
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | AJOUT : CAMPAGNE CLÔTURÉE OU ARCHIVÉE
+        |--------------------------------------------------------------------------
+        |
+        | On ne peut plus réceptionner une campagne terminée.
+        |
+        */
+
+        if (! $deploiement->campagne?->estModifiable()) {
+
+            return redirect()
+                ->route('dpa.campagnes.index')
+                ->with(
+                    'error',
+                    'Cette campagne est clôturée : la réception n’est plus possible.'
                 );
         }
 

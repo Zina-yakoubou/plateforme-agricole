@@ -170,63 +170,63 @@
 
                     @if($receptionne && !$planificationPrefectorale)
 
-    <a
-        href="{{ route('dpa.planifications-prefectorales.create', $deploiement) }}"
-        class="inline-flex items-center gap-2
-               px-4 py-2.5 rounded-xl
-               bg-primary text-white
-               text-sm font-semibold
-               hover:opacity-90 transition"
-    >
-        <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-            />
-        </svg>
+                        <a
+                            href="{{ route('dpa.planifications-prefectorales.create', $deploiement) }}"
+                            class="inline-flex items-center gap-2
+                                px-4 py-2.5 rounded-xl
+                                bg-primary text-white
+                                text-sm font-semibold
+                                hover:opacity-90 transition"
+                        >
+                            <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 4v16m8-8H4"
+                                />
+                            </svg>
 
-        Planifier
-    </a>
+                            Planifier
+                        </a>
 
-@elseif($planificationPrefectorale)
+                    @elseif($planificationPrefectorale)
 
-    <a
-        href="{{ route(
-            'dpa.planifications-prefectorales.edit',
-            $planificationPrefectorale
-        ) }}"
-        class="inline-flex items-center gap-2
-               px-4 py-2.5 rounded-xl
-               border border-border
-               bg-white text-text-primary
-               text-sm font-semibold
-               hover:bg-background-muted transition"
-    >
-        <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.8"
-                d="M11 5h2M5 19h2l10-10-2-2L5 17v2z"
-            />
-        </svg>
+                        <a
+                            href="{{ route(
+                                'dpa.planifications-prefectorales.edit',
+                                $planificationPrefectorale
+                            ) }}"
+                            class="inline-flex items-center gap-2
+                                px-4 py-2.5 rounded-xl
+                                border border-border
+                                bg-white text-text-primary
+                                text-sm font-semibold
+                                hover:bg-background-muted transition"
+                        >
+                            <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.8"
+                                    d="M11 5h2M5 19h2l10-10-2-2L5 17v2z"
+                                />
+                            </svg>
 
-        Modifier le planning
-    </a>
+                            Modifier le planning
+                        </a>
 
-@endif
+                    @endif
 
                     <span
                         class="inline-flex items-center gap-2 px-3 py-1.5

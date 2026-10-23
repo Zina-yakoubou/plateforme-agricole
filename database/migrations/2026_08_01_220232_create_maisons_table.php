@@ -16,6 +16,8 @@ return new class extends Migration
 
             // Numéro officiel de la maison
             $table->string('numeroMaison')->unique();
+            $table->string('nomChef')->nullable()->after('adresse');
+
 
             // Localisation administrative permanente
             $table->foreignId('village_id')

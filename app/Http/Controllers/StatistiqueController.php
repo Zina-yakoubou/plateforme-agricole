@@ -7,6 +7,7 @@ use App\Models\CampagneDeploiement;
 use App\Models\CampagneRecensement;
 use App\Models\Commune;
 use App\Models\Equipe;
+use App\Models\Menage;
 use App\Models\Prefecture;
 use App\Models\RattachementPrefecture;
 use App\Models\User;
@@ -156,6 +157,38 @@ class StatistiqueController extends Controller
         $nombreAgents = $this->nombreAgents();
 
         $nombreVillages = Village::count();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RECENSEMENT EFFECTIF (MÉNAGES & EXPLOITANTS VIA RECENSEMENT)
+        |--------------------------------------------------------------------------
+        */
+
+        $menagesQuery = Menage::query()
+            ->when($campagne, function ($query) use ($campagne) {
+                $query->whereHas('recensement', function ($q) use ($campagne) {
+                    $q->where('campagne_id', $campagne->idCampagne);
+                });
+            });
+
+        $totalMenages = (clone $menagesQuery)->count();
+
+        $totalExploitants = (clone $menagesQuery)
+            ->where('possedeExploitation', true)
+            ->count();
+
+        $dossiersValides = (clone $menagesQuery)
+            ->where('statut', 'valide')
+            ->count();
+
+        $dossiersEnAttente = (clone $menagesQuery)
+            ->where('statut', 'en_attente')
+            ->count();
+
+        $dossiersRejetes = (clone $menagesQuery)
+            ->where('statut', 'rejete')
+            ->count();
 
 
         /*
@@ -341,6 +374,22 @@ class StatistiqueController extends Controller
 
                 /*
                 |------------------------------------------------------------------
+                | MÉNAGES RECENSÉS PAR PRÉFECTURE (VIA RECENSEMENT)
+                |------------------------------------------------------------------
+                */
+
+                $menagesRecenses = Menage::query()
+                    ->when($campagne, function ($q) use ($campagne) {
+                        $q->whereHas('recensement', fn($r) => $r->where('campagne_id', $campagne->idCampagne));
+                    })
+                    ->whereHas('recensement.affectation.village.canton.commune', function ($query) use ($prefecture) {
+                        $query->where('prefecture_id', $prefecture->idPrefecture);
+                    })
+                    ->count();
+
+
+                /*
+                |------------------------------------------------------------------
                 | PROGRESSION
                 |------------------------------------------------------------------
                 */
@@ -360,6 +409,7 @@ class StatistiqueController extends Controller
                     'villages_non_affectes' =>
                         max(0, $villages - $villagesAffectes),
                     'affectations' => $affectations,
+                    'menages_recenses' => $menagesRecenses,
                     'progression' => min($progression, 100),
                 ];
             });
@@ -426,7 +476,12 @@ class StatistiqueController extends Controller
                 'villagesAffectes',
                 'progression',
                 'prefectures',
-                'historique'
+                'historique',
+                'totalMenages',
+                'totalExploitants',
+                'dossiersValides',
+                'dossiersEnAttente',
+                'dossiersRejetes'
             )
         );
     }
@@ -531,6 +586,39 @@ class StatistiqueController extends Controller
                     );
                 }
             )
+            ->count();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RECENSEMENT EFFECTIF PRÉFECTIONNEL (MÉNAGES VIA RECENSEMENT)
+        |--------------------------------------------------------------------------
+        */
+
+        $menagesQuery = Menage::query()
+            ->when($campagne, function ($query) use ($campagne) {
+                $query->whereHas('recensement', fn($q) => $q->where('campagne_id', $campagne->idCampagne));
+            })
+            ->whereHas('recensement.affectation.village.canton.commune', function ($query) use ($prefectureId) {
+                $query->where('prefecture_id', $prefectureId);
+            });
+
+        $totalMenages = (clone $menagesQuery)->count();
+
+        $totalExploitants = (clone $menagesQuery)
+            ->where('possedeExploitation', true)
+            ->count();
+
+        $dossiersValides = (clone $menagesQuery)
+            ->where('statut', 'valide')
+            ->count();
+
+        $dossiersEnAttente = (clone $menagesQuery)
+            ->where('statut', 'en_attente')
+            ->count();
+
+        $dossiersRejetes = (clone $menagesQuery)
+            ->where('statut', 'rejete')
             ->count();
 
 
@@ -707,6 +795,22 @@ class StatistiqueController extends Controller
 
                 /*
                 |------------------------------------------------------------------
+                | MÉNAGES RECENSÉS PAR COMMUNE (VIA RECENSEMENT)
+                |------------------------------------------------------------------
+                */
+
+                $menagesRecenses = Menage::query()
+                    ->when($campagne, function ($q) use ($campagne) {
+                        $q->whereHas('recensement', fn($r) => $r->where('campagne_id', $campagne->idCampagne));
+                    })
+                    ->whereHas('recensement.affectation.village.canton', function ($query) use ($commune) {
+                        $query->where('commune_id', $commune->idCommune);
+                    })
+                    ->count();
+
+
+                /*
+                |------------------------------------------------------------------
                 | PROGRESSION
                 |------------------------------------------------------------------
                 */
@@ -725,6 +829,7 @@ class StatistiqueController extends Controller
                     'villages_non_affectes' =>
                         max(0, $villages - $villagesAffectes),
                     'affectations' => $affectations,
+                    'menages_recenses' => $menagesRecenses,
                     'progression' => min($progression, 100),
                 ];
             });
@@ -827,7 +932,12 @@ class StatistiqueController extends Controller
                 'villagesNonAffectes',
                 'progression',
                 'communes',
-                'historique'
+                'historique',
+                'totalMenages',
+                'totalExploitants',
+                'dossiersValides',
+                'dossiersEnAttente',
+                'dossiersRejetes'
             )
         );
     }

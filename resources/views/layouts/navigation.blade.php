@@ -4,24 +4,26 @@
 
         <div class="flex items-center justify-between h-20">
 
-            <!-- Logo -->
-            <a href="#accueil" class="flex items-center gap-4">
+            <!-- Logo Amélioré Style Application -->
+            <a href="#accueil" class="flex items-center gap-3 decoration-none group">
 
-                <img
-                    src="{{ asset('images/sira-mo.png') }}"
-                    alt="SIRA-MO"
-                    class="w-14 h-14 object-contain">
+                {{-- Boîte / Conteneur du logo --}}
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-50/80 p-1.5 shadow-sm border border-green-100 group-hover:border-green-200 transition duration-300">
+                    <img
+                        src="{{ asset('images/sira-mo.png') }}"
+                        alt="SIRA-MÔ"
+                        class="h-full w-full object-contain rounded-lg">
+                </div>
 
-                <div>
-
-                    <h1 class="text-2xl font-bold text-green-800">
-                        SIRA-MO
+                {{-- Textes nom + sous-titre --}}
+                <div class="flex flex-col">
+                    <h1 class="text-xl font-extrabold leading-tight text-green-900 tracking-tight">
+                        SIRA-Mô
                     </h1>
 
-                    <p class="text-xs text-gray-500">
-                        Système Intégré de Recensement Agricole
+                    <p class="text-xs font-medium text-gray-500">
+                        Recensement Agricole
                     </p>
-
                 </div>
 
             </a>
@@ -122,11 +124,10 @@
 
         <div class="p-6">
 
-        <a href="{{ route('login') }}"
-            class="block text-center bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-semibold transition duration-300">
-
+            <a href="{{ route('login') }}"
+                class="block text-center bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-semibold transition duration-300">
                 Connexion
-        </a>
+            </a>
 
         </div>
 

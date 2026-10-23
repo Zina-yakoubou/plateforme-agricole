@@ -1718,6 +1718,11 @@ class AffectationController extends Controller
 
         $search = trim($request->input('search', ''));
 
+        // AJOUT : onglet actif (en_cours par défaut)
+        $vue = $request->query('vue') === 'anciennes'
+            ? 'anciennes'
+            : 'en_cours';
+
         $affectations = Affectation::with([
             'campagne',
             'equipe.superviseur',
@@ -1726,6 +1731,14 @@ class AffectationController extends Controller
         ->whereHas('equipe.membres', function ($query) use ($user) {
             $query->where('users.id', $user->id);
         })
+
+        // AJOUT : filtre selon l'onglet (active / terminee + annulee)
+        ->when(
+            $vue === 'anciennes',
+            fn ($q) => $q->anciennes(),
+            fn ($q) => $q->enCours()
+        )
+
         ->when($search !== '', function ($query) use ($search) {
             $query->where(function ($q) use ($search) {
 
@@ -1758,82 +1771,56 @@ class AffectationController extends Controller
         ->paginate(10)
         ->withQueryString();
 
+        // AJOUT : 'vue' transmis à la vue
         return view('agent.affectations.index', compact(
             'affectations',
-            'search'
+            'search',
+            'vue'
         ));
     }
 
-
     
 
-    public function detailAgent(Request $request, Affectation $affectation): View
+        public function detailAgent(Request $request, Affectation $affectation)
     {
-        $user = Auth::user();
+        // ADAPTER : gardez ici votre vérification existante
+        // (l'affectation appartient bien à l'agent connecté)
 
-        // Sécurité : l'agent ne peut consulter que ses propres affectations
-        $estMembre = $affectation->equipe()
-            ->whereHas('membres', function ($query) use ($user) {
-                $query->where('users.id', $user->id);
-            })
-            ->exists();
+        $affectation->load(['campagne', 'equipe', 'village.canton.commune']);
 
-        abort_unless($estMembre, 403);
+        $search       = trim((string) $request->query('search', ''));
+        $statutFiltre = (string) $request->query('statut', '');
 
-        $affectation->load([
-            'campagne',
-            'equipe.superviseur',
-            'equipe.membres',
-            'village.canton.commune.prefecture',
-        ]);
-
-        $search = trim($request->input('search', ''));
-        $statutFiltre = $request->input('statut', '');
-
-        $query = Maison::query()
-            ->where('village_id', $affectation->village_id)
+        $maisons = \App\Models\Maison::query()
+            ->where('village_id', $affectation->village_id) // ADAPTER si autre nom de colonne
             ->with([
-                'recensements' => function ($query) use ($affectation) {
-                    $query->where('campagne_id', $affectation->campagne_id)
-                        ->withCount('menages');
-                },
-            ]);
-
-        // Recherche par numéro ou adresse
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('numeroMaison', 'like', "%{$search}%")
-                ->orWhere('adresse', 'like', "%{$search}%");
-            });
-        }
-
-        // Filtre par statut du recensement
-        if ($statutFiltre !== '') {
-            if ($statutFiltre === 'non_commence') {
-                $query->whereDoesntHave('recensements', function ($q) use ($affectation) {
-                    $q->where('campagne_id', $affectation->campagne_id);
+                'recensements' => fn ($q) => $q->withCount('menages')->with('menages'),
+            ])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nomChef', 'like', "%{$search}%")
+                    ->orWhere('numeroMaison', 'like', "%{$search}%")
+                    ->orWhere('adresse', 'like', "%{$search}%");
                 });
-            } else {
-                $query->whereHas('recensements', function ($q) use ($affectation, $statutFiltre) {
-                    $q->where('campagne_id', $affectation->campagne_id)
-                    ->where('statut', $statutFiltre);
-                });
-            }
-        }
-
-        $maisons = $query->orderBy('numeroMaison')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view(
-            'agent.affectations.show',
-            compact(
-                'affectation',
-                'maisons',
-                'search',
-                'statutFiltre'
+            })
+            ->when($statutFiltre === 'non_commence', fn ($query) => $query->whereDoesntHave('recensements'))
+            ->when(
+                in_array($statutFiltre, ['brouillon', 'en_cours', 'termine', 'valide'], true),
+                fn ($query) => $query->whereHas('recensements', fn ($q) => $q->where('statut', $statutFiltre))
             )
-        );
+            ->orderBy('numeroMaison')
+            ->paginate(15);
+
+        // Cache les boutons d'ajout / reprise quand l'affectation est terminée
+        $campagneModifiable = $affectation->estModifiable();
+
+        return view('agent.affectations.show', compact(
+            'affectation',
+            'maisons',
+            'search',
+            'statutFiltre',
+            'campagneModifiable'
+        ));
     }
 
 

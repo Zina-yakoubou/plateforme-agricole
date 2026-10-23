@@ -67,7 +67,7 @@
 
 
 {{-- ============================================================
-    RECHERCHE
+    RECHERCHE ET FILTRE
 ============================================================ --}}
 <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
 
@@ -94,7 +94,7 @@
                 type="search"
                 name="search"
                 value="{{ $search }}"
-                placeholder="Rechercher une maison ou un village..."
+                placeholder="Rechercher par nom du chef, village ou campagne..."
                 class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4
                        text-sm text-slate-700 outline-none transition
                        placeholder:text-slate-400
@@ -102,6 +102,24 @@
                        focus:ring-2 focus:ring-emerald-100"
             >
 
+        </div>
+
+        {{-- Filtre par état --}}
+        <div class="sm:w-56">
+            <select
+                name="statut"
+                onchange="this.form.submit()"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3
+                       text-sm text-slate-700 outline-none transition
+                       focus:border-emerald-500 focus:bg-white
+                       focus:ring-2 focus:ring-emerald-100"
+            >
+                <option value="">Tous les états</option>
+                <option value="brouillon" @selected($statutFiltre === 'brouillon')>Brouillon</option>
+                <option value="en_cours" @selected($statutFiltre === 'en_cours')>En cours</option>
+                <option value="termine" @selected($statutFiltre === 'termine')>Terminé</option>
+                <option value="valide" @selected($statutFiltre === 'valide')>Validé</option>
+            </select>
         </div>
 
         <button type="submit"
@@ -123,7 +141,7 @@
             Rechercher
         </button>
 
-        @if($search !== '')
+        @if($search !== '' || $statutFiltre !== '')
 
             <a href="{{ route('agent.recensements.index') }}"
                class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200
@@ -199,7 +217,7 @@
                     <tr>
 
                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            Maison
+                            Chef de maison
                         </th>
 
                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -247,11 +265,20 @@
                                 'valide' => 'bg-emerald-100 text-emerald-700',
                                 default => 'bg-slate-100 text-slate-700',
                             };
+
+                            // Nom du chef de maison
+                            // ADAPTER : remplacez 'nomChef' par la vraie colonne du ménage si besoin
+                            $menage = $recensement->menages->first();
+                            $nomChef = $menage?->nomChef ?: $recensement->maison?->nomChef;
+
+                            // L'agent ne peut continuer que si l'affectation est encore active
+                            $modifiable = $recensement->affectation?->statut === 'active'
+                                && in_array($statut, ['brouillon', 'en_cours']);
                         @endphp
 
                         <tr class="transition hover:bg-slate-50">
 
-                            {{-- Maison --}}
+                            {{-- Chef de maison --}}
                             <td class="px-5 py-4">
 
                                 <div class="flex items-center gap-3">
@@ -276,8 +303,9 @@
                                     </div>
 
                                     <div>
-                                        <div class="font-semibold text-slate-800">
-                                            Maison {{ $recensement->maison?->numeroMaison ?? '—' }}
+                                        <div class="font-semibold text-slate-800"
+                                             title="N° {{ $recensement->maison?->numeroMaison ?? '—' }}">
+                                            {{ $nomChef ?: 'Chef non renseigné' }}
                                         </div>
                                     </div>
 
@@ -340,7 +368,7 @@
                             </td>
 
 
-                            {{-- Action (Adaptée selon le statut réel en base) --}}
+                            {{-- Action (selon le statut du recensement et de l'affectation) --}}
                             <td class="px-5 py-4 text-right">
 
                                 <a href="{{ route('agent.recensements.show', $recensement) }}"
@@ -350,7 +378,7 @@
                                           hover:border-emerald-300 hover:bg-emerald-50
                                           hover:text-emerald-700">
 
-                                    @if(in_array($statut, ['brouillon', 'en_cours']))
+                                    @if($modifiable)
                                         Continuer
                                     @else
                                         Consulter
@@ -407,6 +435,14 @@
                         'valide' => 'bg-emerald-100 text-emerald-700',
                         default => 'bg-slate-100 text-slate-700',
                     };
+
+                    // Nom du chef de maison
+                    // ADAPTER : remplacez 'nomChef' par la vraie colonne du ménage si besoin
+                    $menage = $recensement->menages->first();
+                    $nomChef = $menage?->nomChef ?: $recensement->maison?->nomChef;
+
+                    $modifiable = $recensement->affectation?->statut === 'active'
+                        && in_array($statut, ['brouillon', 'en_cours']);
                 @endphp
 
                 <a href="{{ route('agent.recensements.show', $recensement) }}"
@@ -437,8 +473,9 @@
 
                             <div class="min-w-0">
 
-                                <div class="font-semibold text-slate-800">
-                                    Maison {{ $recensement->maison?->numeroMaison ?? '—' }}
+                                <div class="font-semibold text-slate-800"
+                                     title="N° {{ $recensement->maison?->numeroMaison ?? '—' }}">
+                                    {{ $nomChef ?: 'Chef non renseigné' }}
                                 </div>
 
                                 <div class="mt-0.5 text-xs text-slate-500">
@@ -475,7 +512,7 @@
 
                         <span class="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700">
 
-                            @if(in_array($statut, ['brouillon', 'en_cours']))
+                            @if($modifiable)
                                 Continuer
                             @else
                                 Consulter
@@ -539,11 +576,10 @@
                 Aucun recensement trouvé
             </h3>
 
-            @if($search !== '')
+            @if($search !== '' || $statutFiltre !== '')
 
                 <p class="mx-auto mt-2 max-w-md text-sm text-slate-500">
-                    Aucun recensement ne correspond à
-                    « {{ $search }} ».
+                    Aucun recensement ne correspond à votre recherche ou à ce filtre.
                 </p>
 
                 <a href="{{ route('agent.recensements.index') }}"

@@ -73,7 +73,7 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 
-        <div class="rounded-lg border border-[#e5e7eb] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+        {{-- <div class="rounded-lg border border-[#e5e7eb] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-2xl font-semibold text-[#212529]">{{ $total }}</p>
@@ -85,13 +85,13 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         @if($affectation)
             <div class="rounded-lg border border-[#e5e7eb] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-2xl font-semibold text-[#212529]">{{ $recensees }} / {{ $total }}</p>
+                        {{-- <p class="text-2xl font-semibold text-[#212529]">{{ $recensees }} / {{ $total }}</p> --}}
                         <p class="mt-1 text-sm text-gray-500">Recensées cette campagne</p>
                     </div>
                     <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -103,7 +103,7 @@
             </div>
         @endif
 
-        <div class="rounded-lg border border-[#e5e7eb] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+        {{-- <div class="rounded-lg border border-[#e5e7eb] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-2xl font-semibold text-[#212529]">{{ $localisees }} / {{ $total }}</p>
@@ -116,7 +116,7 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
     </div>
 

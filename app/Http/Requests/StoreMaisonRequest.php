@@ -21,6 +21,7 @@ class StoreMaisonRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'nomChef' => ['required', 'string', 'max:255'],
              'repere' => [
                 'nullable',
                 'string',

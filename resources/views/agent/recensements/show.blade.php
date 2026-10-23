@@ -273,7 +273,7 @@
                     <span class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
                         {{ $recensement->menages->count() }} ménage(s)
                     </span>
-                    @if($statut === 'en_cours')
+                    @if(in_array($statut, ['brouillon', 'en_cours']))
                         <a href="{{ route('agent.recensements.menages.create', $recensement) }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -364,7 +364,7 @@
                     <h3 class="mt-4 text-base font-semibold text-slate-800">Aucun ménage enregistré</h3>
                     <p class="mx-auto mt-1 max-w-md text-sm text-slate-500">Commencez la collecte en enregistrant le premier ménage de cette maison.</p>
 
-                    @if($statut === 'en_cours')
+                    @if(in_array($statut, ['brouillon', 'en_cours']))
                         <a href="{{ route('agent.recensements.menages.create', $recensement) }}" class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>

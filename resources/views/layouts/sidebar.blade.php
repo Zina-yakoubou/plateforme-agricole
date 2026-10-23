@@ -55,7 +55,7 @@
         <div class="flex items-center gap-3 min-w-0">
 
             <img
-                src="{{ asset('images/logo_recensement_agricole_mo.png') }}"
+                src="{{ asset('images/im.png') }}"
                 class="w-9 h-9 rounded-md shrink-0"
                 alt="SIRA-Mô"
             >
@@ -209,56 +209,6 @@
         </a>
 
 
-
-        {{-- =================================================================
-            STATISTIQUES
-        ================================================================== --}}
-        @if($user->isAdmin() || $user->isDpa())
-
-            <a
-                href="{{ route('statistiques.index') }}"
-                @click="sidebarOpen = false"
-                :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                class="flex items-center gap-3 py-3 rounded-md mb-1
-                       transition-colors duration-150 ease-in-out
-                       {{ request()->routeIs('statistiques.*')
-                            ? 'bg-green-50 text-green-700 font-semibold'
-                            : 'text-text-secondary hover:bg-background-muted' }}"
-                title="Statistiques"
-            >
-
-                <svg
-                    class="w-5 h-5 shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M4 19V5
-                           M4 19h16
-                           M8 16v-5
-                           M12 16V8
-                           M16 16v-8"
-                    />
-                </svg>
-
-                <span
-                    x-show="!sidebarCollapsed"
-                    x-transition.opacity
-                    class="whitespace-nowrap"
-                >
-                    Statistiques
-                </span>
-
-            </a>
-
-        @endif
-
-
-
         {{-- =================================================================
             ADMINISTRATEUR
         ================================================================== --}}
@@ -360,58 +310,6 @@
                 </a>
 
 
-                {{-- TERRITOIRE --}}
-                <a
-                    href="{{ route('regions.index') }}"
-                    @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="flex items-center gap-3 py-3 rounded-md mb-1
-                           transition-colors duration-150
-                           {{ request()->routeIs(
-                                'regions.*',
-                                'prefectures.*',
-                                'communes.*',
-                                'cantons.*',
-                                'villages.*'
-                           )
-                                ? 'bg-green-50 text-green-700 font-semibold'
-                                : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Territoire"
-                >
-
-                    <svg
-                        class="w-5 h-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z"
-                        />
-
-                        <circle
-                            cx="12"
-                            cy="10"
-                            r="2.5"
-                            stroke-width="1.8"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Territoire
-                    </span>
-
-                </a>
-
-
-
                 {{-- SAISONS DE DISTRIBUTION --}}
                 <a
                     href="{{ route('saison-distributions.index') }}"
@@ -447,6 +345,124 @@
                     </span>
                 </a>
 
+
+                {{-- CONSULTATION GLOBAL INTRANTS & BESOINS (ADMIN) --}}
+                <a
+                    href="#"
+                    {{-- href="{{ route('admin.intrants.index') }}" --}}
+
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                           transition-colors duration-150
+                           {{ request()->routeIs('admin.intrants.*')
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Consultation Intrants & Stocks"
+                >
+                    <svg
+                        class="w-5 h-5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                    </svg>
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition.opacity
+                        class="whitespace-nowrap"
+                    >
+                        Consultation Intrants
+                    </span>
+                </a>
+
+
+                {{-- STATISTIQUES --}}
+                <a
+                    href="{{ route('statistiques.index') }}"
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                        transition-colors duration-150 ease-in-out
+                        {{ request()->routeIs('statistiques.*')
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Statistiques"
+                >
+
+                    <svg
+                        class="w-5 h-5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M4 19V5
+                            M4 19h16
+                            M8 16v-5
+                            M12 16V8
+                            M16 16v-8"
+                        />
+                    </svg>
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition.opacity
+                        class="whitespace-nowrap"
+                    >
+                        Statistiques
+                    </span>
+
+                </a>
+
+
+                {{-- JOURNAL D'ACTIVITÉS --}}
+                <a
+                    href="#"
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="flex items-center gap-3 py-3 rounded-md mb-1
+                           transition-colors duration-150
+                           {{ request()->routeIs('activites.*')
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Journal d'activités"
+                >
+
+                   <svg
+                        class="w-5 h-5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                        />
+                    </svg>
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition.opacity
+                        class="whitespace-nowrap"
+                    >
+                        Journal d'activités
+                    </span>
+
+                </a>
+
             </div>
 
         @endif
@@ -454,7 +470,7 @@
 
 
         {{-- =================================================================
-            DPA
+            DPA (DIRECTION PRÉFECTORALE DE L'AGRICULTURE)
         ================================================================== --}}
         @if($user->isDpa())
 
@@ -738,12 +754,109 @@
                 </a>
 
 
-                {{-- SUIVI --}}
+                {{-- =========================================================
+                    SECTION MODULE INTRANTS (GESTION DPA)
+                ========================================================= --}}
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                    <p
+                        x-show="!sidebarCollapsed"
+                        class="mb-2 px-1 text-[10px] uppercase tracking-wider text-slate-400 font-semibold whitespace-nowrap"
+                    >
+                        Gestion des Intrants
+                    </p>
+
+                    {{-- 1. BARÈMES AGRONOMIQUES --}}
+                    <a
+                        href="#"
+                        {{-- href="{{ route('dpa.baremes.index') }}" --}}
+
+                        @click="sidebarOpen = false"
+                        :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                        class="mb-1 flex items-center gap-3 rounded-md py-2.5 transition-colors duration-150
+                               {{ request()->routeIs('dpa.baremes.*')
+                                    ? 'bg-green-50 text-green-700 font-semibold'
+                                    : 'text-text-secondary hover:bg-background-muted' }}"
+                        title="Barèmes agronomiques (Dose/ha)"
+                    >
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                        <span x-show="!sidebarCollapsed" x-transition.opacity class="whitespace-nowrap">
+                            Barèmes Agronomiques
+                        </span>
+                    </a>
+
+                    {{-- 2. CONSOLIDATION DES BESOINS --}}
+                    <a
+                        href="#"
+
+                        {{-- href="{{ route('dpa.besoins.index') }}" --}}
+                        @click="sidebarOpen = false"
+                        :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                        class="mb-1 flex items-center gap-3 rounded-md py-2.5 transition-colors duration-150
+                               {{ request()->routeIs('dpa.besoins.*')
+                                    ? 'bg-green-50 text-green-700 font-semibold'
+                                    : 'text-text-secondary hover:bg-background-muted' }}"
+                        title="Consolidation des besoins"
+                    >
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <span x-show="!sidebarCollapsed" x-transition.opacity class="whitespace-nowrap">
+                            Consolidation Besoins
+                        </span>
+                    </a>
+
+                    {{-- 3. ALLOCATIONS & QUOTAS --}}
+                    <a
+                        href="#"
+
+                        {{-- href="{{ route('dpa.allocations.index') }}" --}}
+                        @click="sidebarOpen = false"
+                        :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                        class="mb-1 flex items-center gap-3 rounded-md py-2.5 transition-colors duration-150
+                               {{ request()->routeIs('dpa.allocations.*')
+                                    ? 'bg-green-50 text-green-700 font-semibold'
+                                    : 'text-text-secondary hover:bg-background-muted' }}"
+                        title="Allocations et plafonnements"
+                    >
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                        <span x-show="!sidebarCollapsed" x-transition.opacity class="whitespace-nowrap">
+                            Allocations & Quotas
+                        </span>
+                    </a>
+
+                    {{-- 4. DISTRIBUTIONS --}}
+                    <a
+                        href="#"
+
+                        {{-- href="{{ route('dpa.distributions.index') }}" --}}
+                        @click="sidebarOpen = false"
+                        :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                        class="mb-1 flex items-center gap-3 rounded-md py-2.5 transition-colors duration-150
+                               {{ request()->routeIs('dpa.distributions.*')
+                                    ? 'bg-green-50 text-green-700 font-semibold'
+                                    : 'text-text-secondary hover:bg-background-muted' }}"
+                        title="Suivi des distributions"
+                    >
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                        </svg>
+                        <span x-show="!sidebarCollapsed" x-transition.opacity class="whitespace-nowrap">
+                            Suivi Distributions
+                        </span>
+                    </a>
+                </div>
+
+
+                {{-- SUIVI & STATISTIQUES --}}
                 <a
                     href="{{ route('statistiques.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                    class="mt-3 mb-1 flex items-center gap-3 rounded-md py-3
                            transition-colors duration-150
                            {{ request()->routeIs('statistiques.*')
                                 ? 'bg-green-50 text-green-700 font-semibold'
@@ -894,7 +1007,7 @@
                 </a>
 
 
-                {{-- À RAPPELER / INCOMPLETS (Nouveau pour le terrain) --}}
+                {{-- À RAPPELER / INCOMPLETS --}}
                 <a
                     href="{{ route('agent.recensements.index', ['statut' => 'en_attente']) }}"
                     @click="sidebarOpen = false"
@@ -1046,6 +1159,32 @@
                         Mes zones
                     </span>
 
+                </a>
+
+
+                {{-- CONSULTATION BESOIN INTRANTS (SUPERVISEUR) --}}
+                <a
+                    href="{{ route('superviseur.besoins.index') }}"
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                           transition-colors duration-150
+                           {{ request()->routeIs('superviseur.besoins.*')
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Consultation des Besoins"
+                >
+                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition.opacity
+                        class="whitespace-nowrap"
+                    >
+                        Consultation Besoins
+                    </span>
                 </a>
 
 

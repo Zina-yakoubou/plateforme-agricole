@@ -187,7 +187,7 @@ class ParcelleController extends Controller
             ->orderBy('nom')
             ->get();
 
-        return view('agent.parcelles.edit', [
+        return view('parcelles.edit', [
             'recensement' => $recensement,
             'menage' => $menage,
             'exploitant' => $exploitant,

@@ -1,22 +1,22 @@
 @extends('layouts.app')
 
 @section('page-title', 'Tableau de bord')
-@section('page-subtitle', 'Vue générale du système de recensement agricole')
+@section('page-subtitle', 'Vue générale du recensement et de la gestion des intrants')
 
 @section('content')
 
 {{-- ================================================= --}}
-{{-- APERÇU — Statistiques + Progression --}}
+{{-- APERÇU — Statistiques Recensement + Intrants --}}
 {{-- ================================================= --}}
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
 
-    {{-- Colonne gauche : statistiques --}}
+    {{-- Colonne gauche : statistiques clés --}}
     <div class="lg:col-span-2">
 
         <div class="mb-4">
-            <h2 class="text-lg font-semibold text-text-primary">Aperçu du recensement</h2>
-            <p class="text-sm text-text-secondary">Chiffres clés de la campagne en cours</p>
+            <h2 class="text-lg font-semibold text-text-primary">Aperçu du système</h2>
+            <p class="text-sm text-text-secondary">Chiffres clés du recensement et des allocations d'intrants</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -46,7 +46,7 @@
                 <p class="text-sm text-text-secondary mt-0.5">Préfectures</p>
             </div>
 
-            {{-- Agents actifs — carte pleine, façon "Next session" --}}
+            {{-- Agents actifs --}}
             <div class="bg-primary rounded-2xl p-5 flex flex-col justify-center">
                 <p class="text-white/70 text-xs mb-1">Agents actifs</p>
                 <p class="text-white text-2xl font-bold">{{ $agentsActifs ?? 0 }} / {{ $agentsCount ?? 0 }}</p>
@@ -56,7 +56,7 @@
 
     </div>
 
-    {{-- Colonne droite : graphique --}}
+    {{-- Colonne droite : graphique de suivi mensuel --}}
     <div class="bg-white rounded-2xl border border-border p-6">
 
         <h3 class="text-base font-semibold text-text-primary mb-1">Progression du recensement</h3>
@@ -79,31 +79,130 @@
 
 
 {{-- ================================================= --}}
-{{-- MÉNAGES RECENSÉS — carte pleine largeur --}}
+{{-- MÉNAGES RECENSÉS & BESOINS INTRANTS (CARTE DUO) --}}
 {{-- ================================================= --}}
 
-<div class="bg-white rounded-2xl border border-border p-5 mb-6 flex items-center justify-between flex-wrap gap-3">
-    <div class="flex items-center gap-4">
-        <div class="w-11 h-11 rounded-xl bg-background-muted flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                      d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h4a1 1 0 001-1V10" />
-            </svg>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    
+    {{-- Ménages recensés --}}
+    <div class="bg-white rounded-2xl border border-border p-5 flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl bg-background-muted flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                          d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h4a1 1 0 001-1V10" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-text-primary">{{ number_format($menagesCount ?? 0, 0, ',', ' ') }}</p>
+                <p class="text-sm text-text-secondary">Ménages recensés</p>
+            </div>
         </div>
-        <div>
-            <p class="text-2xl font-bold text-text-primary">{{ number_format($menagesCount ?? 0, 0, ',', ' ') }}</p>
-            <p class="text-sm text-text-secondary">Ménages recensés</p>
-        </div>
+
+        <span class="text-xs font-medium text-accent-red bg-red-50 px-3 py-1.5 rounded-full shrink-0">
+            Objectif {{ $objectifMenages ?? '—' }}
+        </span>
     </div>
 
-    <span class="text-xs font-medium text-accent-red bg-red-50 px-3 py-1.5 rounded-full shrink-0">
-        Objectif {{ $objectifMenages ?? '—' }}
-    </span>
+    {{-- Besoins globaux en Intrants calculés --}}
+    <div class="bg-white rounded-2xl border border-border p-5 flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-text-primary">{{ number_format($besoinsTotalTonnes ?? 0, 1, ',', ' ') }} T</p>
+                <p class="text-sm text-text-secondary">Besoins bruts calculés (Barème DPA)</p>
+            </div>
+        </div>
+
+        <span class="text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full shrink-0">
+            Couverture {{ $tauxCouvertureIntrants ?? 0 }}%
+        </span>
+    </div>
+
 </div>
 
 
 {{-- ================================================= --}}
-{{-- CAMPAGNES --}}
+{{-- SYNTHÈSE DU MODULE INTRANTS (BARÈMES & ALLOCATIONS) --}}
+{{-- ================================================= --}}
+
+<div class="mb-6">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="text-lg font-semibold text-text-primary">Gestion des Intrants & Barèmes</h2>
+            <p class="text-sm text-text-secondary">État des allocations et des barèmes agronomiques de la préfecture</p>
+        </div>
+
+        @if(auth()->user()->isDpa())
+            <a href="{{ route('dpa.besoins.index') }}"
+                class="px-4 py-2 rounded-lg border border-border text-sm font-medium text-text-secondary
+                       hover:bg-background-muted hover:text-primary hover:border-primary
+                       transition-colors duration-150 shrink-0">
+                Consolider les besoins
+            </a>
+        @elseif(auth()->user()->isAdmin())
+            <a href="{{ route('admin.intrants.index') }}"
+                class="px-4 py-2 rounded-lg border border-border text-sm font-medium text-text-secondary
+                       hover:bg-background-muted hover:text-primary hover:border-primary
+                       transition-colors duration-150 shrink-0">
+                Vue nationale intrants
+            </a>
+        @endif
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        {{-- Carte 1 : Barèmes configurés --}}
+        <div class="bg-white rounded-2xl border border-border p-5 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-text-secondary uppercase tracking-wider">Barèmes DPA</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <p class="text-xl font-bold text-text-primary">{{ $baremesActifsCount ?? 0 }} Actifs</p>
+            <p class="text-xs text-text-secondary mt-1">Normes de dosage fixées par culture</p>
+        </div>
+
+        {{-- Carte 2 : Total NPK --}}
+        <div class="bg-white rounded-2xl border border-border p-5 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-text-secondary uppercase tracking-wider">Besoin NPK</span>
+                <span class="text-xs font-semibold text-primary">Engrais</span>
+            </div>
+            <p class="text-xl font-bold text-text-primary">{{ number_format($besoinNpkTonnes ?? 0, 1, ',', ' ') }} T</p>
+            <p class="text-xs text-text-secondary mt-1">Calculé sur les parcelles recensées</p>
+        </div>
+
+        {{-- Carte 3 : Total Urée --}}
+        <div class="bg-white rounded-2xl border border-border p-5 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-text-secondary uppercase tracking-wider">Besoin Urée</span>
+                <span class="text-xs font-semibold text-primary">Engrais</span>
+            </div>
+            <p class="text-xl font-bold text-text-primary">{{ number_format($besoinUreeTonnes ?? 0, 1, ',', ' ') }} T</p>
+            <p class="text-xs text-text-secondary mt-1">Calculé sur les parcelles recensées</p>
+        </div>
+
+        {{-- Carte 4 : Allocations Validées --}}
+        <div class="bg-white rounded-2xl border border-border p-5 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-text-secondary uppercase tracking-wider">Allocations</span>
+                <span class="text-xs font-semibold text-emerald-600">Validées</span>
+            </div>
+            <p class="text-xl font-bold text-text-primary">{{ $allocationsValideesCount ?? 0 }} Producteurs</p>
+            <p class="text-xs text-text-secondary mt-1">Bons de retrait QR générés</p>
+        </div>
+
+    </div>
+</div>
+
+
+{{-- ================================================= --}}
+{{-- CAMPAGNES DE RECENSEMENT --}}
 {{-- ================================================= --}}
 
 <div class="mb-6">

@@ -40,7 +40,7 @@ use App\Http\Controllers\Dpa\EquipeController;
 use App\Http\Controllers\Dpa\DpaAgentController;
 use App\Http\Controllers\SaisonDistributionController;
 
-
+use App\Http\Controllers\VerificationController;
 /*
 |--------------------------------------------------------------------------
 | ACCUEIL PUBLIC
@@ -243,6 +243,13 @@ Route::middleware(['auth'])
         Route::get('/mes-zones/{affectation:reference}', [AffectationController::class, 'zoneSupervision'])->name('zones.show');
         Route::get('/suivi', [SuperviseurController::class, 'suivi'])->name('suivi.index');
         Route::get('/controle-qualite', [SuperviseurController::class, 'controleQualite'])->name('controle-qualite.index');
+                Route::get('/mes-zones/{affectation:reference}/verification',
+            [VerificationController::class, 'index'])
+            ->name('verifications.index');
+
+        Route::post('/mes-zones/{affectation:reference}/verification',
+            [VerificationController::class, 'store'])
+            ->name('verifications.store');
     });
 
 

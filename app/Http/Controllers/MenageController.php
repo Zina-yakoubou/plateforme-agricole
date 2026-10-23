@@ -230,7 +230,12 @@ class MenageController extends Controller
                 ]
             ));
 
+            // Au premier ménage, le recensement passe de "brouillon" à "en_cours"
             $recensement->update([
+                'statut' => $recensement->statut === 'brouillon'
+                    ? 'en_cours'
+                    : $recensement->statut,
+                'dateDebut' => $recensement->dateDebut ?? now(),
                 'dateDerniereModification' => now(),
             ]);
 

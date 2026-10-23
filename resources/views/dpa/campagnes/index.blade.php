@@ -188,6 +188,9 @@
             action="{{ route('dpa.campagnes.index') }}"
         >
 
+            {{-- AJOUT : conserve l'onglet actif pendant une recherche --}}
+            <input type="hidden" name="vue" value="{{ $vue ?? 'en_cours' }}">
+
             <div class="flex flex-col gap-3 sm:flex-row">
 
                 <div class="relative flex-1">
@@ -265,6 +268,35 @@
 
 
     {{-- =========================================================
+         AJOUT : ONGLETS EN COURS / ANCIENNES
+    ========================================================== --}}
+
+    <div class="flex gap-1 border-b border-[#e5e7eb]">
+
+        <a
+            href="{{ route('dpa.campagnes.index', array_filter(['vue' => 'en_cours', 'search' => $search ?? null])) }}"
+            class="-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold transition
+                   {{ ($vue ?? 'en_cours') === 'en_cours'
+                        ? 'border-[#006a4f] text-[#006a4f]'
+                        : 'border-transparent text-gray-500 hover:text-[#212529]' }}"
+        >
+            En cours
+        </a>
+
+        <a
+            href="{{ route('dpa.campagnes.index', array_filter(['vue' => 'anciennes', 'search' => $search ?? null])) }}"
+            class="-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold transition
+                   {{ ($vue ?? 'en_cours') === 'anciennes'
+                        ? 'border-[#006a4f] text-[#006a4f]'
+                        : 'border-transparent text-gray-500 hover:text-[#212529]' }}"
+        >
+            Anciennes
+        </a>
+
+    </div>
+
+
+    {{-- =========================================================
          TABLEAU
     ========================================================== --}}
 
@@ -293,8 +325,6 @@
 
             </div>
 
-
-            {{-- CORRIGÉ : $deploiements et non $planifications --}}
 
             <div class="text-sm text-gray-500">
 
@@ -326,12 +356,6 @@
                                    text-gray-500">
                             N°
                         </th>
-
-                        {{-- <th class="px-6 py-4 text-left text-xs
-                                   font-semibold uppercase tracking-wide
-                                   text-gray-500">
-                            Code
-                        </th> --}}
 
                         <th class="px-6 py-4 text-left text-xs
                                    font-semibold uppercase tracking-wide
@@ -471,15 +495,25 @@
                             $enAttenteReception =
                                 $deploiement->statut === 'notifiee';
 
+                            /*
+                            |------------------------------------------------------------------
+                            | AJOUT : CAMPAGNE ENCORE MODIFIABLE ?
+                            |------------------------------------------------------------------
+                            |
+                            | false si la campagne est clôturée ou archivée.
+                            |
+                            */
+
+                            $campagneModifiable =
+                                $campagne?->estModifiable() ?? false;
+
                         @endphp
 
 
                         <tr class="group transition hover:bg-[#f8faf9]">
 
 
-                            {{-- =================================================
-                                 N°
-                            ================================================== --}}
+                            {{-- N° --}}
 
                             <td class="px-6 py-4 text-sm text-gray-400">
 
@@ -492,22 +526,7 @@
                             </td>
 
 
-                            {{-- =================================================
-                                 CODE
-                            ================================================== --}}
-
-                            {{-- <td class="px-6 py-4">
-
-                                <span class="font-semibold text-[#006a4f]">
-                                    {{ $campagne?->codeCampagne ?? '—' }}
-                                </span>
-
-                            </td> --}}
-
-
-                            {{-- =================================================
-                                 CAMPAGNE
-                            ================================================== --}}
+                            {{-- CAMPAGNE --}}
 
                             <td class="px-6 py-4">
 
@@ -515,20 +534,10 @@
                                     {{ $campagne?->libelle ?? 'Campagne inconnue' }}
                                 </div>
 
-                                {{-- @if($campagne?->description)
-
-                                    <div class="mt-1 max-w-xs truncate text-xs text-gray-400">
-                                        {{ $campagne->description }}
-                                    </div>
-
-                                @endif --}}
-
                             </td>
 
 
-                            {{-- =================================================
-                                 PORTÉE
-                            ================================================== --}}
+                            {{-- PORTÉE --}}
 
                             <td class="px-6 py-4">
 
@@ -544,9 +553,7 @@
                             </td>
 
 
-                            {{-- =================================================
-                                 PÉRIODE
-                            ================================================== --}}
+                            {{-- PÉRIODE --}}
 
                             <td class="px-6 py-4 text-[#434343]">
 
@@ -567,9 +574,7 @@
                             </td>
 
 
-                            {{-- =================================================
-                                 STATUT CAMPAGNE
-                            ================================================== --}}
+                            {{-- STATUT CAMPAGNE --}}
 
                             <td class="px-6 py-4 text-center">
 
@@ -592,9 +597,7 @@
                             </td>
 
 
-                            {{-- =================================================
-                                 RÉCEPTION
-                            ================================================== --}}
+                            {{-- RÉCEPTION --}}
 
                             <td class="px-6 py-4 text-center">
 
@@ -634,6 +637,29 @@
 
                                     </div>
 
+                                @elseif(! $campagneModifiable)
+
+                                    {{-- AJOUT : campagne terminée et jamais réceptionnée --}}
+
+                                    <span
+                                        class="inline-flex items-center gap-1.5
+                                               rounded-full
+                                               bg-gray-100
+                                               px-3 py-1
+                                               text-xs font-semibold
+                                               text-gray-500"
+                                    >
+
+                                        <span
+                                            class="h-1.5 w-1.5
+                                                   rounded-full
+                                                   bg-gray-400"
+                                        ></span>
+
+                                        Non réceptionnée
+
+                                    </span>
+
                                 @else
 
                                     <span
@@ -660,24 +686,17 @@
                             </td>
 
 
-                            {{-- =================================================
-                                 ACTIONS
-                            ================================================== --}}
+                            {{-- ACTIONS --}}
 
                             <td class="px-6 py-4">
 
                                 <div class="flex items-center justify-end gap-2">
 
 
-                                    {{-- =================================================
-                                         VOIR
-                                    ================================================== --}}
+                                    {{-- VOIR (toujours disponible) --}}
 
                                     <a
-                                        href="{{ route(
-                                            'dpa.campagnes.show',
-                                            $deploiement
-                                        ) }}"
+                                        href="{{ route('dpa.campagnes.show', $deploiement) }}"
                                         title="Voir les détails"
                                         class="inline-flex h-9 w-9
                                                items-center justify-center
@@ -716,18 +735,14 @@
                                     </a>
 
 
-                                    {{-- =================================================
-                                         RÉCEPTION
-                                    ================================================== --}}
+                                    {{-- RÉCEPTION --}}
 
-                                    @if($enAttenteReception)
+                                    {{-- AJOUT : && $campagneModifiable --}}
+                                    @if($enAttenteReception && $campagneModifiable)
 
                                         <form
                                             method="POST"
-                                            action="{{ route(
-                                                'dpa.campagnes.receive',
-                                                $deploiement
-                                            ) }}"
+                                            action="{{ route('dpa.campagnes.receive', $deploiement) }}"
                                             class="inline-flex"
                                         >
 
@@ -809,87 +824,69 @@
                                     @endif
 
 
-                                    {{-- =================================================
-                                         PLANIFICATION PRÉFECTORALE
-                                    ================================================== --}}
+                                    {{-- PLANIFICATION PRÉFECTORALE --}}
 
                                     @if($receptionnee)
 
                                         @if(!$deploiement->planificationPrefectorale)
 
-                                            {{-- PLANIFIER --}}
+                                            {{-- PLANIFIER (AJOUT : seulement si la campagne est modifiable) --}}
 
-                                            <a
-                                                href="{{ route(
-                                                    'dpa.planifications-prefectorales.create',
-                                                    $deploiement
-                                                ) }}"
-                                                title="Planifier la campagne"
-                                                class="inline-flex h-9 w-9
-                                                       items-center justify-center
-                                                       rounded-lg
-                                                       bg-[#006a4f]
-                                                       text-white
-                                                       transition
-                                                       hover:bg-[#156c52]
-                                                       focus:outline-none
-                                                       focus:ring-2
-                                                       focus:ring-[#006a4f]/20"
-                                            >
+                                            @if($campagneModifiable)
 
-                                                <svg
-                                                    class="h-4 w-4"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
+                                                <a
+                                                    href="{{ route('dpa.planifications-prefectorales.create', $deploiement) }}"
+                                                    title="Planifier la campagne"
+                                                    class="inline-flex h-9 w-9
+                                                           items-center justify-center
+                                                           rounded-lg
+                                                           bg-[#006a4f]
+                                                           text-white
+                                                           transition
+                                                           hover:bg-[#156c52]
+                                                           focus:outline-none
+                                                           focus:ring-2
+                                                           focus:ring-[#006a4f]/20"
                                                 >
 
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M12 4v16m8-8H4"
-                                                    />
+                                                    <svg
+                                                        class="h-4 w-4"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
 
-                                                </svg>
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M12 4v16m8-8H4"
+                                                        />
 
-                                            </a>
+                                                    </svg>
+
+                                                </a>
+
+                                            @endif
 
                                         @else
 
-                                            {{-- MODIFIER LA PLANIFICATION --}}
+                                            {{-- VOIR LA PLANIFICATION ET LES BESOINS (consultation : toujours disponible) --}}
 
                                             <a
-                                                href="{{ route(
-                                                    'dpa.planifications-prefectorales.edit',
-                                                    $deploiement->planificationPrefectorale
-                                                ) }}"
-                                                title="Modifier la planification"
+                                                href="{{ route('dpa.planifications-prefectorales.show', $deploiement->planificationPrefectorale) }}"
+                                                title="Voir la planification et les besoins"
                                                 class="inline-flex h-9 w-9
                                                        items-center justify-center
                                                        rounded-lg
-                                                       border border-[#006a4f]
+                                                       border border-[#e5e7eb]
                                                        bg-white
                                                        text-[#006a4f]
                                                        transition
+                                                       hover:border-[#006a4f]
                                                        hover:bg-[#e5f2ee]"
                                             >
-
-                                                <svg
-                                                    class="h-4 w-4"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
-                                                        M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
-                                                    />
-                                                </svg>
-
+                                                ☰
                                             </a>
 
                                         @endif
@@ -908,7 +905,7 @@
                         <tr>
 
                             <td
-                                colspan="8"
+                                colspan="7"
                                 class="px-6 py-16 text-center"
                             >
 
@@ -950,6 +947,12 @@
 
                                         <p class="mt-1 text-sm text-gray-500">
                                             Aucune campagne ne correspond à votre recherche.
+                                        </p>
+
+                                    @elseif(($vue ?? 'en_cours') === 'anciennes')
+
+                                        <p class="mt-1 text-sm text-gray-500">
+                                            Aucune ancienne campagne pour le moment.
                                         </p>
 
                                     @else

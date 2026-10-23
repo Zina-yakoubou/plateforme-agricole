@@ -156,7 +156,8 @@ class CampagneRecensementController extends Controller
 
         $campagnes = $query
             ->orderByDesc('created_at')
-            ->paginate(15)
+            ->paginate(3
+            )
             ->withQueryString();
 
 
@@ -592,36 +593,21 @@ class CampagneRecensementController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function edit(
-        CampagneRecensement $campagne
-    ) {
-
+    public function edit(CampagneRecensement $campagne)
+    {
+        // 1. Droit d'accès DPA
         if (!$this->dpaPeutVoirCampagne($campagne)) {
-
             abort(
                 403,
                 'Vous n\'êtes pas autorisé à modifier cette campagne.'
             );
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | SYNCHRONISATION
-        |--------------------------------------------------------------------------
-        */
-
+        // 2. Synchronisation du statut
         $campagne->synchroniserStatut();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | ARCHIVÉE
-        |--------------------------------------------------------------------------
-        */
-
+        // 3. Empêcher la modification si la campagne est archivée
         if ($campagne->statut === 'archivee') {
-
             return redirect()
                 ->route('campagnes.index')
                 ->with(
@@ -630,70 +616,47 @@ class CampagneRecensementController extends Controller
                 );
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | TERRITOIRES
-        |--------------------------------------------------------------------------
-        */
-
+        // 4. Territoires
         $regions = Region::with([
             'prefectures.communes.cantons.villages',
         ])
             ->orderBy('nom')
             ->get();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | STRUCTURES
-        |--------------------------------------------------------------------------
-        */
-
+        // 5. Structures
         $structures = Structure::orderBy('nom')
             ->get();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | QUESTIONNAIRES
-        |--------------------------------------------------------------------------
-        */
-
+        // 6. Questionnaires (Récupération sécurisée)
+        // Seuls les questionnaires actifs ('etat' = true) sont chargés.
+        // REMARQUE : Si votre liste reste vide, vérifiez la valeur en BDD 
+        // ou retirez temporairement ->where('etat', true) pour tester.
         $questionnaires = Questionnaire::query()
             ->where('etat', true)
             ->orderBy('nom')
             ->get();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | CAMPAGNE
-        |--------------------------------------------------------------------------
-        */
-
+        // 7. Chargement des relations de la campagne
         $campagne->load([
-
             'zones.region',
             'zones.prefecture',
             'zones.commune',
             'zones.canton',
             'zones.village',
-
             'questionnaires',
         ]);
 
-
+        // 8. Transmission à la vue avec toutes les variables nécessaires
         return view(
             'campagnes.edit',
             compact(
                 'campagne',
                 'regions',
+                'structures',
                 'questionnaires'
             )
         );
     }
-
 
     /*
     |--------------------------------------------------------------------------

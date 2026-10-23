@@ -345,6 +345,20 @@ class CampagneRecensement extends Model
     }
 
 
+        /*
+    |--------------------------------------------------------------------------
+    | SCOPES (ONGLETS « EN COURS » / « ANCIENNES »)
+    |--------------------------------------------------------------------------
+    */
 
+    public function scopeEnCours(\Illuminate\Database\Eloquent\Builder $query)
+    {
+        return $query->whereIn('statut', ['planifiee', 'active']);
+    }
+
+    public function scopeAnciennes(\Illuminate\Database\Eloquent\Builder $query)
+    {
+        return $query->whereIn('statut', ['cloturee', 'archivee']);
+    }
     
 }

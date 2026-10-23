@@ -108,6 +108,9 @@
         action="{{ route('agent.affectations') }}"
     >
 
+        {{-- AJOUT : conserve l'onglet actif pendant une recherche --}}
+        <input type="hidden" name="vue" value="{{ $vue ?? 'en_cours' }}">
+
         <div class="flex flex-col gap-3 sm:flex-row">
 
             {{-- Recherche --}}
@@ -181,11 +184,11 @@
             </button>
 
 
-            {{-- Réinitialiser --}}
+            {{-- Réinitialiser (AJOUT : reste dans l'onglet courant) --}}
             @if($search)
 
                 <a
-                    href="{{ route('agent.affectations') }}"
+                    href="{{ route('agent.affectations', ['vue' => $vue ?? 'en_cours']) }}"
                     class="inline-flex items-center justify-center
                            rounded-lg
                            border border-[#e5e7eb]
@@ -203,6 +206,34 @@
         </div>
 
     </form>
+
+</div>
+
+
+{{-- =========================================================
+     AJOUT : ONGLETS EN COURS / ANCIENNES
+========================================================== --}}
+<div class="flex gap-1 border-b border-[#e5e7eb]">
+
+    <a
+        href="{{ route('agent.affectations', array_filter(['vue' => 'en_cours', 'search' => $search ?? null])) }}"
+        class="-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold transition
+               {{ ($vue ?? 'en_cours') === 'en_cours'
+                    ? 'border-[#006a4f] text-[#006a4f]'
+                    : 'border-transparent text-gray-500 hover:text-[#212529]' }}"
+    >
+        En cours
+    </a>
+
+    <a
+        href="{{ route('agent.affectations', array_filter(['vue' => 'anciennes', 'search' => $search ?? null])) }}"
+        class="-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold transition
+               {{ ($vue ?? 'en_cours') === 'anciennes'
+                    ? 'border-[#006a4f] text-[#006a4f]'
+                    : 'border-transparent text-gray-500 hover:text-[#212529]' }}"
+    >
+        Anciennes
+    </a>
 
 </div>
 
@@ -318,9 +349,7 @@
 
                         <tr class="group transition hover:bg-[#f8faf9]">
 
-                            {{-- =================================================
-                                 N°
-                            ================================================== --}}
+                            {{-- N° --}}
                             <td class="px-6 py-4 text-sm text-gray-400">
 
                                 {{
@@ -332,9 +361,7 @@
                             </td>
 
 
-                            {{-- =================================================
-                                 CAMPAGNE
-                            ================================================== --}}
+                            {{-- CAMPAGNE --}}
                             <td class="px-6 py-4">
 
                                 <div>
@@ -345,25 +372,12 @@
 
                                     </div>
 
-                                    {{-- @if($affectation->campagne?->codeCampagne)
-
-                                        <div class="mt-1 font-mono text-xs
-                                                    font-medium text-[#006a4f]">
-
-                                            {{ $affectation->campagne->codeCampagne }}
-
-                                        </div>
-
-                                    @endif --}}
-
                                 </div>
 
                             </td>
 
 
-                            {{-- =================================================
-                                 COMMUNE
-                            ================================================== --}}
+                            {{-- COMMUNE --}}
                             <td class="px-6 py-4 text-gray-600">
 
                                 {{ $affectation->village->canton->commune->nom ?? '—' }}
@@ -371,9 +385,7 @@
                             </td>
 
 
-                            {{-- =================================================
-                                 CANTON
-                            ================================================== --}}
+                            {{-- CANTON --}}
                             <td class="px-6 py-4 text-gray-600">
 
                                 {{ $affectation->village->canton->nom ?? '—' }}
@@ -381,9 +393,7 @@
                             </td>
 
 
-                            {{-- =================================================
-                                 VILLAGE
-                            ================================================== --}}
+                            {{-- VILLAGE --}}
                             <td class="px-6 py-4">
 
                                 <span class="font-medium text-[#212529]">
@@ -395,53 +405,45 @@
                             </td>
 
 
-                            {{-- =================================================
-                                 STATUT
-                            ================================================== --}}
+                            {{-- STATUT (AJOUT : Terminée / Annulée avec accents) --}}
                             <td class="px-6 py-4 text-center">
 
-                                @if(strtolower($affectation->statut) === 'active')
+                                @php
 
-                                    <span class="inline-flex items-center gap-1.5
-                                                 rounded-full
-                                                 bg-green-50
-                                                 px-3 py-1
-                                                 text-xs font-semibold
-                                                 text-green-700">
+                                    $statutKey = strtolower($affectation->statut);
 
-                                        <span class="h-1.5 w-1.5 rounded-full
-                                                     bg-green-500">
-                                        </span>
+                                    $statutLabel = match($statutKey) {
+                                        'active'   => 'Active',
+                                        'terminee' => 'Terminée',
+                                        'annulee'  => 'Annulée',
+                                        default    => ucfirst($affectation->statut),
+                                    };
 
-                                        Active
+                                    $statutClass = match($statutKey) {
+                                        'active'  => 'bg-green-50 text-green-700',
+                                        'annulee' => 'bg-red-50 text-red-700',
+                                        default   => 'bg-gray-100 text-gray-600',
+                                    };
 
+                                @endphp
+
+                                <span class="inline-flex items-center gap-1.5
+                                             rounded-full
+                                             px-3 py-1
+                                             text-xs font-semibold
+                                             {{ $statutClass }}">
+
+                                    <span class="h-1.5 w-1.5 rounded-full bg-current">
                                     </span>
 
-                                @else
+                                    {{ $statutLabel }}
 
-                                    <span class="inline-flex items-center gap-1.5
-                                                 rounded-full
-                                                 bg-gray-100
-                                                 px-3 py-1
-                                                 text-xs font-semibold
-                                                 text-gray-600">
-
-                                        <span class="h-1.5 w-1.5 rounded-full
-                                                     bg-gray-400">
-                                        </span>
-
-                                        {{ ucfirst($affectation->statut) }}
-
-                                    </span>
-
-                                @endif
+                                </span>
 
                             </td>
 
 
-                            {{-- =================================================
-                                 ACTION
-                            ================================================== --}}
+                            {{-- ACTION --}}
                             <td class="px-6 py-4 text-right">
 
                                 <div class="flex items-center justify-end gap-2">
@@ -468,11 +470,12 @@
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
                                         >
+                                            {{-- CORRECTION : tracé de l'œil réparé --}}
                                             <path
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
                                                 stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-9.542-7z"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                                             />
 
                                             <circle
@@ -500,9 +503,7 @@
         </div>
 
 
-        {{-- =====================================================
-             PAGINATION
-        ====================================================== --}}
+        {{-- PAGINATION --}}
         @if($affectations->hasPages())
 
             <div class="border-t border-[#e5e7eb] px-6 py-4">
@@ -548,15 +549,21 @@
                 Aucune affectation
             </h3>
 
+            {{-- AJOUT : message selon le contexte --}}
             <p class="mt-1 text-sm text-gray-500">
-                Vous n'avez actuellement aucune affectation
-                pour une campagne de recensement.
+                @if($search)
+                    Aucune affectation ne correspond à votre recherche.
+                @elseif(($vue ?? 'en_cours') === 'anciennes')
+                    Aucune ancienne affectation pour le moment.
+                @else
+                    Vous n'avez actuellement aucune affectation en cours.
+                @endif
             </p>
 
             @if($search)
 
                 <a
-                    href="{{ route('agent.affectations') }}"
+                    href="{{ route('agent.affectations', ['vue' => $vue ?? 'en_cours']) }}"
                     class="mt-4 inline-block text-sm font-semibold
                            text-[#006a4f]
                            hover:underline"

@@ -22,6 +22,7 @@ class Maison extends Model
         'longitude',
         'precisionGPS',
         'adresse',
+        'nomChef'
     ];
 
     protected $casts = [

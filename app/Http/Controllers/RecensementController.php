@@ -73,39 +73,100 @@ class RecensementController extends Controller
     /**
      * Liste des recensements de l'agent connecté.
      */
+    // public function index(Request $request): View
+    // {
+    //     $user = Auth::user();
+    //     $search = trim($request->input('search', ''));
+
+    //     $recensements = Recensement::query()
+    //         ->with([
+    //             'campagne',
+    //             'maison.village.canton.commune',
+    //             'affectation.equipe',
+    //         ])
+    //         ->where('agent_id', $user->id)
+    //         ->when($search !== '', function ($query) use ($search) {
+    //             $query->where(function ($q) use ($search) {
+    //                 $q->whereHas('maison', function ($maison) use ($search) {
+    //                     $maison->where('numeroMaison', 'like', "%{$search}%")
+    //                         ->orWhere('uid', 'like', "%{$search}%")
+    //                         ->orWhere('adresse', 'like', "%{$search}%");
+    //                 });
+
+    //                 $q->orWhereHas('campagne', function ($campagne) use ($search) {
+    //                     $campagne->where('libelle', 'like', "%{$search}%")
+    //                         ->orWhere('codeCampagne', 'like', "%{$search}%");
+    //                 });
+
+    //                 $q->orWhere('statut', 'like', "%{$search}%");
+    //             });
+    //         })
+    //         ->latest('idRecensement')
+    //         ->paginate(15)
+    //         ->withQueryString();
+
+    //     return view('agent.recensements.index', compact('recensements', 'search'));
+    // }
+
+
+
+
+        /**
+     * Liste des recensements de l'agent connecté.
+     */
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $search = trim($request->input('search', ''));
+        $search = trim((string) $request->input('search', ''));
+        $statutFiltre = (string) $request->input('statut', '');
 
         $recensements = Recensement::query()
             ->with([
                 'campagne',
                 'maison.village.canton.commune',
                 'affectation.equipe',
+                'menages',
             ])
             ->where('agent_id', $user->id)
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
+
+                    // Maison : nom du chef, numéro, uid, adresse
                     $q->whereHas('maison', function ($maison) use ($search) {
-                        $maison->where('numeroMaison', 'like', "%{$search}%")
+                        $maison->where('nomChef', 'like', "%{$search}%")
+                            ->orWhere('numeroMaison', 'like', "%{$search}%")
                             ->orWhere('uid', 'like', "%{$search}%")
                             ->orWhere('adresse', 'like', "%{$search}%");
                     });
 
+                    // Village et canton
+                    $q->orWhereHas('maison.village', function ($village) use ($search) {
+                        $village->where('nom', 'like', "%{$search}%");
+                    });
+
+                    $q->orWhereHas('maison.village.canton', function ($canton) use ($search) {
+                        $canton->where('nom', 'like', "%{$search}%");
+                    });
+
+                    // Campagne
                     $q->orWhereHas('campagne', function ($campagne) use ($search) {
                         $campagne->where('libelle', 'like', "%{$search}%")
                             ->orWhere('codeCampagne', 'like', "%{$search}%");
                     });
 
+                    // Statut
                     $q->orWhere('statut', 'like', "%{$search}%");
                 });
             })
+            ->when(
+                in_array($statutFiltre, ['brouillon', 'en_cours', 'termine', 'valide'], true),
+                fn ($query) => $query->where('statut', $statutFiltre)
+            )
             ->latest('idRecensement')
             ->paginate(15)
             ->withQueryString();
 
-        return view('agent.recensements.index', compact('recensements', 'search'));
+        return view('agent.recensements.index', compact('recensements', 'search', 'statutFiltre'));
     }
 
     /**

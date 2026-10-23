@@ -330,7 +330,7 @@
                                             />
                                         </svg>
 
-                                        Voir
+                                        {{-- Voir --}}
 
                                     </a>
 
@@ -361,7 +361,7 @@
                                             />
                                         </svg>
 
-                                        Modifier
+                                        {{-- Modifier --}}
 
                                     </a>
 

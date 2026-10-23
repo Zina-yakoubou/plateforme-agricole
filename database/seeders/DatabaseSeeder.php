@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CampagneRecensementSeeder::class,
             CampagneZoneSeeder::class,
-            RecensementMockSeeder::class, // <--- Ajout ici pour peupler les données de test
+            //RecensementMockSeeder::class, // <--- Ajout ici pour peupler les données de test
 
             QuestionnaireSeeder::class, // Insère questionnaires + pivot
             CampagnePlanificationSeeder::class,

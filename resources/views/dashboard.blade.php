@@ -338,6 +338,53 @@
             </div>
 
 
+            {{-- MODULE INTRANTS (SYNTHÈSE ADMIN / NATIONAL) --}}
+            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+                    <div>
+                        <h3 class="font-semibold text-gray-900">
+                            Synthèse Nationale des Intrants Agricoles
+                        </h3>
+                        <p class="text-xs text-gray-500">
+                            Volume global calculé à partir des barèmes DPA et des recensements de terrain
+                        </p>
+                    </div>
+
+                    @if(Route::has('admin.intrants.index'))
+                        <a href="{{ route('admin.intrants.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-[#006a4f] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#00543e]">
+                            Consulter la carte nationale
+                        </a>
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-xs text-gray-500">Besoin total calculé</p>
+                        <p class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($besoinsTotalTonnes ?? 0, 1, ',', ' ') }} T</p>
+                        <p class="text-xs text-gray-500">Toutes préfectures</p>
+                    </div>
+
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-xs text-gray-500">Besoin NPK 15-15-15</p>
+                        <p class="mt-1 text-2xl font-bold text-[#006a4f]">{{ number_format($besoinNpkTonnes ?? 0, 1, ',', ' ') }} T</p>
+                        <p class="text-xs text-gray-500">Engrais minéral</p>
+                    </div>
+
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-xs text-gray-500">Besoin Urée 46%</p>
+                        <p class="mt-1 text-2xl font-bold text-[#006a4f]">{{ number_format($besoinUreeTonnes ?? 0, 1, ',', ' ') }} T</p>
+                        <p class="text-xs text-gray-500">Engrais azoté</p>
+                    </div>
+
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-xs text-gray-500">Taux de couverture</p>
+                        <p class="mt-1 text-2xl font-bold text-amber-600">{{ $tauxCouvertureIntrants ?? 0 }} %</p>
+                        <p class="text-xs text-gray-500">Stock disponible / Besoin</p>
+                    </div>
+                </div>
+            </div>
+
+
             {{-- Données de recensement --}}
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
@@ -623,7 +670,7 @@
                 </h2>
 
                 <p class="text-sm text-gray-500">
-                    État du déploiement et progression du recensement.
+                    État du déploiement, du recensement et des allocations d'intrants.
                 </p>
             </div>
 
@@ -665,6 +712,65 @@
                     <p class="mt-2 text-3xl font-bold text-gray-900">
                         {{ $nombreAgents }}
                     </p>
+                </div>
+
+            </div>
+
+
+            {{-- MODULE INTRANTS (GESTION DPA PRÉFECTORALE) --}}
+            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+                    <div>
+                        <h3 class="font-semibold text-gray-900">
+                            Besoins & Allocations en Intrants (Préfecture)
+                        </h3>
+                        <p class="text-xs text-gray-500">
+                            Calcul automatique basé sur la superficie déclarée et le barème kg/ha fixé
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        @if(Route::has('dpa.baremes.index'))
+                            <a href="{{ route('dpa.baremes.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50">
+                                Barèmes kg/ha
+                            </a>
+                        @endif
+
+                        @if(Route::has('dpa.besoins.index'))
+                            <a href="{{ route('dpa.besoins.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-[#006a4f] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#00543e]">
+                                Consolider les besoins
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+
+                    <div class="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                        <p class="text-xs text-gray-500">Barèmes DPA</p>
+                        <p class="mt-1 text-2xl font-bold text-gray-900">{{ $baremesActifsCount ?? 0 }} Actifs</p>
+                        <p class="text-xs text-gray-500">Doses fixées par culture</p>
+                    </div>
+
+                    <div class="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                        <p class="text-xs text-gray-500">Besoin NPK</p>
+                        <p class="mt-1 text-2xl font-bold text-[#006a4f]">{{ number_format($besoinNpkTonnes ?? 0, 1, ',', ' ') }} T</p>
+                        <p class="text-xs text-gray-500">Sur parcelles recensées</p>
+                    </div>
+
+                    <div class="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                        <p class="text-xs text-gray-500">Besoin Urée</p>
+                        <p class="mt-1 text-2xl font-bold text-[#006a4f]">{{ number_format($besoinUreeTonnes ?? 0, 1, ',', ' ') }} T</p>
+                        <p class="text-xs text-gray-500">Sur parcelles recensées</p>
+                    </div>
+
+                    <div class="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                        <p class="text-xs text-gray-500">Allocations Validées</p>
+                        <p class="mt-1 text-2xl font-bold text-emerald-700">{{ $allocationsValideesCount ?? 0 }}</p>
+                        <p class="text-xs text-gray-500">Bons de retrait QR générés</p>
+                    </div>
+
                 </div>
 
             </div>

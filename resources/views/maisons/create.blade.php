@@ -11,7 +11,7 @@
             href="{{ route('villages.maisons.index', $village) }}"
             class="text-sm text-slate-500 hover:text-green-600"
         >
-            ← Retour aux maisons du village
+         Retour aux maisons du village
         </a>
 
         <h1 class="mt-3 text-2xl font-bold text-slate-800">

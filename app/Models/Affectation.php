@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -27,56 +28,24 @@ class Affectation extends Model
         'dateFin'   => 'date',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | CAMPAGNE
-    |--------------------------------------------------------------------------
-    */
+    /* ---------------- RELATIONS ---------------- */
 
     public function campagne(): BelongsTo
     {
-        return $this->belongsTo(
-            CampagneRecensement::class,
-            'campagne_id',
-            'idCampagne'
-        );
+        return $this->belongsTo(CampagneRecensement::class, 'campagne_id', 'idCampagne');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | ÉQUIPE
-    |--------------------------------------------------------------------------
-    */
 
     public function equipe(): BelongsTo
     {
-        return $this->belongsTo(
-            Equipe::class,
-            'equipe_id',
-            'idEquipe'
-        );
+        return $this->belongsTo(Equipe::class, 'equipe_id', 'idEquipe');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | VILLAGE
-    |--------------------------------------------------------------------------
-    */
 
     public function village(): BelongsTo
     {
-        return $this->belongsTo(
-            Village::class,
-            'village_id',
-            'idVillage'
-        );
+        return $this->belongsTo(Village::class, 'village_id', 'idVillage');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | STATUT
-    |--------------------------------------------------------------------------
-    */
+    /* ---------------- STATUT ---------------- */
 
     public function estActive(): bool
     {
@@ -91,5 +60,23 @@ class Affectation extends Model
     public function estAnnulee(): bool
     {
         return $this->statut === 'annulee';
+    }
+
+    // Modifiable seulement si l'affectation est active
+    public function estModifiable(): bool
+    {
+        return $this->statut === 'active';
+    }
+
+    /* ---------------- SCOPES ---------------- */
+
+    public function scopeEnCours(Builder $query)
+    {
+        return $query->where('statut', 'active');
+    }
+
+    public function scopeAnciennes(Builder $query)
+    {
+        return $query->whereIn('statut', ['terminee', 'annulee']);
     }
 }

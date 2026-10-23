@@ -14,7 +14,7 @@
 <div class="space-y-6">
 
     {{-- =========================================================
-         EN-TÊTE
+         EN-TÊTE & FILTRE
     ========================================================== --}}
 
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -154,76 +154,98 @@
 
 
     {{-- =========================================================
-         INDICATEURS
+         INDICATEURS MÉTIER (RECENSEMENT)
     ========================================================== --}}
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-
-        {{-- ÉQUIPES --}}
-
+        {{-- MÉNAGES RECENSÉS --}}
         <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
-
-            <p class="font-poppins text-sm text-[#6b7280]">
-                Équipes
+            <p class="font-poppins text-sm text-[#6b7280]">Ménages recensés</p>
+            <p class="mt-2 font-poppins text-3xl font-semibold text-[#006a4f]">
+                {{ number_format($totalMenages, 0, ',', ' ') }}
             </p>
-
-            <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
-                {{ $nombreEquipes }}
-            </p>
-
         </div>
 
-
-        {{-- AGENTS --}}
-
+        {{-- EXPLOITANTS AGRICOLES --}}
         <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
-
-            <p class="font-poppins text-sm text-[#6b7280]">
-                Agents recenseurs
-            </p>
-
+            <p class="font-poppins text-sm text-[#6b7280]">Exploitants agricoles</p>
             <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
-                {{ $nombreAgents }}
+                {{ number_format($totalExploitants, 0, ',', ' ') }}
             </p>
-
         </div>
 
-
-        {{-- VILLAGES --}}
-
+        {{-- DOSSIERS VALIDÉS --}}
         <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
-
-            <p class="font-poppins text-sm text-[#6b7280]">
-                Villages
+            <p class="font-poppins text-sm text-[#6b7280]">Dossiers validés</p>
+            <p class="mt-2 font-poppins text-3xl font-semibold text-[#006a4f]">
+                {{ number_format($dossiersValides, 0, ',', ' ') }}
             </p>
-
-            <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
-                {{ $nombreVillages }}
-            </p>
-
         </div>
 
-
-        {{-- AFFECTATIONS --}}
-
+        {{-- DOSSIERS EN ATTENTE --}}
         <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+            <p class="font-poppins text-sm text-[#6b7280]">En attente / À corriger</p>
 
-            <p class="font-poppins text-sm text-[#6b7280]">
-                Affectations
-            </p>
+            <div class="mt-2 flex items-baseline gap-2">
+                <span class="font-poppins text-3xl font-semibold text-amber-600">
+                    {{ number_format($dossiersEnAttente, 0, ',', ' ') }}
+                </span>
 
-            <p class="mt-2 font-poppins text-3xl font-semibold text-[#212529]">
-                {{ $nombreAffectations }}
-            </p>
-
+                @if($dossiersRejetes > 0)
+                    <span class="font-poppins text-xs font-medium text-red-600">
+                        ({{ $dossiersRejetes }} rejets)
+                    </span>
+                @endif
+            </div>
         </div>
 
     </div>
 
 
     {{-- =========================================================
-         PROGRESSION
+         INDICATEURS LOGISTIQUES (RÉSEAU TERRAIN)
+    ========================================================== --}}
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+        {{-- ÉQUIPES --}}
+        <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+            <p class="font-poppins text-sm text-[#6b7280]">Équipes mobilisées</p>
+            <p class="mt-2 font-poppins text-2xl font-semibold text-[#212529]">
+                {{ $nombreEquipes }}
+            </p>
+        </div>
+
+        {{-- AGENTS --}}
+        <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+            <p class="font-poppins text-sm text-[#6b7280]">Agents recenseurs</p>
+            <p class="mt-2 font-poppins text-2xl font-semibold text-[#212529]">
+                {{ $nombreAgents }}
+            </p>
+        </div>
+
+        {{-- VILLAGES --}}
+        <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+            <p class="font-poppins text-sm text-[#6b7280]">Villages totaux</p>
+            <p class="mt-2 font-poppins text-2xl font-semibold text-[#212529]">
+                {{ $nombreVillages }}
+            </p>
+        </div>
+
+        {{-- AFFECTATIONS --}}
+        <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
+            <p class="font-poppins text-sm text-[#6b7280]">Affectations réalisées</p>
+            <p class="mt-2 font-poppins text-2xl font-semibold text-[#212529]">
+                {{ $nombreAffectations }}
+            </p>
+        </div>
+
+    </div>
+
+
+    {{-- =========================================================
+         PROGRESSION & COUVERTURE TERRAIN
     ========================================================== --}}
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -381,7 +403,7 @@
                 </h2>
 
                 <p class="mt-1 font-poppins text-sm text-[#6b7280]">
-                    Comparaison de la couverture territoriale
+                    Comparaison de la couverture et du volume de ménages recensés
                 </p>
 
             </div>
@@ -412,7 +434,7 @@
                             </th>
 
                             <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
-                                Non affectés
+                                Ménages recensés
                             </th>
 
                             <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
@@ -446,8 +468,8 @@
                                     {{ $item['villages_affectes'] }}
                                 </td>
 
-                                <td class="px-6 py-4 font-poppins text-sm text-[#434343]">
-                                    {{ $item['villages_non_affectes'] }}
+                                <td class="px-6 py-4 font-poppins text-sm font-semibold text-[#006a4f]">
+                                    {{ number_format($item['menages_recenses'], 0, ',', ' ') }}
                                 </td>
 
                                 <td class="px-6 py-4">
@@ -541,7 +563,7 @@
                             </th>
 
                             <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
-                                Non affectés
+                                Ménages recensés
                             </th>
 
                             <th class="px-6 py-3 text-left font-poppins text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
@@ -575,8 +597,8 @@
                                     {{ $commune['villages_affectes'] }}
                                 </td>
 
-                                <td class="px-6 py-4 font-poppins text-sm text-[#434343]">
-                                    {{ $commune['villages_non_affectes'] }}
+                                <td class="px-6 py-4 font-poppins text-sm font-semibold text-[#006a4f]">
+                                    {{ number_format($commune['menages_recenses'], 0, ',', ' ') }}
                                 </td>
 
                                 <td class="px-6 py-4 font-poppins text-sm text-[#434343]">
@@ -633,7 +655,7 @@
 
 
     {{-- =========================================================
-         HISTORIQUE
+         HISTORIQUE DES CAMPAGNES
     ========================================================== --}}
 
     <div class="rounded-xl border border-[#e5e7eb] bg-white">
@@ -743,49 +765,6 @@
                 </tbody>
 
             </table>
-
-        </div>
-
-    </div>
-
-
-    {{-- =========================================================
-         INFORMATION
-    ========================================================== --}}
-
-    <div class="rounded-xl border border-[#e5e7eb] bg-white p-5">
-
-        <div class="flex items-start gap-3">
-
-            <svg
-                class="mt-0.5 h-5 w-5 shrink-0 text-[#006a4f]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="1.8"
-                    d="M12 8v4m0 4h.01
-                       M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-            </svg>
-
-            <div>
-
-                <p class="font-poppins text-sm font-semibold text-[#212529]">
-                    À propos de ces statistiques
-                </p>
-
-                <p class="mt-1 font-poppins text-sm leading-6 text-[#6b7280]">
-                    La progression affichée actuellement correspond à la couverture
-                    des villages par les affectations de la campagne sélectionnée.
-                    Les statistiques de recensement effectif seront intégrées
-                    lorsque les données du module de recensement seront disponibles.
-                </p>
-
-            </div>
 
         </div>
 

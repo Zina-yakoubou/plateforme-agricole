@@ -55,7 +55,31 @@
     </div>
 
     {{-- ========================================================
-        NUMÉRO ET IDENTIFIANT
+        NOM DU CHEF DE MAISON (création et modification)
+    ========================================================= --}}
+
+    <div>
+        <label for="nomChef" class="block text-sm font-medium text-slate-700">
+            Nom de maison
+        </label>
+
+        <input
+            type="text"
+            name="nomChef"
+            id="nomChef"
+            value="{{ old('nomChef', $maison->nomChef ?? '') }}"
+            placeholder="Ex : Maison de Mensah"
+            maxlength="255"
+            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-green-600 focus:ring-green-600"
+        >
+
+        @error('nomChef')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- ========================================================
+        NUMÉRO ET IDENTIFIANT (modification seulement)
     ========================================================= --}}
 
     @if(isset($maison))
@@ -311,7 +335,7 @@
         >
             {{ isset($maison)
                 ? 'Mettre à jour la maison'
-                : 'Enregistrer la maison' }}
+                : 'Enregistrer' }}
         </button>
 
     </div>

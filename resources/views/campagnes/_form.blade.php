@@ -1165,6 +1165,9 @@
     {{-- ================================================================
         QUESTIONNAIRES
     ================================================================= --}}
+    {{-- ================================================================
+        QUESTIONNAIRES (Correction Clé Primaire)
+    ================================================================= --}}
     <div class="md:col-span-2">
 
         <label class="mb-2 block text-sm font-medium text-gray-700">
@@ -1172,40 +1175,36 @@
         </label>
 
         @php
-
+            // Récupération de l'ID primaire (détecte idQuestionnaire ou id)
             $selectionnes = old(
                 'questionnaire_ids',
                 isset($campagne)
                     ? $campagne->questionnaires
-                        ->pluck('idQuestionnaire')
+                        ->pluck('id') // ou 'idQuestionnaire' selon votre BDD
                         ->toArray()
                     : []
             );
-
         @endphp
 
         <div class="space-y-2 rounded-lg border border-gray-200 p-4">
 
             @forelse($questionnaires as $questionnaire)
+                @php
+                    $qId = $questionnaire->idQuestionnaire ?? $questionnaire->id;
+                @endphp
 
                 <label class="flex cursor-pointer items-center gap-3">
 
                     <input
                         type="checkbox"
                         name="questionnaire_ids[]"
-                        value="{{ $questionnaire->idQuestionnaire }}"
-                        @checked(
-                            in_array(
-                                $questionnaire->idQuestionnaire,
-                                $selectionnes
-                            )
-                        )
-                        class="rounded border-gray-300 text-green-600
-                            focus:ring-green-500"
+                        value="{{ $qId }}"
+                        @checked(in_array($qId, $selectionnes))
+                        class="rounded border-gray-300 text-green-600 focus:ring-green-500"
                     >
 
                     <span class="text-sm text-gray-700">
-                        {{ $questionnaire->titre }}
+                        {{ $questionnaire->titre ?? $questionnaire->nom }}
                     </span>
 
                 </label>
@@ -1213,7 +1212,7 @@
             @empty
 
                 <p class="text-sm text-amber-600">
-                    Aucun questionnaire disponible.
+                    Aucun questionnaire actif disponible.
                 </p>
 
             @endforelse
@@ -1227,7 +1226,6 @@
         @enderror
 
     </div>
-
 </div>
 
 

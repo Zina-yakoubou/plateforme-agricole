@@ -71,4 +71,6 @@ class Menage extends Model
     {
         return $this->hasMany(Exploitant::class, 'menage_id', 'idMenage');
     }
+
+    
 }
