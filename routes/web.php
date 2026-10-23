@@ -41,6 +41,12 @@ use App\Http\Controllers\Dpa\DpaAgentController;
 use App\Http\Controllers\SaisonDistributionController;
 
 
+
+
+
+use App\Http\Controllers\Dpa\BaremeController;
+use App\Http\Controllers\Dpa\BesoinController; // Contrôleur de consolidation des besoins
+
 /*
 |--------------------------------------------------------------------------
 | ACCUEIL PUBLIC
@@ -323,6 +329,33 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/menages/{menage}/edit', [MenageController::class, 'edit'])->name('menages.edit');
     Route::put('/menages/{menage}', [MenageController::class, 'update'])->name('menages.update');
     Route::delete('/menages/{menage}', [MenageController::class, 'destroy'])->name('menages.destroy');
+});
+
+
+
+
+
+// =========================================================
+// ROUTES ESPACE DPA (Direction Préfectorale de l'Agriculture)
+// =========================================================
+Route::middleware(['auth'])->prefix('dpa')->name('dpa.')->group(function () {
+
+    // 1. Gestion des Barèmes Agronomiques (Appelé depuis la Sidebar)
+    // URL: /dpa/baremes
+    // Nom des routes: dpa.baremes.index, dpa.baremes.store, dpa.baremes.update, dpa.baremes.destroy
+    Route::resource('baremes', BaremeController::class)->except(['create', 'edit', 'show']);
+    
+    // Route complémentaire pour changer le statut (actif/inactif)
+    // URL: /dpa/baremes/{bareme}/toggle
+    // Nom: dpa.baremes.toggle
+    Route::patch('/baremes/{bareme}/toggle', [BaremeController::class, 'toggleStatus'])->name('baremes.toggle');
+
+
+    // 2. Consolidation des Besoins en Intrants (Appelé depuis le Dashboard DPA)
+    // URL: /dpa/besoins
+    // Nom de la route: dpa.besoins.index
+    Route::get('/besoins', [BesoinController::class, 'index'])->name('besoins.index');
+
 });
 
 
