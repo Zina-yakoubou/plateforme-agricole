@@ -348,8 +348,7 @@
 
                 {{-- CONSULTATION GLOBAL INTRANTS & BESOINS (ADMIN) --}}
                 <a
-                    href="#"
-                    {{-- href="{{ route('admin.intrants.index') }}" --}}
+A2                    {{-- href="{{ route('admin.intrants.index') }}" --}}
 
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
@@ -767,8 +766,8 @@
 
                     {{-- 1. BARÈMES AGRONOMIQUES --}}
                     <a
-                        href="#"
-                        {{-- href="{{ route('dpa.baremes.index') }}" --}}
+                        {{-- href="#" --}}
+                        href="{{ route('dpa.baremes.index') }}"
 
                         @click="sidebarOpen = false"
                         :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
@@ -788,9 +787,9 @@
 
                     {{-- 2. CONSOLIDATION DES BESOINS --}}
                     <a
-                        href="#"
+                        {{-- href="#" --}}
 
-                        {{-- href="{{ route('dpa.besoins.index') }}" --}}
+                        href="{{ route('dpa.besoins.index') }}"
                         @click="sidebarOpen = false"
                         :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
                         class="mb-1 flex items-center gap-3 rounded-md py-2.5 transition-colors duration-150
@@ -809,7 +808,7 @@
 
                     {{-- 3. ALLOCATIONS & QUOTAS --}}
                     <a
-                        href="#"
+                        {{-- href="#" --}}
 
                         {{-- href="{{ route('dpa.allocations.index') }}" --}}
                         @click="sidebarOpen = false"

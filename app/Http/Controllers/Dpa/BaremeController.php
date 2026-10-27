@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Http\Controllers\Dpa;
-use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBaremeRequest;
@@ -11,12 +9,13 @@ use App\Models\BaremeAgronomique;
 use App\Models\Culture;
 use App\Models\Intrant;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
 
 class BaremeController extends Controller
 {
     public function index()
     {
-        $prefectureId = Auth::user()->prefecture_id;
+        $prefectureId = Auth::user()->prefecture_id ?? 1;
 
         $baremes = BaremeAgronomique::where('prefecture_id', $prefectureId)
             ->with(['culture', 'intrant'])
@@ -32,13 +31,43 @@ class BaremeController extends Controller
     {
         try {
             $validated = $request->validated();
-            $prefectureId = Auth::user()->prefecture_id;
+            $user = Auth::user();
+            $prefectureId = $user->prefecture_id ?? 1;
 
+            // 1. Gestion de la Culture
+            $cultureId = $validated['culture_id'] ?? null;
+            if (!empty($validated['nouvelle_culture'])) {
+                // CORRECTION : On transmet la 'categorie' pour éviter l'erreur NOT NULL de SQLite
+                $culture = Culture::firstOrCreate(
+                    ['nomCulture' => trim($validated['nouvelle_culture'])],
+                    [
+                        'categorie' => $validated['categorie'] ?? 'vivriere', 
+                        'active'    => true
+                    ]
+                );
+                $cultureId = $culture->idCulture ?? $culture->id;
+            }
+
+            // 2. Gestion de l'Intrant
+            $intrantId = $validated['intrant_id'] ?? null;
+            if (!empty($validated['nouvel_intrant'])) {
+                $intrant = Intrant::firstOrCreate(
+                    ['nom' => trim($validated['nouvel_intrant'])],
+                    [
+                        'type'  => 'autre',
+                        'unite' => $validated['unite'] ?? 'kg',
+                        'actif' => true
+                    ]
+                );
+                $intrantId = $intrant->idIntrant ?? $intrant->id;
+            }
+
+            // 3. Enregistrement du barème
             BaremeAgronomique::updateOrCreate(
                 [
                     'prefecture_id' => $prefectureId,
-                    'culture_id'    => $validated['culture_id'],
-                    'intrant_id'    => $validated['intrant_id'],
+                    'culture_id'    => $cultureId,
+                    'intrant_id'    => $intrantId,
                 ],
                 [
                     'dose_par_hectare'       => $validated['dose_par_hectare'],
@@ -51,14 +80,10 @@ class BaremeController extends Controller
             return redirect()->route('dpa.baremes.index')
                 ->with('success', 'Le barème agronomique a été enregistré avec succès.');
 
-        } catch (QueryException $e) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Erreur BDD : Un barème existe déjà pour ce couple Culture/Intrant.');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Une erreur inattendue est survenue lors de l\'enregistrement.');
+                ->with('error', 'Erreur lors de l\'enregistrement : ' . $e->getMessage());
         }
     }
 

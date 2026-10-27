@@ -474,12 +474,12 @@
                                     </div>
 
 
-                                    <div class="mt-1 font-mono text-xs
+                                    {{-- <div class="mt-1 font-mono text-xs
                                                 font-medium text-[#006a4f]">
 
                                         {{ $equipe->reference }}
 
-                                    </div>
+                                    </div> --}}
 
                                 </div>
 
@@ -590,7 +590,7 @@
                                                hover:underline"
                                     >
                                         Voir
-                                    </a> --}}
+                                don    </a> --}}
 
 
                                     <button
@@ -598,7 +598,7 @@
                                         onclick="document.getElementById('membres-{{ $equipe->idEquipe }}').showModal()"
                                         class="text-xs font-semibold text-[#006a4f] hover:underline"
                                     >
-                                        Voir
+                                        {{-- Voir --}}
                                     </button>
 
                                     <dialog
