@@ -40,15 +40,24 @@ use App\Http\Controllers\Dpa\EquipeController;
 use App\Http\Controllers\Dpa\DpaAgentController;
 use App\Http\Controllers\SaisonDistributionController;
 
+use App\Http\Controllers\ReferentielController;
 
 
 
 
 use App\Http\Controllers\Dpa\BaremeController;
-use App\Http\Controllers\Dpa\BesoinController; // Contrôleur de consolidation des besoins
+//use App\Http\Controllers\BesoinIntrantController; // Contrôleur de consolidation des besoins en intrants
+
+use App\Http\Controllers\Dpa\BesoinIntrantController;
+
+
+use App\Http\Controllers\ParametreController;
+
+use App\Http\Controllers\CarteController;
+
+use App\Http\Controllers\QuestionnaireController;
 
 /*
-|--------------------------------------------------------------------------
 | ACCUEIL PUBLIC
 |--------------------------------------------------------------------------
 */
@@ -82,6 +91,24 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
+
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+
+    Route::get('/referentiel', [ReferentielController::class, 'index'])->name('referentiel.index');
+
+    // Cultures
+    Route::post('/referentiel/cultures', [ReferentielController::class, 'storeCulture'])->name('referentiel.cultures.store');
+    Route::put('/referentiel/cultures/modifier', [ReferentielController::class, 'updateCulture'])->name('referentiel.cultures.update');
+    Route::patch('/referentiel/cultures/toggle', [ReferentielController::class, 'toggleCulture'])->name('referentiel.cultures.toggle');
+
+    // Intrants
+    Route::post('/referentiel/intrants', [ReferentielController::class, 'storeIntrant'])->name('referentiel.intrants.store');
+    Route::put('/referentiel/intrants/modifier', [ReferentielController::class, 'updateIntrant'])->name('referentiel.intrants.update');
+    Route::patch('/referentiel/intrants/toggle', [ReferentielController::class, 'toggleIntrant'])->name('referentiel.intrants.toggle');
+
+    // Intrants possibles d'une culture
+    Route::put('/referentiel/cultures/intrants', [ReferentielController::class, 'syncIntrants'])->name('referentiel.cultures.intrants');
+});
 /*
 |--------------------------------------------------------------------------
 | ADMINISTRATEUR
@@ -89,6 +116,8 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth'])->group(function () {
 
+ // Référentiel : cultures, intrants et intrants possibles par culture
+    //Route::get('/referentiel', [ReferentielController::class, 'index'])->name('referentiel.index');
     /* UTILISATEURS */
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -158,7 +187,8 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/campagnes/{campagne}/close', [CampagneRecensementController::class, 'close'])->name('campagnes.close');
     Route::patch('/campagnes/{campagne}/archive', [CampagneRecensementController::class, 'archive'])->name('campagnes.archive');
     Route::post('/campagnes/{campagne}/deploy', [CampagneRecensementController::class, 'deploy'])->name('campagnes.deploy');
-
+    
+    Route::post('/questionnaires/ajax', [QuestionnaireController::class, 'storeAjax'])->name('questionnaires.store-ajax');
     /* AFFECTATIONS ADMIN */
     Route::get('/affectations', [AffectationController::class, 'index'])->name('affectations.index');
     Route::get('/affectations/create', [AffectationController::class, 'create'])->name('affectations.create');
@@ -249,6 +279,13 @@ Route::middleware(['auth'])
         Route::get('/mes-zones/{affectation:reference}', [AffectationController::class, 'zoneSupervision'])->name('zones.show');
         Route::get('/suivi', [SuperviseurController::class, 'suivi'])->name('suivi.index');
         Route::get('/controle-qualite', [SuperviseurController::class, 'controleQualite'])->name('controle-qualite.index');
+        Route::post('/suivi/visite', [SuperviseurController::class, 'enregistrerVisite'])
+        ->name('suivi.visite');
+        // ⬇️ AJOUTER CETTE ROUTE ⬇️
+        Route::get('/suivi/village/{villageId}/maisons', [SuperviseurController::class, 'maisons'])
+            ->name('suivi.maisons');
+        Route::get('/besoins', [BesoinIntrantController::class, 'index'])
+        ->name('besoins.index');
     });
 
 
@@ -273,6 +310,19 @@ Route::middleware(['auth'])
         Route::patch('/mes-recensements/{recensement}/mettre-en-cours', [RecensementController::class, 'mettreEnCours'])->name('recensements.mettre-en-cours');
         Route::patch('/mes-recensements/{recensement}/terminer', [RecensementController::class, 'terminer'])->name('recensements.terminer');
         Route::post('recensements/{recensement}/cloturer', [RecensementController::class, 'cloturerMaison'])->name('recensements.cloturer');
+        /* MAISONS : liste des recensements d'une maison */
+        Route::get('/maisons/{maison}/recensements', [MaisonController::class, 'recensements'])
+        ->whereNumber('maison')
+        ->name('maisons.recensements');
+        Route::get('/incomplets', [RecensementController::class, 'incomplets'])->name('incomplets');
+
+
+        /* -------------------------------------------------------- */
+        /* C'ICI QU'IL FAUT L'AJOUTER :                             */
+        /* -------------------------------------------------------- */
+        Route::get('/maisons/{maison}/recensements', [MaisonController::class, 'recensements'])
+            ->whereNumber('maison')
+            ->name('maisons.recensements.index');
 
         /* MÉNAGES (Aplaties) */
         Route::get('/recensements/{recensement}/menages', [MenageController::class, 'index'])->name('recensements.menages.index');
@@ -281,6 +331,7 @@ Route::middleware(['auth'])
         Route::get('/menages/{menage}/edit', [MenageController::class, 'edit'])->name('recensements.menages.edit');
         Route::put('/menages/{menage}', [MenageController::class, 'update'])->name('recensements.menages.update');
         Route::delete('/menages/{menage}', [MenageController::class, 'destroy'])->name('recensements.menages.destroy');
+
 
         /* EXPLOITANTS (Aplaties) */
         Route::get('/menages/{menage}/exploitants', [ExploitantController::class, 'index'])->name('recensements.menages.exploitants.index');
@@ -302,6 +353,7 @@ Route::middleware(['auth'])
         Route::get('/exploitants/{exploitant}/parcelles', [ParcelleController::class, 'index'])->name('parcelles.index');
         Route::get('/exploitants/{exploitant}/parcelles/create', [ParcelleController::class, 'create'])->name('parcelles.create');
         Route::post('/exploitants/{exploitant}/parcelles', [ParcelleController::class, 'store'])->name('parcelles.store');
+        Route::get('/parcelles/{parcelle}', [ParcelleController::class, 'show'])->name('parcelles.show');
         Route::get('/parcelles/{parcelle}/edit', [ParcelleController::class, 'edit'])->name('parcelles.edit');
         Route::put('/parcelles/{parcelle}', [ParcelleController::class, 'update'])->name('parcelles.update');
         Route::delete('/parcelles/{parcelle}', [ParcelleController::class, 'destroy'])->name('parcelles.destroy');
@@ -335,30 +387,45 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-// =========================================================
-// ROUTES ESPACE DPA (Direction Préfectorale de l'Agriculture)
-// =========================================================
 Route::middleware(['auth'])->prefix('dpa')->name('dpa.')->group(function () {
 
-    // 1. Gestion des Barèmes Agronomiques (Appelé depuis la Sidebar)
-    // URL: /dpa/baremes
-    // Nom des routes: dpa.baremes.index, dpa.baremes.store, dpa.baremes.update, dpa.baremes.destroy
-    Route::resource('baremes', BaremeController::class)->except(['create', 'edit', 'show']);
-    
-    // Route complémentaire pour changer le statut (actif/inactif)
-    // URL: /dpa/baremes/{bareme}/toggle
-    // Nom: dpa.baremes.toggle
-    Route::patch('/baremes/{bareme}/toggle', [BaremeController::class, 'toggleStatus'])->name('baremes.toggle');
+     
 
+    // 1. Gestion des Barèmes Agronomiques (identifiant envoyé en champ caché, URL masquée)
+    Route::get('/baremes', [BaremeController::class, 'index'])->name('baremes.index');
+    Route::post('/baremes', [BaremeController::class, 'store'])->name('baremes.store');
+    Route::put('/baremes/modifier', [BaremeController::class, 'update'])->name('baremes.update');
+    Route::patch('/baremes/toggle', [BaremeController::class, 'toggleStatus'])->name('baremes.toggle');
+    Route::delete('/baremes/supprimer', [BaremeController::class, 'destroy'])->name('baremes.destroy');
 
-    // 2. Consolidation des Besoins en Intrants (Appelé depuis le Dashboard DPA)
-    // URL: /dpa/besoins
-    // Nom de la route: dpa.besoins.index
-    Route::get('/besoins', [BesoinController::class, 'index'])->name('besoins.index');
+    // 2. Consolidation des Besoins en Intrants
+    Route::get('/besoins', [BesoinIntrantController::class, 'index'])->name('besoins.index');
+
+    // 3. Calcul Automatique des Besoins en Intrants
+    Route::match(['get', 'post'], '/besoins/calculer', [BesoinIntrantController::class, 'lancerCalculGlobal'])->name('besoins.calculer');
 
 });
 
 
+
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/parametres', [ParametreController::class, 'index'])->name('parametres.index');
+    Route::put('/parametres', [ParametreController::class, 'update'])->name('parametres.update');
+});
+
+
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/recensements', [RecensementController::class, 'consultationIndex'])->name('recensements.index');
+    Route::get('/recensements/{recensement}', [RecensementController::class, 'consultationShow'])->name('recensements.show');
+    Route::get('/carte', [CarteController::class, 'index'])->name('carte.index');
+
+});
+
+Route::middleware(['auth'])->prefix('dpa')->name('dpa.')->group(function () {
+    Route::get('/recensements', [RecensementController::class, 'consultationIndex'])->name('recensements.index');
+    Route::get('/recensements/{recensement}', [RecensementController::class, 'consultationShow'])->name('recensements.show');
+
+});
 /*
 |--------------------------------------------------------------------------
 | AUTHENTIFICATION BREEZE

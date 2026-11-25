@@ -124,6 +124,30 @@
         @enderror
     </div>
 
+     <div>
+        <label
+            for="adresse"
+            class="block text-sm font-medium text-slate-700"
+        >
+            Nom chef
+        </label>
+
+        <textarea
+            name="nomChef"
+            id="nomChef"
+            rows="3"
+            maxlength="255"
+            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-green-600 focus:ring-green-600"
+            placeholder="nomChef ou indication permettant d'identifier la maison"
+        >{{ old('nomChef', $maison->nomChef ?? '') }}</textarea>
+
+        @error('nomChef')
+            <p class="mt-1 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
+    </div>
+
     {{-- ============================================================
         LOCALISATION GPS
     ============================================================= --}}

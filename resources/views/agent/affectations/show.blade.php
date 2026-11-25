@@ -1,351 +1,114 @@
 @extends('layouts.app')
 
+@section('title', 'Détail du village')
+
 @section('content')
 
-<div class="space-y-6">
+@php
+    $campagne   = $affectation->campagne;
+    $statut     = $campagne->statut ?? '';
+    $estBloquee = in_array($statut, ['planifiee', 'planifiée', 'cloturee', 'clôturée']);
+    $village    = $affectation->village;
+    $equipe     = $affectation->equipe;
+    $membres    = $equipe?->membres ?? collect();
+    
+    $pct        = ($stats['total'] ?? 0) > 0 ? round((($stats['termine'] ?? 0) / $stats['total']) * 100) : 0;
+    $nomMembre  = fn ($m) => $m->name ?? trim(($m->prenom ?? '') . ' ' . ($m->nom ?? '')) ?: ($m->telephone ?? 'Agent');
+    $date       = fn ($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('d/m/Y') : '—';
+@endphp
 
-    {{-- ============================================================
-        INFORMATIONS DE L'AFFECTATION
-    ============================================================ --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+{{-- <div class="mx-auto max-w-5xl space-y-6"> --}}
+    <div class="w-full space-y-6">
 
-        {{-- Campagne --}}
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Campagne</p>
-                    <p class="font-semibold text-slate-800">{{ $affectation->campagne->libelle }}</p>
-                </div>
+    {{-- Fil d'Ariane --}}
+    <div>
+        <a href="{{ route('agent.affectations') }}" class="text-sm text-slate-500 transition hover:text-[#006a4f]">
+            Retour 
+
+
+
+
+            
+        </a>
+        <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Village de {{ $village->nom ?? '—' }}</h1>
+                <p class="mt-1 text-sm text-slate-500">
+                    {{ $village->canton->commune->nom ?? '—' }} · Canton de {{ $village->canton->nom ?? '—' }}
+                </p>
             </div>
+            <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold {{ $estBloquee ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800' }}">
+                Campagne : {{ ucfirst($statut) }}
+            </span>
         </div>
-
-        {{-- Équipe --}}
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m8-5a4 4 0 10-8 0 4 4 0 008 0zm-9 0a3 3 0 10-6 0 3 3 0 006 0z"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Équipe</p>
-                    <p class="font-semibold text-slate-800">{{ $affectation->equipe->nom ?? 'Équipe' }}</p>
-                </div>
-            </div>
-        </div>
-
-        {{-- Canton --}}
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 21a2 2 0 01-2.828 0l-4.243-4.343a8 8 0 1111.314 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Canton</p>
-                    <p class="font-semibold text-slate-800">{{ $affectation->village->canton->nom }}</p>
-                </div>
-            </div>
-        </div>
-
-        {{-- Commune --}}
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M5 21V9l7-4 7 4v12M9 21v-6h6v6"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Commune</p>
-                    <p class="font-semibold text-slate-800">{{ $affectation->village->canton->commune->nom }}</p>
-                </div>
-            </div>
-        </div>
-
     </div>
 
+    {{-- Cartes d'informations --}}
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Campagne</p>
+            <p class="mt-1 font-semibold text-slate-800 truncate">{{ $campagne->libelle ?? '—' }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Période</p>
+            <p class="mt-1 font-semibold text-slate-800">{{ $date($affectation->dateDebut) }} → {{ $date($affectation->dateFin) }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Canton</p>
+            <p class="mt-1 font-semibold text-slate-800">{{ $village->canton->nom ?? '—' }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Code village</p>
+            <p class="mt-1 font-semibold text-slate-800">{{ $village->code ?? '—' }}</p>
+        </div>
+    </div>
 
-    {{-- ============================================================
-        MAISONS DU VILLAGE & FILTRES
-    ============================================================ --}}
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-        {{-- En-tête avec Recherche et Filtres --}}
-        <div class="border-b border-slate-200 px-6 py-5">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800">
-                        Maisons à recenser
-                    </h2>
-                    <p class="mt-1 text-sm text-slate-500">
-                        Sélectionnez une maison pour commencer ou reprendre son recensement.
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <div class="rounded-xl bg-slate-100 px-4 py-2">
-                        <span class="text-sm font-semibold text-slate-700">{{ $maisons->total() }}</span>
-                        <span class="text-sm text-slate-500">maison(s)</span>
-                    </div>
-
-                    <a
-                        href="{{ route('villages.maisons.create', $affectation->village) }}"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-                    >
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        Ajouter une maison
-                    </a>
-                </div>
-            </div>
-
-            {{-- Formulaire de recherche et de filtre par statut --}}
-            <form method="GET" action="{{ route('agent.affectations.show', $affectation) }}" class="mt-5 flex flex-col gap-3 sm:flex-row">
-                
-                {{-- Barre de recherche --}}
-                <div class="relative flex-1">
-                    <svg class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z"/>
-                    </svg>
-                    <input
-                        type="text"
-                        name="search"
-                        value="{{ $search ?? '' }}"
-                        placeholder="Rechercher par numéro de maison ou adresse..."
-                        class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-11 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
-                    >
-                </div>
-
-                {{-- Filtre par statut --}}
-                <div class="sm:w-64">
-                    <select
-                        name="statut"
-                        onchange="this.form.submit()"
-                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
-                    >
-                        <option value="">Tous les statuts</option>
-                        <option value="non_commence" @selected(($statutFiltre ?? '') === 'non_commence')>Non commencé</option>
-                        <option value="brouillon" @selected(($statutFiltre ?? '') === 'brouillon')>Brouillon</option>
-                        <option value="en_cours" @selected(($statutFiltre ?? '') === 'en_cours')>En cours</option>
-                        <option value="termine" @selected(($statutFiltre ?? '') === 'termine')>Terminé</option>
-                        <option value="valide" @selected(($statutFiltre ?? '') === 'valide')>Validé</option>
-                    </select>
-                </div>
-
-                {{-- Bouton de soumission / réinitialisation --}}
-                <div class="flex items-center gap-2">
-                    <button
-                        type="submit"
-                        class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
-                    >
-                        Filtrer
-                    </button>
-
-                    @if(($search ?? '') !== '' || ($statutFiltre ?? '') !== '')
-                        <a
-                            href="{{ route('agent.affectations.show', $affectation) }}"
-                            class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-                        >
-                            Réinitialiser
-                        </a>
-                    @endif
-                </div>
-
-            </form>
+    {{-- Avancement et BOUTON DE NAVIGATION vers la page dédiée des maisons --}}
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-slate-800">Avancement du recensement</h2>
+            <span class="text-2xl font-bold text-[#006a4f]">{{ $pct }}%</span>
         </div>
 
+        <div class="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div class="h-full rounded-full bg-[#006a4f] transition-all duration-500" style="width: {{ $pct }}%"></div>
+        </div>
 
-        {{-- Liste des maisons --}}
-        <div class="divide-y divide-slate-100">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-xl bg-slate-50 p-3"><p class="text-xs text-slate-500">Maisons</p><p class="text-xl font-bold text-slate-800">{{ $stats['total'] }}</p></div>
+            <div class="rounded-xl bg-emerald-50 p-3"><p class="text-xs text-emerald-700">Terminées</p><p class="text-xl font-bold text-emerald-700">{{ $stats['termine'] }}</p></div>
+            <div class="rounded-xl bg-blue-50 p-3"><p class="text-xs text-blue-700">En cours</p><p class="text-xl font-bold text-blue-700">{{ $stats['en_cours'] }}</p></div>
+            <div class="rounded-xl bg-slate-50 p-3"><p class="text-xs text-slate-500">Non commencées</p><p class="text-xl font-bold text-slate-800">{{ $stats['non_commence'] }}</p></div>
+        </div>
 
-            @forelse($maisons as $maison)
+        {{-- Lien direct vers la page séparée des maisons de ce village (ex: route globale existante) --}}
+        <a href="{{ route('villages.maisons.index', $village) }}"
+           class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#006a4f] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00563f]">
+            <span>Accéder à la liste des maisons du village ({{ $stats['total'] }})</span>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+        </a>
+    </div>
 
-                @php
-                    $recensement = $maison->recensements->first();
-                @endphp
-
-                <div class="px-6 py-5 transition hover:bg-slate-50">
-
-                    <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-
-                        {{-- Informations maison --}}
-                        <div class="flex items-start gap-4">
-
-                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-
-                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10.5L12 3l9 7.5M5 9.5V21h14V9.5M9 21v-6h6v6"/>
-                                </svg>
-
-                            </div>
-
-                            <div>
-
-                                <div class="flex flex-wrap items-center gap-2">
-
-                                    <h3 class="font-bold text-slate-800">
-                                        Maison {{ $maison->numeroMaison }}
-                                    </h3>
-
-                                    @if($recensement)
-
-                                        @if($recensement->statut === 'brouillon')
-
-                                            <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                                                Brouillon
-                                            </span>
-
-                                        @elseif($recensement->statut === 'en_cours')
-
-                                            <span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                                                En cours
-                                            </span>
-
-                                        @elseif($recensement->statut === 'termine')
-
-                                            <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                                Terminé
-                                            </span>
-
-                                        @elseif($recensement->statut === 'valide')
-
-                                            <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
-                                                Validé
-                                            </span>
-
-                                        @endif
-
-                                    @else
-
-                                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                                            Non commencé
-                                        </span>
-
-                                    @endif
-
-                                </div>
-
-
-                                <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-slate-500">
-
-                                    <span>
-                                        Village :
-                                        <strong class="font-medium text-slate-700">
-                                            {{ $affectation->village->nom }}
-                                        </strong>
-                                    </span>
-
-                                    @if($maison->adresse)
-
-                                        <span>
-                                            {{ $maison->adresse }}
-                                        </span>
-
-                                    @endif
-
-                                </div>
-
-
-                                @if($recensement)
-
-                                    <div class="mt-2 flex items-center gap-2 text-sm text-slate-500">
-
-                                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m8-5a4 4 0 10-8 0 4 4 0 008 0z"/>
-                                        </svg>
-
-                                        <span>
-                                            {{ $recensement->menages_count ?? 0 }}
-                                            ménage(s)
-                                        </span>
-
-                                    </div>
-
-                                @endif
-
-                            </div>
-
-                        </div>
-
-
-                        {{-- Action --}}
-                        <div class="shrink-0">
-
-                            @if($recensement)
-
-                                <a
-                                    href="{{ route('agent.recensements.show', $recensement) }}"
-                                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto"
-                                >
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                                    </svg>
-                                    Reprendre
-                                </a>
-
-                            @else
-
-                                <a
-                                    href="{{ route('agent.recensements.commencer', [
-                                        'affectation' => $affectation->idAffectation,
-                                        'maison' => $maison->idMaison,
-                                    ]) }}"
-                                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto"
-                                >
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                    </svg>
-                                    Commencer
-                                </a>
-
-                            @endif
-
-                        </div>
-
+    {{-- Équipe --}}
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-lg font-bold text-slate-800">Équipe : {{ $equipe->nom ?? 'Non définie' }}</h2>
+        <ul class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            @forelse ($membres as $m)
+                <li class="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-[#e5f2ee] text-sm font-bold text-[#006a4f]">
+                        {{ mb_strtoupper(mb_substr($nomMembre($m), 0, 1)) }}
+                    </span>
+                    <div class="min-w-0">
+                        <p class="truncate text-sm font-medium text-slate-800">{{ $nomMembre($m) }}</p>
+                        @if (!empty($m->telephone)) <p class="text-xs text-slate-500">{{ $m->telephone }}</p> @endif
                     </div>
-
-                </div>
-
+                </li>
             @empty
-
-                <div class="px-6 py-12 text-center">
-
-                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10.5L12 3l9 7.5M5 9.5V21h14V9.5"/>
-                        </svg>
-                    </div>
-
-                    <h3 class="mt-4 text-base font-semibold text-slate-800">
-                        Aucune maison trouvée
-                    </h3>
-
-                    <p class="mt-1 text-sm text-slate-500">
-                        Aucune maison ne correspond à vos critères de recherche.
-                    </p>
-
-                </div>
-
+                <li class="text-sm text-slate-500 col-span-full">Aucun agent dans cette équipe.</li>
             @endforelse
-
-        </div>
-
-        {{-- Pagination --}}
-        @if($maisons->hasPages())
-            <div class="border-t border-slate-200 px-6 py-4">
-                {{ $maisons->withQueryString()->links() }}
-            </div>
-        @endif
-
+        </ul>
     </div>
 
 </div>

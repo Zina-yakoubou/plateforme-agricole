@@ -27,9 +27,9 @@
             {{-- Titre de page / fil d'Ariane --}}
 
             <div class="min-w-0">
-                <h1 class="font-poppins text-lg font-semibold text-[#212529] truncate">
+                {{-- <h1 class="font-poppins text-lg font-semibold text-[#212529] truncate">
                     @yield('page-title', 'Tableau de bord')
-                </h1>
+                </h1> --}}
 
                 @hasSection('page-subtitle')
                     <p class="font-poppins text-xs text-[#374151] truncate">

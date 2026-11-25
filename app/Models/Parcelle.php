@@ -13,16 +13,9 @@ class Parcelle extends Model
     protected $primaryKey = 'idParcelle';
 
     protected $fillable = [
-        'uid',
-        'exploitation_id',
-        'numeroParcelle',
-        'superficie',
-        'statutParcelle',
-        'typeSol',
-        'modeFaireValoir',
-        'modeIrrigation',
-        'presenceArbres',
-        'observations',
+        'uid', 'exploitation_id', 'numeroParcelle', 'superficie',
+        'statutParcelle', 'typeSol', 'modeFaireValoir', 'modeIrrigation',
+        'presenceArbres', 'observations',
     ];
 
     protected $casts = [
@@ -32,28 +25,22 @@ class Parcelle extends Model
 
     public function exploitation(): BelongsTo
     {
-        return $this->belongsTo(
-            Exploitation::class,
-            'exploitation_id',
-            'idExploitation'
-        );
+        return $this->belongsTo(Exploitation::class, 'exploitation_id', 'idExploitation');
     }
 
     public function cultures(): HasMany
     {
-        return $this->hasMany(
-            CultureParcelle::class,
-            'parcelle_id',
-            'idParcelle'
-        );
+        return $this->hasMany(CultureParcelle::class, 'parcelle_id', 'idParcelle');
+    }
+
+    // Alias utilisé par EvaluationBesoinService
+    public function cultureParcelles(): HasMany
+    {
+        return $this->cultures();
     }
 
     public function pointsGPS(): HasMany
     {
-        return $this->hasMany(
-            PointGPS::class,
-            'parcelle_id',
-            'idParcelle'
-        );
+        return $this->hasMany(PointGPS::class, 'parcelle_id', 'idParcelle');
     }
 }

@@ -104,215 +104,7 @@
     @endif
 
 
-    {{-- =========================================================
-         FILTRES
-    ========================================================== --}}
-
-    <div class="rounded-lg
-                border border-[#e5e7eb]
-                bg-white
-                p-4
-                shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-
-        <form
-            method="GET"
-            action="{{ route('dpa.affectations.index') }}"
-        >
-
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-
-                {{-- =================================================
-                     CAMPAGNE
-                ================================================== --}}
-
-                <div>
-
-                    <label
-                        for="campagne_id"
-                        class="mb-1.5 block text-sm font-medium text-[#212529]"
-                    >
-                        Campagne
-                    </label>
-
-                    <select
-                        id="campagne_id"
-                        name="campagne_id"
-                        class="w-full rounded-lg
-                               border border-[#e5e7eb]
-                               bg-white
-                               px-4 py-3
-                               text-sm text-[#212529]
-                               focus:border-[#006a4f]
-                               focus:outline-none
-                               focus:ring-2
-                               focus:ring-[#006a4f]/10"
-                    >
-
-                        <option value="">
-                            Toutes les campagnes
-                        </option>
-
-                        @php
-                            $campagnesFiltrees = $affectations
-                                ->getCollection()
-                                ->pluck('campagne')
-                                ->filter()
-                                ->unique('idCampagne')
-                                ->sortBy('libelle');
-                        @endphp
-
-                        @foreach($campagnesFiltrees as $campagne)
-
-                            <option
-                                value="{{ $campagne->idCampagne }}"
-                                @selected(
-                                    (string) request('campagne_id')
-                                    === (string) $campagne->idCampagne
-                                )
-                            >
-                                {{ $campagne->libelle }}
-                            </option>
-
-                        @endforeach
-
-                    </select>
-
-                </div>
-
-
-                {{-- =================================================
-                     STATUT
-                ================================================== --}}
-
-                <div>
-
-                    <label
-                        for="statut"
-                        class="mb-1.5 block text-sm font-medium text-[#212529]"
-                    >
-                        Statut
-                    </label>
-
-                    <select
-                        id="statut"
-                        name="statut"
-                        class="w-full rounded-lg
-                               border border-[#e5e7eb]
-                               bg-white
-                               px-4 py-3
-                               text-sm text-[#212529]
-                               focus:border-[#006a4f]
-                               focus:outline-none
-                               focus:ring-2
-                               focus:ring-[#006a4f]/10"
-                    >
-
-                        <option value="">
-                            Tous les statuts
-                        </option>
-
-                        <option
-                            value="active"
-                            @selected(request('statut') === 'active')
-                        >
-                            Active
-                        </option>
-
-                        <option
-                            value="annulee"
-                            @selected(request('statut') === 'annulee')
-                        >
-                            Annulée
-                        </option>
-
-                        <option
-                            value="cloturee"
-                            @selected(request('statut') === 'cloturee')
-                        >
-                            Clôturée
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                {{-- =================================================
-                     BOUTONS
-                ================================================== --}}
-
-                <div class="flex items-end gap-2">
-
-                    <button
-                        type="submit"
-                        class="inline-flex
-                               items-center
-                               justify-center
-                               gap-2
-                               rounded-lg
-                               bg-[#006a4f]
-                               px-5 py-3
-                               text-sm font-semibold
-                               text-white
-                               transition
-                               hover:bg-[#156c52]
-                               focus:outline-none
-                               focus:ring-2
-                               focus:ring-[#006a4f]/30"
-                    >
-
-                        <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="m21 21-4.35-4.35
-                                   m2.35-5.65a8 8 0 11-16 0
-                                   8 8 0 0116 0z"
-                            />
-                        </svg>
-
-                        Filtrer
-
-                    </button>
-
-
-                    @if(
-                        request()->filled('campagne_id')
-                        || request()->filled('statut')
-                    )
-
-                        <a
-                            href="{{ route('dpa.affectations.index') }}"
-                            class="inline-flex
-                                   items-center
-                                   justify-center
-                                   rounded-lg
-                                   border border-[#e5e7eb]
-                                   bg-white
-                                   px-4 py-3
-                                   text-sm font-semibold
-                                   text-gray-600
-                                   transition
-                                   hover:bg-gray-50"
-                        >
-                            Réinitialiser
-                        </a>
-
-                    @endif
-
-                </div>
-
-            </div>
-
-        </form>
-
-    </div>
+    
 
 
     {{-- =========================================================
@@ -325,12 +117,222 @@
                 bg-white
                 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
 
+        {{-- =========================================================
+            FILTRES
+        ========================================================== --}}
+
+        <div class="rounded-lg
+                    border border-[#e5e7eb]
+                    bg-white
+                    p-4
+                    shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+
+            <form
+                method="GET"
+                action="{{ route('dpa.affectations.index') }}"
+            >
+
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+
+                    {{-- =================================================
+                        CAMPAGNE
+                    ================================================== --}}
+
+                    <div>
+
+                        <label
+                            for="campagne_id"
+                            class="mb-1.5 block text-sm font-medium text-[#212529]"
+                        >
+                            Campagne
+                        </label>
+
+                        <select
+                            id="campagne_id"
+                            name="campagne_id"
+                            class="w-full rounded-lg
+                                border border-[#e5e7eb]
+                                bg-white
+                                px-4 py-3
+                                text-sm text-[#212529]
+                                focus:border-[#006a4f]
+                                focus:outline-none
+                                focus:ring-2
+                                focus:ring-[#006a4f]/10"
+                        >
+
+                            <option value="">
+                                Toutes les campagnes
+                            </option>
+
+                            @php
+                                $campagnesFiltrees = $affectations
+                                    ->getCollection()
+                                    ->pluck('campagne')
+                                    ->filter()
+                                    ->unique('idCampagne')
+                                    ->sortBy('libelle');
+                            @endphp
+
+                            @foreach($campagnesFiltrees as $campagne)
+
+                                <option
+                                    value="{{ $campagne->idCampagne }}"
+                                    @selected(
+                                        (string) request('campagne_id')
+                                        === (string) $campagne->idCampagne
+                                    )
+                                >
+                                    {{ $campagne->libelle }}
+                                </option>
+
+                            @endforeach
+
+                        </select>
+
+                    </div>
+
+
+                    {{-- =================================================
+                        STATUT
+                    ================================================== --}}
+
+                    <div>
+
+                        <label
+                            for="statut"
+                            class="mb-1.5 block text-sm font-medium text-[#212529]"
+                        >
+                            Statut
+                        </label>
+
+                        <select
+                            id="statut"
+                            name="statut"
+                            class="w-full rounded-lg
+                                border border-[#e5e7eb]
+                                bg-white
+                                px-4 py-3
+                                text-sm text-[#212529]
+                                focus:border-[#006a4f]
+                                focus:outline-none
+                                focus:ring-2
+                                focus:ring-[#006a4f]/10"
+                        >
+
+                            <option value="">
+                                Tous les statuts
+                            </option>
+
+                            <option
+                                value="active"
+                                @selected(request('statut') === 'active')
+                            >
+                                Active
+                            </option>
+
+                            <option
+                                value="annulee"
+                                @selected(request('statut') === 'annulee')
+                            >
+                                Annulée
+                            </option>
+
+                            <option
+                                value="cloturee"
+                                @selected(request('statut') === 'cloturee')
+                            >
+                                Clôturée
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    {{-- =================================================
+                        BOUTONS
+                    ================================================== --}}
+
+                    <div class="flex items-end gap-2">
+
+                        <button
+                            type="submit"
+                            class="inline-flex
+                                items-center
+                                justify-center
+                                gap-2
+                                rounded-lg
+                                bg-[#006a4f]
+                                px-5 py-3
+                                text-sm font-semibold
+                                text-white
+                                transition
+                                hover:bg-[#156c52]
+                                focus:outline-none
+                                focus:ring-2
+                                focus:ring-[#006a4f]/30"
+                        >
+
+                            <svg
+                                class="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="m21 21-4.35-4.35
+                                    m2.35-5.65a8 8 0 11-16 0
+                                    8 8 0 0116 0z"
+                                />
+                            </svg>
+
+                            Filtrer
+
+                        </button>
+
+
+                        @if(
+                            request()->filled('campagne_id')
+                            || request()->filled('statut')
+                        )
+
+                            <a
+                                href="{{ route('dpa.affectations.index') }}"
+                                class="inline-flex
+                                    items-center
+                                    justify-center
+                                    rounded-lg
+                                    border border-[#e5e7eb]
+                                    bg-white
+                                    px-4 py-3
+                                    text-sm font-semibold
+                                    text-gray-600
+                                    transition
+                                    hover:bg-gray-50"
+                            >
+                                Réinitialiser
+                            </a>
+
+                        @endif
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
 
         {{-- =====================================================
              EN-TÊTE DU TABLEAU
         ====================================================== --}}
 
-        <div class="flex flex-col gap-1
+        {{-- <div class="flex flex-col gap-1
                     border-b border-[#e5e7eb]
                     px-6 py-5
                     sm:flex-row
@@ -360,7 +362,7 @@
 
             </div>
 
-        </div>
+        </div> --}}
 
 
         {{-- =====================================================
@@ -388,12 +390,12 @@
                         </th>
 
 
-                        <th class="px-6 py-4 text-left
+                        {{-- <th class="px-6 py-4 text-left
                                    text-xs font-semibold
                                    uppercase tracking-wide
                                    text-gray-500">
                             Affectation
-                        </th>
+                        </th> --}}
 
 
                         <th class="px-6 py-4 text-left
@@ -472,24 +474,24 @@
                                  AFFECTATION
                             ================================================== --}}
 
-                            <td class="px-6 py-4">
+                            {{-- <td class="px-6 py-4">
 
-                                <div class="min-w-0">
+                                <div class="min-w-0"> --}}
 
-                                    <div class="truncate font-semibold text-[#212529]">
+                                    {{-- <div class="truncate font-semibold text-[#212529]">
 
                                         {{ $affectation->reference }}
 
-                                    </div>
+                                    </div> --}}
 
-                                    <div class="mt-1 font-mono text-xs
+                                    {{-- <div class="mt-1 font-mono text-xs
                                                 font-medium text-[#006a4f]">
 
                                         #{{ $affectation->idAffectation }}
 
-                                    </div>
+                                    </div> --}}
 
-                                    @if($affectation->dateDebut)
+                                    {{-- @if($affectation->dateDebut)
 
                                         <div class="mt-1 text-xs text-gray-400">
 
@@ -502,7 +504,7 @@
 
                                 </div>
 
-                            </td>
+                            </td> --}}
 
 
                             {{-- =================================================
@@ -522,7 +524,7 @@
                                         </div>
 
 
-                                        @if($affectation->equipe->reference)
+                                        {{-- @if($affectation->equipe->reference)
 
                                             <div class="mt-1 font-mono text-xs
                                                         font-medium text-[#006a4f]">
@@ -531,7 +533,7 @@
 
                                             </div>
 
-                                        @endif
+                                        @endif --}}
 
 
                                         @if($affectation->equipe->superviseur)
@@ -624,21 +626,21 @@
 
                                         @if($affectation->village->canton)
 
-                                            <div class="mt-1 text-xs text-gray-500">
+                                            {{-- <div class="mt-1 text-xs text-gray-500">
 
                                                 Canton :
                                                 <span class="font-medium text-gray-600">
                                                     {{ $affectation->village->canton->nom }}
                                                 </span>
 
-                                            </div>
+                                            </div> --}}
 
                                         @endif
 
 
                                         {{-- Commune --}}
 
-                                        @if($affectation->village->canton?->commune)
+                                        {{-- @if($affectation->village->canton?->commune)
 
                                             <div class="mt-0.5 text-xs text-gray-400">
 
@@ -647,7 +649,7 @@
 
                                             </div>
 
-                                        @endif
+                                        @endif --}}
 
                                     </div>
 

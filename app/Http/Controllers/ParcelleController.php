@@ -63,7 +63,11 @@ class ParcelleController extends Controller
 
         if (!$exploitation) {
             return redirect()
-                ->route('agent.exploitations.create', $exploitant)
+                ->route('agent.exploitations.create', [
+                    'recensement' => $recensement,
+                    'menage' => $menage,
+                    'exploitant' => $exploitant,
+                ])
                 ->with('error', 'Aucune exploitation n’est encore créée pour cet exploitant.');
         }
 
@@ -89,6 +93,83 @@ class ParcelleController extends Controller
         ]);
     }
 
+    // public function store(
+    //     StoreParcelleRequest $request,
+    //     Exploitant $exploitant
+    // ): RedirectResponse {
+    //     $exploitation = Exploitation::query()
+    //         ->where('exploitant_id', $exploitant->idExploitant)
+    //         ->first();
+
+    //     if (!$exploitation) {
+    //         return back()
+    //             ->withInput()
+    //             ->with('error', 'Aucune exploitation n’est associée à cet exploitant.');
+    //     }
+
+    //     $data = $request->validated();
+    //     $points = $this->decoderPointsGPS($data['points_gps'] ?? null);
+
+    //     if (count($points) < 3) {
+    //         throw ValidationException::withMessages([
+    //             'points_gps' => 'Veuillez enregistrer au moins 3 points GPS pour calculer la superficie de la parcelle.',
+    //         ]);
+    //     }
+
+    //     $superficie = $this->calculerSuperficieHa($points);
+
+    //     if ($superficie <= 0) {
+    //         throw ValidationException::withMessages([
+    //             'points_gps' => 'Impossible de calculer une superficie valide à partir des points GPS.',
+    //         ]);
+    //     }
+
+    //     // On s'assure d'utiliser le numéro généré ou validé
+    //     $numeroParcelle = $data['numeroParcelle'] ?? $this->genererProchainNumeroParcelle($exploitation);
+
+    //     try {
+    //         DB::transaction(function () use (
+    //             $data,
+    //             $points,
+    //             $superficie,
+    //             $numeroParcelle,
+    //             $exploitation
+    //         ) {
+    //             $parcelle = new Parcelle();
+    //             $parcelle->uid = (string) Str::uuid();
+    //             $parcelle->exploitation_id = $exploitation->idExploitation;
+    //             $parcelle->numeroParcelle = $numeroParcelle;
+    //             $parcelle->superficie = $superficie;
+    //             $parcelle->statutParcelle = $data['statutParcelle'] ?? null;
+    //             $parcelle->typeSol = $data['typeSol'] ?? null;
+    //             $parcelle->modeFaireValoir = $data['modeFaireValoir'] ?? null;
+    //             $parcelle->modeIrrigation = $data['modeIrrigation'] ?? null;
+    //             $parcelle->presenceArbres = isset($data['presenceArbres']) ? (bool) $data['presenceArbres'] : false;
+    //             $parcelle->observations = $data['observations'] ?? null;
+    //             $parcelle->save();
+
+    //             $this->enregistrerPointsGPS($parcelle, $points);
+    //             $this->enregistrerCulturesEtIntrants($parcelle, $data['cultures'] ?? []);
+    //         });
+
+    //         return redirect()
+    //             ->route('agent.parcelles.index', $exploitant->idExploitant)
+    //             ->with('success', 'La parcelle ' . $numeroParcelle . ' a été enregistrée avec succès.');
+
+    //     } catch (Throwable $e) {
+    //         Log::error('Erreur lors de la création d’une parcelle.', [
+    //             'message' => $e->getMessage(),
+    //             'exploitant_id' => $exploitant->idExploitant,
+    //             'exception' => $e,
+    //         ]);
+
+    //         return back()
+    //             ->withInput()
+    //             ->with('error', 'Impossible d’enregistrer la parcelle : ' . $e->getMessage());
+    //     }
+    // }
+
+
     public function store(
         StoreParcelleRequest $request,
         Exploitant $exploitant
@@ -104,11 +185,14 @@ class ParcelleController extends Controller
         }
 
         $data = $request->validated();
-        $points = $this->decoderPointsGPS($data['points_gps'] ?? null);
+        
+        // Récupération sécurisée des points GPS (depuis le champ caché JSON ou la requête)
+        $pointsInput = $data['points_gps'] ?? $request->input('points_gps');
+        $points = $this->decoderPointsGPS($pointsInput);
 
         if (count($points) < 3) {
             throw ValidationException::withMessages([
-                'points_gps' => 'Veuillez enregistrer au moins 3 points GPS pour calculer la superficie de la parcelle.',
+                'points_gps' => 'Veuillez enregistrer au moins 3 points GPS valides pour calculer la superficie de la parcelle.',
             ]);
         }
 
@@ -116,11 +200,11 @@ class ParcelleController extends Controller
 
         if ($superficie <= 0) {
             throw ValidationException::withMessages([
-                'points_gps' => 'Impossible de calculer une superficie valide à partir des points GPS.',
+                'points_gps' => 'Impossible de calculer une superficie valide à partir des points GPS (superficie nulle ou négative).',
             ]);
         }
 
-        $numeroParcelle = $this->genererProchainNumeroParcelle($exploitation);
+        $numeroParcelle = $data['numeroParcelle'] ?? $this->genererProchainNumeroParcelle($exploitation);
 
         try {
             DB::transaction(function () use (
@@ -148,7 +232,7 @@ class ParcelleController extends Controller
             });
 
             return redirect()
-                ->route('agent.parcelles.index', $exploitant)
+                ->route('agent.parcelles.index', $exploitant->idExploitant)
                 ->with('success', 'La parcelle ' . $numeroParcelle . ' a été enregistrée avec succès.');
 
         } catch (Throwable $e) {
@@ -198,16 +282,78 @@ class ParcelleController extends Controller
         ]);
     }
 
+    // public function update(
+    //     UpdateParcelleRequest $request,
+    //     Parcelle $parcelle
+    // ): RedirectResponse {
+    //     $data = $request->validated();
+    //     $points = $this->decoderPointsGPS($data['points_gps'] ?? null);
+
+    //     if (count($points) < 3) {
+    //         throw ValidationException::withMessages([
+    //             'points_gps' => 'Veuillez enregistrer au moins 3 points GPS pour calculer la superficie.',
+    //         ]);
+    //     }
+
+    //     $superficie = $this->calculerSuperficieHa($points);
+
+    //     if ($superficie <= 0) {
+    //         throw ValidationException::withMessages([
+    //             'points_gps' => 'Impossible de calculer une superficie valide à partir des points GPS.',
+    //         ]);
+    //     }
+
+    //     try {
+    //         DB::transaction(function () use ($parcelle, $data, $points, $superficie) {
+    //             $parcelle->superficie = $superficie;
+    //             $parcelle->statutParcelle = $data['statutParcelle'] ?? null;
+    //             $parcelle->typeSol = $data['typeSol'] ?? null;
+    //             $parcelle->modeFaireValoir = $data['modeFaireValoir'] ?? null;
+    //             $parcelle->modeIrrigation = $data['modeIrrigation'] ?? null;
+    //             $parcelle->presenceArbres = isset($data['presenceArbres']) ? (bool) $data['presenceArbres'] : false;
+    //             $parcelle->observations = $data['observations'] ?? null;
+    //             $parcelle->save();
+
+    //             $parcelle->pointsGPS()->delete();
+    //             $this->enregistrerPointsGPS($parcelle, $points);
+
+    //             if (method_exists($this, 'mettreAJourCulturesEtIntrants')) {
+    //                 $this->mettreAJourCulturesEtIntrants($parcelle, $data['cultures'] ?? []);
+    //             }
+    //         });
+
+    //         $exploitantId = optional($parcelle->exploitation)->exploitant_id;
+
+    //         return redirect()
+    //             ->route('agent.parcelles.index', $exploitantId)
+    //             ->with('success', 'La parcelle a été mise à jour avec succès.');
+
+    //     } catch (Throwable $e) {
+    //         Log::error('Erreur lors de la modification d’une parcelle.', [
+    //             'message' => $e->getMessage(),
+    //             'parcelle_id' => $parcelle->idParcelle ?? $parcelle->id,
+    //             'exception' => $e,
+    //         ]);
+
+    //         return back()
+    //             ->withInput()
+    //             ->with('error', 'Impossible de modifier la parcelle : ' . $e->getMessage());
+    //     }
+    // }
+
+
     public function update(
         UpdateParcelleRequest $request,
         Parcelle $parcelle
     ): RedirectResponse {
         $data = $request->validated();
-        $points = $this->decoderPointsGPS($data['points_gps'] ?? null);
+        
+        $pointsInput = $data['points_gps'] ?? $request->input('points_gps');
+        $points = $this->decoderPointsGPS($pointsInput);
 
         if (count($points) < 3) {
             throw ValidationException::withMessages([
-                'points_gps' => 'Veuillez enregistrer au moins 3 points GPS pour calculer la superficie.',
+                'points_gps' => 'Veuillez enregistrer au moins 3 points GPS valides pour calculer la superficie.',
             ]);
         }
 
@@ -238,8 +384,10 @@ class ParcelleController extends Controller
                 }
             });
 
+            $exploitantId = optional($parcelle->exploitation)->exploitant_id;
+
             return redirect()
-                ->route('agent.parcelles.index', $parcelle->exploitation->exploitant_id)
+                ->route('agent.parcelles.index', $exploitantId)
                 ->with('success', 'La parcelle a été mise à jour avec succès.');
 
         } catch (Throwable $e) {
@@ -257,7 +405,7 @@ class ParcelleController extends Controller
 
     public function destroy(Parcelle $parcelle): RedirectResponse
     {
-        $exploitantId = $parcelle->exploitation->exploitant_id;
+        $exploitantId = optional($parcelle->exploitation)->exploitant_id;
 
         try {
             DB::transaction(function () use ($parcelle) {
@@ -420,5 +568,32 @@ class ParcelleController extends Controller
                 ]);
             }
         }
+    }
+
+
+        public function show(Parcelle $parcelle): View
+    {
+        // Chargement de toutes les relations nécessaires pour l'affichage détaillé
+        $parcelle->load([
+            'exploitation.exploitant.menage.recensement',
+            'pointsGPS' => function ($query) {
+                $query->orderBy('ordre');
+            },
+            'cultures.culture',
+            'cultures.intrants.intrant',
+        ]);
+
+        $exploitation = $parcelle->exploitation;
+        $exploitant = $exploitation ? $exploitation->exploitant : null;
+        $menage = $exploitant ? $exploitant->menage : null;
+        $recensement = $menage ? $menage->recensement : null;
+
+        return view('parcelles.show', [
+            'recensement'  => $recensement,
+            'menage'       => $menage,
+            'exploitant'   => $exploitant,
+            'exploitation' => $exploitation,
+            'parcelle'     => $parcelle,
+        ]);
     }
 }

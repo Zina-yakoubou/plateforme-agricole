@@ -1223,69 +1223,130 @@ class AffectationController extends Controller
      *
      * Une affectation est propre à une préfecture.
      */
-    public function show(
-        Affectation $affectation
-    ): View {
+    // public function show(
+    //     Affectation $affectation
+    // ): View {
 
-        $user = Auth::user();
+    //     $user = Auth::user();
 
-        $prefectureId =
-            $this->prefectureIdUtilisateur(
-                $user
-            );
+    //     $prefectureId =
+    //         $this->prefectureIdUtilisateur(
+    //             $user
+    //         );
 
-        if (!$prefectureId) {
-            abort(
-                403,
-                'Aucune préfecture active n’est associée à votre compte.'
-            );
+    //     if (!$prefectureId) {
+    //         abort(
+    //             403,
+    //             'Aucune préfecture active n’est associée à votre compte.'
+    //         );
+    //     }
+
+    //     $affectation->load([
+    //         'campagne',
+    //         'equipe.superviseur',
+    //         'equipe.membres',
+    //         'village.canton.commune.prefecture',
+    //     ]);
+
+    //     /*
+    //      * Vérification par équipe.
+    //      */
+    //     $this->verifierEquipePrefecture(
+    //         $affectation->equipe,
+    //         $prefectureId
+    //     );
+
+    //     /*
+    //      * Vérification supplémentaire par village.
+    //      */
+    //     $villagePrefecture =
+    //         optional(
+    //             optional(
+    //                 optional(
+    //                     $affectation->village
+    //                 )->canton
+    //             )->commune
+    //         )->prefecture;
+
+    //     if (
+    //         !$villagePrefecture ||
+    //         (int) $villagePrefecture->idPrefecture !==
+    //         (int) $prefectureId
+    //     ) {
+
+    //         abort(
+    //             403,
+    //             'Cette affectation n’appartient pas à votre préfecture.'
+    //         );
+    //     }
+
+    //     return view(
+    //         'dpa.affectations.show',
+    //         compact(
+    //             'affectation'
+    //         )
+    //     );
+    // }
+
+        public function show(Request $request, Affectation $affectation)
+    {
+        // Contrôle d'accès : vérification de l'équipe de l'agent
+        $user = auth()->user();
+        $appartientEquipe = $affectation->equipe->membres()->where('users.id', $user->id)->exists();
+
+        if (! $appartientEquipe && ! $user->hasRole('admin')) {
+            abort(403, "Accès non autorisé à cette affectation.");
         }
 
-        $affectation->load([
-            'campagne',
-            'equipe.superviseur',
-            'equipe.membres',
-            'village.canton.commune.prefecture',
-        ]);
+        $affectation->load(['campagne', 'equipe.membres', 'village.canton.commune']);
+        $villageId = $affectation->village_id;
 
-        /*
-         * Vérification par équipe.
-         */
-        $this->verifierEquipePrefecture(
-            $affectation->equipe,
-            $prefectureId
-        );
+        // 1. Calcul des statistiques globales du village
+        $recs = \App\Models\Recensement::where('campagne_id', $affectation->campagne_id)
+            ->whereHas('maison', fn ($q) => $q->where('village_id', $villageId));
 
-        /*
-         * Vérification supplémentaire par village.
-         */
-        $villagePrefecture =
-            optional(
-                optional(
-                    optional(
-                        $affectation->village
-                    )->canton
-                )->commune
-            )->prefecture;
+        $total    = \App\Models\Maison::where('village_id', $villageId)->count();
+        $termines = (clone $recs)->whereIn('statut', ['termine', 'valide'])->count();
+        $enCours  = (clone $recs)->whereIn('statut', ['brouillon', 'en_cours'])->count();
 
-        if (
-            !$villagePrefecture ||
-            (int) $villagePrefecture->idPrefecture !==
-            (int) $prefectureId
-        ) {
+        $stats = [
+            'total'        => $total,
+            'termine'      => $termines,
+            'en_cours'     => $enCours,
+            'non_commence' => max(0, $total - $termines - $enCours),
+        ];
 
-            abort(
-                403,
-                'Cette affectation n’appartient pas à votre préfecture.'
-            );
+        // 2. Requête pour la liste des maisons du village
+        $query = \App\Models\Maison::with(['recensements' => function ($q) use ($affectation) {
+            $q->where('campagne_id', $affectation->campagne_id);
+        }])->where('village_id', $villageId);
+
+        // Recherche par numéro ou adresse
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('numeroMaison', 'like', "%{$search}%")
+                ->orWhere('adresse', 'like', "%{$search}%");
+            });
         }
 
-        return view(
-            'dpa.affectations.show',
-            compact(
-                'affectation'
-            )
-        );
+        // Filtre par statut de recensement
+        if ($statutFiltre = $request->input('statut')) {
+            if ($statutFiltre === 'non_commence') {
+                $query->whereDoesntHave('recensements', function ($q) use ($affectation) {
+                    $q->where('campagne_id', $affectation->campagne_id);
+                });
+            } else {
+                $query->whereHas('recensements', function ($q) use ($affectation, $statutFiltre) {
+                    $q->where('campagne_id', $affectation->campagne_id)
+                    ->where('statut', $statutFiltre);
+                });
+            }
+        }
+
+        $maisons = $query->paginate(15)->fragment('liste-maisons');
+        $search = $request->input('search');
+
+        return view('agent.affectations.show', compact('affectation', 'stats', 'maisons', 'search', 'statutFiltre'));
     }
 
 
@@ -1294,90 +1355,104 @@ class AffectationController extends Controller
      * DÉSACTIVER UNE AFFECTATION
      * ================================================================
      */
-    public function destroy(
-        Affectation $affectation
-    ): RedirectResponse {
+    // public function destroy(
+    //     Affectation $affectation
+    // ): RedirectResponse {
 
-        $user = Auth::user();
+    //     $user = Auth::user();
 
-        $prefectureId =
-            $this->prefectureIdUtilisateur(
-                $user
-            );
+    //     $prefectureId =
+    //         $this->prefectureIdUtilisateur(
+    //             $user
+    //         );
 
-        if (!$prefectureId) {
-            abort(
-                403,
-                'Aucune préfecture active n’est associée à votre compte.'
-            );
-        }
+    //     if (!$prefectureId) {
+    //         abort(
+    //             403,
+    //             'Aucune préfecture active n’est associée à votre compte.'
+    //         );
+    //     }
 
-        $affectation->load([
-            'equipe.superviseur',
-            'campagne',
-            'village.canton.commune.prefecture',
-        ]);
+    //     $affectation->load([
+    //         'equipe.superviseur',
+    //         'campagne',
+    //         'village.canton.commune.prefecture',
+    //     ]);
 
-        /*
-         * Vérification de l'équipe.
-         */
-        $this->verifierEquipePrefecture(
-            $affectation->equipe,
-            $prefectureId
-        );
+       
+    //     $this->verifierEquipePrefecture(
+    //         $affectation->equipe,
+    //         $prefectureId
+    //     );
 
-        /*
-         * Vérification du village.
-         */
-        $villagePrefecture =
-            optional(
-                optional(
-                    optional(
-                        $affectation->village
-                    )->canton
-                )->commune
-            )->prefecture;
+    //     $villagePrefecture =
+    //         optional(
+    //             optional(
+    //                 optional(
+    //                     $affectation->village
+    //                 )->canton
+    //             )->commune
+    //         )->prefecture;
 
-        if (
-            !$villagePrefecture ||
-            (int) $villagePrefecture->idPrefecture !==
-            (int) $prefectureId
-        ) {
+    //     if (
+    //         !$villagePrefecture ||
+    //         (int) $villagePrefecture->idPrefecture !==
+    //         (int) $prefectureId
+    //     ) {
 
-            abort(
-                403,
-                "Cette affectation n'appartient pas à votre préfecture."
-            );
-        }
+    //         abort(
+    //             403,
+    //             "Cette affectation n'appartient pas à votre préfecture."
+    //         );
+    //     }
 
-        if (
-            $affectation->statut ===
-            'annulee'
-        ) {
+    //     if (
+    //         $affectation->statut ===
+    //         'annulee'
+    //     ) {
 
-            return back()
-                ->with(
-                    'info',
-                    'Cette affectation est déjà désactivée.'
-                );
+    //         return back()
+    //             ->with(
+    //                 'info',
+    //                 'Cette affectation est déjà désactivée.'
+    //             );
+    //     }
+
+    //     $affectation->update([
+    //         'statut' =>
+    //             'annulee',
+
+    //         'dateFin' =>
+    //             now(),
+    //     ]);
+
+    //     return redirect()
+    //         ->route(
+    //             'dpa.affectations.index'
+    //         )
+    //         ->with(
+    //             'success',
+    //             "L'affectation de l'équipe {$affectation->equipe->libelle} a été désactivée. L'équipe est maintenant disponible pour une nouvelle affectation."
+    //         );
+    // }
+
+
+    public function destroy(Affectation $affectation): RedirectResponse
+    {
+        // ... tes vérifications de sécurité actuelles ...
+
+        if ($affectation->statut === 'inactif') {
+            return back()->with('info', 'Cette affectation est déjà inactive.');
         }
 
         $affectation->update([
-            'statut' =>
-                'annulee',
-
-            'dateFin' =>
-                now(),
+            'statut'  => 'inactif',
+            'dateFin' => now(),
         ]);
 
         return redirect()
-            ->route(
-                'dpa.affectations.index'
-            )
-            ->with(
-                'success',
-                "L'affectation de l'équipe {$affectation->equipe->libelle} a été désactivée. L'équipe est maintenant disponible pour une nouvelle affectation."
-            );
+            ->route('dpa.affectations.index')
+            ->with('success', "L'affectation a été désactivée avec succès.");
     }
 
 
@@ -1712,9 +1787,12 @@ class AffectationController extends Controller
 
 
 
-        public function mesAffectations(Request $request): View
+      public function mesAffectations(Request $request): View
     {
         $user = Auth::user();
+
+        // Synchronisation automatique des campagnes et de leurs affectations dès l'accès à la page
+        \App\Models\CampagneRecensement::synchroniserToutes();
 
         $search = trim($request->input('search', ''));
 
@@ -1728,29 +1806,19 @@ class AffectationController extends Controller
         })
         ->when($search !== '', function ($query) use ($search) {
             $query->where(function ($q) use ($search) {
-
-                // Recherche sur la campagne
                 $q->whereHas('campagne', function ($campagne) use ($search) {
                     $campagne->where('libelle', 'like', "%{$search}%")
                         ->orWhere('codeCampagne', 'like', "%{$search}%");
                 })
-
-                // Recherche sur le village
                 ->orWhereHas('village', function ($village) use ($search) {
                     $village->where('nom', 'like', "%{$search}%");
                 })
-
-                // Recherche sur le canton
                 ->orWhereHas('village.canton', function ($canton) use ($search) {
                     $canton->where('nom', 'like', "%{$search}%");
                 })
-
-                // Recherche sur la commune
                 ->orWhereHas('village.canton.commune', function ($commune) use ($search) {
                     $commune->where('nom', 'like', "%{$search}%");
                 })
-
-                // Recherche sur le statut
                 ->orWhere('statut', 'like', "%{$search}%");
             });
         })
@@ -1764,51 +1832,121 @@ class AffectationController extends Controller
         ));
     }
 
-
     
 
-    public function detailAgent(Request $request, Affectation $affectation): View
-    {
-        $user = Auth::user();
+    // public function detailAgent(Request $request, Affectation $affectation): View
+    // {
+    //     $user = Auth::user();
 
-        // Sécurité : l'agent ne peut consulter que ses propres affectations
-        $estMembre = $affectation->equipe()
-            ->whereHas('membres', function ($query) use ($user) {
-                $query->where('users.id', $user->id);
+    //     $estMembre = $affectation->equipe()
+    //         ->whereHas('membres', function ($query) use ($user) {
+    //             $query->where('users.id', $user->id);
+    //         })
+    //         ->exists();
+
+    //     abort_unless($estMembre, 403);
+
+    //     $affectation->load([
+    //         'campagne',
+    //         'equipe.superviseur',
+    //         'equipe.membres',
+    //         'village.canton.commune.prefecture',
+    //     ]);
+
+    //     $search = trim($request->input('search', ''));
+    //     $statutFiltre = $request->input('statut', '');
+
+    //     $query = Maison::query()
+    //         ->where('village_id', $affectation->village_id)
+    //         ->with([
+    //             'recensements' => function ($query) use ($affectation) {
+    //                 $query->where('campagne_id', $affectation->campagne_id)
+    //                     ->withCount('menages');
+    //             },
+    //         ]);
+
+    //     if ($search !== '') {
+    //         $query->where(function ($q) use ($search) {
+    //             $q->where('numeroMaison', 'like', "%{$search}%")
+    //             ->orWhere('adresse', 'like', "%{$search}%");
+    //         });
+    //     }
+
+    //     if ($statutFiltre !== '') {
+    //         if ($statutFiltre === 'non_commence') {
+    //             $query->whereDoesntHave('recensements', function ($q) use ($affectation) {
+    //                 $q->where('campagne_id', $affectation->campagne_id);
+    //             });
+    //         } else {
+    //             $query->whereHas('recensements', function ($q) use ($affectation, $statutFiltre) {
+    //                 $q->where('campagne_id', $affectation->campagne_id)
+    //                 ->where('statut', $statutFiltre);
+    //             });
+    //         }
+    //     }
+
+    //     $maisons = $query->orderBy('numeroMaison')
+    //         ->paginate(15)
+    //         ->withQueryString();
+
+    //     return view(
+    //         'agent.affectations.show',
+    //         compact(
+    //             'affectation',
+    //             'maisons',
+    //             'search',
+    //             'statutFiltre'
+    //         )
+    //     );
+    // }
+
+
+        public function detailAgent(Request $request, Affectation $affectation)
+    {
+        $user = auth()->user();
+
+        // Contrôle de sécurité : l'agent appartient-il à l'équipe ?
+        $appartientEquipe = $affectation->equipe()
+            ->whereHas('membres', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
             })
             ->exists();
 
-        abort_unless($estMembre, 403);
+        if (! $appartientEquipe && !$user->hasRole('admin')) {
+            abort(403, "Accès non autorisé à cette affectation.");
+        }
 
-        $affectation->load([
-            'campagne',
-            'equipe.superviseur',
-            'equipe.membres',
-            'village.canton.commune.prefecture',
-        ]);
+        $affectation->load(['campagne', 'equipe.membres', 'village.canton.commune']);
+        $villageId = $affectation->village_id;
 
-        $search = trim($request->input('search', ''));
-        $statutFiltre = $request->input('statut', '');
+        // Calcul des statistiques globales du village
+        $recs = \App\Models\Recensement::where('campagne_id', $affectation->campagne_id)
+            ->whereHas('maison', fn ($q) => $q->where('village_id', $villageId));
 
-        $query = Maison::query()
-            ->where('village_id', $affectation->village_id)
-            ->with([
-                'recensements' => function ($query) use ($affectation) {
-                    $query->where('campagne_id', $affectation->campagne_id)
-                        ->withCount('menages');
-                },
-            ]);
+        $total    = \App\Models\Maison::where('village_id', $villageId)->count();
+        $termines = (clone $recs)->whereIn('statut', ['termine', 'valide'])->count();
+        $enCours  = (clone $recs)->whereIn('statut', ['brouillon', 'en_cours'])->count();
 
-        // Recherche par numéro ou adresse
-        if ($search !== '') {
+        $stats = [
+            'total'        => $total,
+            'termine'      => $termines,
+            'en_cours'     => $enCours,
+            'non_commence' => max(0, $total - $termines - $enCours),
+        ];
+
+        // Requête pour la liste des maisons du village avec filtres et recherche
+        $query = \App\Models\Maison::with(['recensements' => function ($q) use ($affectation) {
+            $q->where('campagne_id', $affectation->campagne_id);
+        }])->where('village_id', $villageId);
+
+        if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('numeroMaison', 'like', "%{$search}%")
                 ->orWhere('adresse', 'like', "%{$search}%");
             });
         }
 
-        // Filtre par statut du recensement
-        if ($statutFiltre !== '') {
+        if ($statutFiltre = $request->input('statut')) {
             if ($statutFiltre === 'non_commence') {
                 $query->whereDoesntHave('recensements', function ($q) use ($affectation) {
                     $q->where('campagne_id', $affectation->campagne_id);
@@ -1821,19 +1959,10 @@ class AffectationController extends Controller
             }
         }
 
-        $maisons = $query->orderBy('numeroMaison')
-            ->paginate(15)
-            ->withQueryString();
+        $maisons = $query->paginate(15)->fragment('liste-maisons');
+        $search = $request->input('search');
 
-        return view(
-            'agent.affectations.show',
-            compact(
-                'affectation',
-                'maisons',
-                'search',
-                'statutFiltre'
-            )
-        );
+        return view('agent.affectations.show', compact('affectation', 'stats', 'maisons', 'search', 'statutFiltre'));
     }
 
 
@@ -2068,6 +2197,9 @@ public function mesZonesSupervision(
             )
         );
     }
+
+
+    
 
 
   

@@ -29,6 +29,9 @@ return new class extends Migration
 
             // Adresse descriptive
             $table->string('adresse')->nullable();
+               // Adresse descriptive
+            $table->string('nomChef')->nullable();
+
 
             $table->timestamps();
 

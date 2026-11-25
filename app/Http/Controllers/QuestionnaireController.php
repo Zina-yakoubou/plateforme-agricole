@@ -9,7 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Http\JsonResponse;
 class QuestionnaireController extends Controller
 {
     /**
@@ -220,5 +220,50 @@ class QuestionnaireController extends Controller
             $annee,
             $numero
         );
+    }
+
+
+        /**
+     * Créer un questionnaire depuis le formulaire de campagne (sans quitter la page).
+     * Mêmes règles que store() : validation, fichier, code automatique.
+     */
+    public function storeAjax(StoreQuestionnaireRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        $chemin = null;
+
+        try {
+            $fichier = $request->file('fichier');
+
+            $chemin = $fichier->store('questionnaires', 'public');
+
+            $questionnaire = Questionnaire::create([
+                'codeQuestionnaire' => $this->genererCodeQuestionnaire(),
+                'titre'             => $validated['titre'],
+                'version'           => $validated['version'] ?? null,
+                'description'       => $validated['description'] ?? null,
+                'type'              => $validated['type'],
+                'fichier'           => $chemin,
+                'format'            => strtoupper($fichier->getClientOriginalExtension()),
+                'actif'             => $validated['actif'] ?? true,
+                'created_by'        => Auth::id(),
+            ]);
+
+            return response()->json([
+                'id'    => $questionnaire->idQuestionnaire,
+                'titre' => $questionnaire->titre,
+                'code'  => $questionnaire->codeQuestionnaire,
+            ], 201);
+
+        } catch (\Throwable $e) {
+
+            if ($chemin && Storage::disk('public')->exists($chemin)) {
+                Storage::disk('public')->delete($chemin);
+            }
+
+            report($e);
+
+            return response()->json(['message' => 'Création impossible. Réessayez.'], 500);
+        }
     }
 }

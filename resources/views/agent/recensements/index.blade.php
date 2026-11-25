@@ -2,378 +2,548 @@
 
 @section('content')
 
-<div class="min-h-screen bg-slate-50">
+<div class="space-y-6">
 
-
-{{-- ============================================================
-    EN-TÊTE
-============================================================ --}}
-<div class="mb-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    {{-- =========================================================
+         EN-TÊTE
+    ========================================================== --}}
+    <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
         <div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
 
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="h-6 w-6"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor"
-                         stroke-width="1.8">
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6.586L19 7.586V19a2 2 0 01-2 2z"/>
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M14 3v5h5"/>
-                    </svg>
-                </div>
+                <h1 class="text-2xl font-semibold tracking-tight text-[#212529]">
+                    Recensements de la maison
+                </h1>
 
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tight text-slate-800">
-                        Mes recensements
-                    </h1>
-
-                    <p class="mt-1 text-sm text-slate-500">
-                        Reprendre ou consulter vos recensements.
-                    </p>
-                </div>
-
-            </div>
-        </div>
-
-        <a href="{{ route('agent.affectations') }}"
-           class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200
-                  bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm
-                  transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700">
-
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 class="h-5 w-5"
-                 fill="none"
-                 viewBox="0 0 24 24"
-                 stroke="currentColor"
-                 stroke-width="1.8">
-                <path stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
-            </svg>
-
-            Mes affectations
-        </a>
-
-    </div>
-</div>
-
-
-{{-- ============================================================
-    RECHERCHE
-============================================================ --}}
-<div class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-
-    <form method="GET"
-          action="{{ route('agent.recensements.index') }}"
-          class="flex flex-col gap-3 sm:flex-row">
-
-        <div class="relative flex-1">
-
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="1.8">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="m21 21-4.35-4.35m1.35-5.4a6.75 6.75 0 11-13.5 0 6.75 6.75 0 0113.5 0z"/>
-                </svg>
-            </div>
-
-            <input
-                type="search"
-                name="search"
-                value="{{ $search }}"
-                placeholder="Rechercher une maison ou un village..."
-                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4
-                       text-sm text-slate-700 outline-none transition
-                       placeholder:text-slate-400
-                       focus:border-emerald-500 focus:bg-white
-                       focus:ring-2 focus:ring-emerald-100"
-            >
-
-        </div>
-
-        <button type="submit"
-                class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700
-                       px-5 py-3 text-sm font-semibold text-white transition
-                       hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-300">
-
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 class="h-5 w-5"
-                 fill="none"
-                 viewBox="0 0 24 24"
-                 stroke="currentColor"
-                 stroke-width="1.8">
-                <path stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="m21 21-4.35-4.35m1.35-5.4a6.75 6.75 0 11-13.5 0 6.75 6.75 0 0113.5 0z"/>
-            </svg>
-
-            Rechercher
-        </button>
-
-        @if($search !== '')
-
-            <a href="{{ route('agent.recensements.index') }}"
-               class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200
-                      bg-white px-5 py-3 text-sm font-semibold text-slate-600
-                      transition hover:bg-slate-50">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="1.8">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-
-                Effacer
-            </a>
-
-        @endif
-
-    </form>
-
-</div>
-
-
-{{-- ============================================================
-    LISTE
-============================================================ --}}
-<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-    {{-- En-tête --}}
-    <div class="border-b border-slate-200 px-5 py-4">
-
-        <div class="flex items-center justify-between gap-4">
-
-            <div>
-                <h2 class="text-base font-bold text-slate-800">
-                    Recensements
-                </h2>
-
-                <p class="mt-1 text-xs text-slate-500">
-                    {{ $recensements->total() }}
-                    {{ $recensements->total() > 1 ? 'recensements' : 'recensement' }}
-                </p>
-            </div>
-
-            @if($search !== '')
-
-                <span class="hidden rounded-lg bg-slate-100 px-3 py-1.5 text-xs
-                             font-medium text-slate-600 sm:inline-flex">
-                    Recherche : {{ $search }}
+                <span class="rounded-full bg-[#e5f2ee] px-3 py-1
+                             text-xs font-semibold text-[#006a4f]">
+                    SIRA-Mô
                 </span>
 
-            @endif
+            </div>
 
+            {{-- <p class="mt-1 text-sm text-[#6b7280]">
+                @if(isset($maison) && $maison)
+                    Maison n° <strong>{{ $maison->numeroMaison }}</strong>
+                    @if($maison->village)
+                        , village de {{ $maison->village->nom }}
+                    @endif
+                    . Consultez son historique ou initialisez un nouveau passage.
+                @else
+                    Consultez l'historique des campagnes de recensement.
+                @endif
+            </p> --}}
+        </div>
+
+
+        {{-- =====================================================
+             NOUVEAU RECENSEMENT (ASSOCIÉ AU VILLAGE DE LA MAISON)
+        ====================================================== --}}
+        <div>
+            @if(request('maison_id'))
+                @php
+                    $maisonCourante = $maison ?? \App\Models\Maison::find(request('maison_id'));
+
+                    // Affectation active de l'agent correspondant au village de cette maison
+                    $affectationCorrespondante = null;
+                    $recensementExistant = null;
+
+                    if ($maisonCourante) {
+                        $affectationCorrespondante = \App\Models\Affectation::where('statut', 'active')
+                            ->where('village_id', $maisonCourante->village_id)
+                            ->whereHas('equipe.membres', fn ($q) => $q->where('users.id', auth()->id()))
+                            ->first();
+
+                        // Un recensement existe-t-il déjà pour cette maison dans cette campagne ?
+                        if ($affectationCorrespondante) {
+                            $recensementExistant = \App\Models\Recensement::where('campagne_id', $affectationCorrespondante->campagne_id)
+                                ->where('maison_id', $maisonCourante->idMaison)
+                                ->first();
+                        }
+                    }
+                @endphp
+
+                @if($recensementExistant)
+                    {{-- Doublon évité : on reprend ou on consulte l'existant --}}
+                    <a
+                        href="{{ route('agent.recensements.show', $recensementExistant->idRecensement) }}"
+                        class="inline-flex items-center gap-2 rounded-lg
+                               border border-[#006a4f]/30 bg-[#e5f2ee]
+                               px-4 py-2.5 text-sm font-semibold text-[#006a4f]
+                               transition hover:bg-[#006a4f] hover:text-white"
+                    >
+                        {{ in_array($recensementExistant->statut, ['termine', 'valide'])
+                            ? 'Consulter le recensement de la campagne'
+                            : 'Reprendre le recensement en cours' }}
+                    </a>
+
+                @elseif($affectationCorrespondante && $maisonCourante)
+                    <form
+                        action="{{ route('agent.recensements.commencer', ['affectation' => $affectationCorrespondante->idAffectation, 'maison' => $maisonCourante->idMaison]) }}"
+                        method="POST"
+                        onsubmit="this.querySelector('button').disabled = true;"
+                    >
+                        @csrf
+                        <button
+                            type="submit"
+                            class="inline-flex items-center gap-2 rounded-lg
+                                   bg-[#006a4f] px-4 py-2.5
+                                   text-sm font-semibold text-white
+                                   shadow-sm transition
+                                   hover:bg-[#156c52]
+                                   focus:outline-none focus:ring-2
+                                   focus:ring-[#006a4f]/30
+                                   disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Créer un nouveau recensement
+                        </button>
+                    </form>
+                @else
+                    <span class="text-xs text-amber-700 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 inline-block font-medium">
+                        ⚠️ Aucune affectation active pour le village de cette maison.
+                    </span>
+                @endif
+            @endif
         </div>
 
     </div>
 
 
-    @if($recensements->count() > 0)
+    {{-- =========================================================
+         MESSAGES
+    ========================================================== --}}
+    @if(session('success'))
 
-        {{-- ====================================================
-            VERSION BUREAU
-        ==================================================== --}}
-        <div class="hidden overflow-x-auto md:block">
+        <div class="flex items-start gap-3 rounded-lg
+                    border border-[#b7dfd2]
+                    bg-[#e5f2ee]
+                    px-4 py-3 text-sm text-[#006a4f]">
 
-            <table class="min-w-full">
+            <svg
+                class="mt-0.5 h-5 w-5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                />
+            </svg>
 
-                <thead class="bg-slate-50">
-                    <tr>
+            <span>{{ session('success') }}</span>
 
-                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            Maison
+        </div>
+
+    @endif
+
+
+    @if(session('error'))
+
+        <div class="flex items-start gap-3 rounded-lg
+                    border border-red-200
+                    bg-red-50
+                    px-4 py-3 text-sm text-red-700">
+
+            <svg
+                class="mt-0.5 h-5 w-5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+            </svg>
+
+            <span>{{ session('error') }}</span>
+
+        </div>
+
+    @endif
+
+
+    @if(session('info'))
+
+        <div class="flex items-start gap-3 rounded-lg
+                    border border-blue-200
+                    bg-blue-50
+                    px-4 py-3 text-sm text-blue-700">
+
+            <svg
+                class="mt-0.5 h-5 w-5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M12 21a9 9 0 100-18"
+                />
+            </svg>
+
+            <span>{{ session('info') }}</span>
+
+        </div>
+
+    @endif
+
+
+    
+
+
+    {{-- =========================================================
+         LISTE DES RECENSEMENTS
+    ========================================================== --}}
+    <div class="overflow-hidden rounded-lg
+                border border-[#e5e7eb]
+                bg-white
+                shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                {{-- =========================================================
+                    FILTRES / RECHERCHE
+                ========================================================== --}}
+                <div class="rounded-lg border border-[#e5e7eb]
+                            bg-white p-4
+                            shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+
+                    <form
+                        method="GET"
+                        action="{{ route('agent.recensements.index') }}"
+                    >
+                        {{-- Conserver le filtre maison_id s'il est présent --}}
+                        @if(request('maison_id'))
+                            <input type="hidden" name="maison_id" value="{{ request('maison_id') }}">
+                        @endif
+
+                        <div class="flex flex-col gap-3 lg:flex-row">
+
+                            {{-- RECHERCHE --}}
+                            <div class="relative flex-1">
+
+                                <svg
+                                    class="pointer-events-none absolute left-4 top-1/2
+                                        h-5 w-5 -translate-y-1/2 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="m21 21-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z"
+                                    />
+                                </svg>
+
+                                <input
+                                    type="text"
+                                    name="search"
+                                    value="{{ $search ?? '' }}"
+                                    placeholder="Rechercher par campagne, numéro de maison ou adresse..."
+                                    class="w-full rounded-lg
+                                        border border-[#e5e7eb]
+                                        bg-white py-3 pl-11 pr-4
+                                        text-sm text-[#212529]
+                                        placeholder:text-gray-400
+                                        focus:border-[#006a4f]
+                                        focus:outline-none
+                                        focus:ring-2
+                                        focus:ring-[#006a4f]/10"
+                                >
+
+                            </div>
+
+
+                            {{-- RECHERCHER --}}
+                            <button
+                                type="submit"
+                                class="inline-flex items-center justify-center gap-2
+                                    rounded-lg bg-[#006a4f]
+                                    px-5 py-3
+                                    text-sm font-semibold text-white
+                                    transition hover:bg-[#156c52]"
+                            >
+
+                                <svg
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="m21 21-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z"
+                                    />
+                                </svg>
+
+                                Rechercher
+
+                            </button>
+
+
+                            {{-- RÉINITIALISER --}}
+                            @if(request()->filled('search'))
+
+                                <a
+                                    href="{{ route('agent.recensements.index', request('maison_id') ? ['maison_id' => request('maison_id')] : []) }}"
+                                    class="inline-flex items-center justify-center
+                                        rounded-lg border border-[#e5e7eb]
+                                        bg-white px-4 py-3
+                                        text-sm font-semibold text-gray-600
+                                        transition hover:bg-gray-50"
+                                >
+                                    Réinitialiser
+                                </a>
+
+                            @endif
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+
+        {{-- =====================================================
+             EN-TÊTE DU TABLEAU
+        ====================================================== --}}
+        <div class="flex flex-col gap-3
+                    border-b border-[#e5e7eb]
+                    px-6 py-5
+                    sm:flex-row sm:items-center sm:justify-between">
+
+            {{-- <div>
+
+                <h2 class="text-base font-semibold text-[#212529]">
+                    Historique des recensements
+                </h2>
+
+                <p class="mt-1 text-xs text-gray-500">
+                    @if(isset($maison) && $maison)
+                        Passages enregistrés pour la maison n° {{ $maison->numeroMaison }}
+                    @else
+                        Passages enregistrés
+                    @endif
+                </p>
+
+            </div>
+
+
+            <div class="flex items-center gap-3">
+
+                <span class="rounded-full bg-[#f8faf9]
+                             px-3 py-1.5 text-sm text-gray-500">
+
+                    <span class="font-semibold text-[#006a4f]">
+                        {{ $recensements->total() }}
+                    </span>
+
+                    recensement(s)
+
+                </span>
+
+            </div> --}}
+
+        </div>
+
+
+        {{-- =====================================================
+             TABLEAU
+        ====================================================== --}}
+        <div class="overflow-x-auto">
+
+            <table class="w-full min-w-[1000px] text-sm">
+
+                <thead class="bg-[#f8faf9]">
+
+                    <tr class="border-b border-[#e5e7eb]">
+
+                        <th class="px-6 py-4 text-left text-xs
+                                   font-semibold uppercase tracking-wide
+                                   text-gray-500">
+                            N°
                         </th>
 
-                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            Zone
-                        </th>
-
-                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th class="px-6 py-4 text-left text-xs
+                                   font-semibold uppercase tracking-wide
+                                   text-gray-500">
                             Campagne
                         </th>
 
-                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            Dernière activité
+                        {{-- <th class="px-6 py-4 text-left text-xs
+                                   font-semibold uppercase tracking-wide
+                                   text-gray-500">
+                            Maison & Localisation
+                        </th> --}}
+                        <th class="px-6 py-4 text-left text-xs
+                                   font-semibold uppercase tracking-wide
+                                   text-gray-500">
+                            Maison De
                         </th>
 
-                        <th class="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            État
+                        <th class="px-6 py-4 text-left text-xs
+                                   font-semibold uppercase tracking-wide
+                                   text-gray-500">
+                            Dernière modification
                         </th>
 
-                        <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            Action
+                        <th class="px-6 py-4 text-center text-xs
+                                   font-semibold uppercase tracking-wide
+                                   text-gray-500">
+                            Statut
+                        </th>
+
+                        <th class="px-6 py-4 text-right text-xs
+                                   font-semibold uppercase tracking-wide
+                                   text-gray-500">
+                            Actions
                         </th>
 
                     </tr>
+
                 </thead>
 
-                <tbody class="divide-y divide-slate-100">
 
-                    @foreach($recensements as $recensement)
+                <tbody class="divide-y divide-[#e5e7eb]">
 
-                        @php
-                            $statut = $recensement->statut;
+                    @forelse($recensements as $recensement)
 
-                            $statutLibelle = match ($statut) {
-                                'brouillon' => 'Brouillon',
-                                'en_cours' => 'En cours',
-                                'termine' => 'Terminé',
-                                'valide' => 'Validé',
-                                default => ucfirst(str_replace('_', ' ', $statut)),
-                            };
+                        <tr class="group transition hover:bg-[#f8faf9]">
 
-                            $statutClasses = match ($statut) {
-                                'brouillon' => 'bg-slate-100 text-slate-700',
-                                'en_cours' => 'bg-amber-100 text-amber-700',
-                                'termine' => 'bg-emerald-100 text-emerald-800',
-                                'valide' => 'bg-emerald-100 text-emerald-700',
-                                default => 'bg-slate-100 text-slate-700',
-                            };
-                        @endphp
-
-                        <tr class="transition hover:bg-slate-50">
-
-                            {{-- Maison --}}
-                            <td class="px-5 py-4">
-
-                                <div class="flex items-center gap-3">
-
-                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center
-                                                rounded-xl bg-emerald-50 text-emerald-700">
-
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                             class="h-5 w-5"
-                                             fill="none"
-                                             viewBox="0 0 24 24"
-                                             stroke="currentColor"
-                                             stroke-width="1.8">
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  d="M3 10.5L12 3l9 7.5"/>
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  d="M5.5 9.5V21h13V9.5M9 21v-6h6v6"/>
-                                        </svg>
-
-                                    </div>
-
-                                    <div>
-                                        <div class="font-semibold text-slate-800">
-                                            Maison {{ $recensement->maison?->numeroMaison ?? '—' }}
-                                        </div>
-                                    </div>
-
-                                </div>
-
+                            {{-- N° --}}
+                            <td class="px-6 py-4 text-sm text-gray-400">
+                                {{
+                                    $loop->iteration
+                                    + (($recensements->currentPage() - 1)
+                                    * $recensements->perPage())
+                                }}
                             </td>
 
-
-                            {{-- Zone --}}
-                            <td class="px-5 py-4">
-
-                                <div class="text-sm font-medium text-slate-700">
-                                    {{ $recensement->maison?->village?->nom?? '—' }}
+                            {{-- CAMPAGNE --}}
+                            <td class="px-6 py-4">
+                                <div>
+                                    <span class="font-semibold text-[#212529]">
+                                        {{ $recensement->campagne->libelle ?? 'Campagne Agricole' }}
+                                    </span>
+                                    {{-- <div class="mt-0.5 font-mono text-xs text-[#006a4f]">
+                                        {{ $recensement->campagne->codeCampagne ?? '—' }}
+                                    </div> --}}
                                 </div>
+                            </td>
 
-                                @if($recensement->maison?->village?->canton)
-                                    <div class="mt-0.5 text-xs text-slate-400">
-                                        {{ $recensement->maison->village->canton->nom }}
-                                    </div>
+                            {{-- MAISON & LOCALISATION --}}
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-gray-800">
+                                    {{-- Maison n° {{ $recensement->maison->nom ?? '—' }} --}}
+                                      {{ $recensement->maison->nom ?? '—' }}
+                                </div>
+                                {{-- <div class="text-xs text-gray-500">
+                                    Village de {{ $recensement->maison->village->nom ?? '—' }}
+                                </div> --}}
+                            </td>
+
+                            {{-- DERNIÈRE MODIFICATION --}}
+                            <td class="px-6 py-4 text-xs text-gray-500">
+                                {{ $recensement->dateDerniereModification ? \Illuminate\Support\Carbon::parse($recensement->dateDerniereModification)->format('d/m/Y à H:i') : '—' }}
+                            </td>
+
+                            {{-- STATUT --}}
+                            <td class="px-6 py-4 text-center">
+                                @if(in_array($recensement->statut, ['termine', 'valide']))
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                                        Terminé
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                                        En cours
+                                    </span>
                                 @endif
-
                             </td>
 
+                            {{-- ACTIONS : CONSULTER vs CONTINUER --}}
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
 
-                            {{-- Campagne --}}
-                            <td class="px-5 py-4">
-
-                                <div class="text-sm font-semibold text-slate-700">
-                                    {{ $recensement->campagne?->libelle ?? '—' }}
-                                </div>
-
-                            </td>
-
-
-                            {{-- Dernière activité --}}
-                            <td class="px-5 py-4">
-
-                                <div class="text-sm text-slate-700">
-                                    {{ $recensement->dateDerniereModification
-                                        ? $recensement->dateDerniereModification->format('d/m/Y')
-                                        : '—' }}
-                                </div>
-
-                                @if($recensement->dateDerniereModification)
-                                    <div class="mt-0.5 text-xs text-slate-400">
-                                        {{ $recensement->dateDerniereModification->format('H:i') }}
-                                    </div>
-                                @endif
-
-                            </td>
-
-
-                            {{-- État --}}
-                            <td class="px-5 py-4 text-center">
-
-                                <span class="inline-flex rounded-full px-3 py-1.5 text-xs font-semibold {{ $statutClasses }}">
-                                    {{ $statutLibelle }}
-                                </span>
-
-                            </td>
-
-
-                            {{-- Action (Adaptée selon le statut réel en base) --}}
-                            <td class="px-5 py-4 text-right">
-
-                                <a href="{{ route('agent.recensements.show', $recensement) }}"
-                                   class="inline-flex items-center gap-2 rounded-xl border border-slate-200
-                                          bg-white px-3.5 py-2 text-sm font-semibold text-slate-700
-                                          shadow-sm transition
-                                          hover:border-emerald-300 hover:bg-emerald-50
-                                          hover:text-emerald-700">
-
-                                    @if(in_array($statut, ['brouillon', 'en_cours']))
-                                        Continuer
+                                    @if(in_array($recensement->statut, ['termine', 'valide']))
+                                        {{-- Terminé / validé : Consulter en lecture seule --}}
+                                        <a
+                                            href="{{ route('agent.recensements.show', $recensement->idRecensement) }}"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-[#e5e7eb] bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:border-[#006a4f] hover:bg-[#e5f2ee] hover:text-[#006a4f]"
+                                        >
+                                            <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            Consulter
+                                        </a>
                                     @else
-                                        Consulter
+                                        {{-- En cours / brouillon : Continuer la saisie --}}
+                                        <a
+                                            href="{{ route('agent.recensements.show', $recensement->idRecensement) }}"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-[#006a4f]/30 bg-[#e5f2ee] px-3.5 py-2 text-xs font-semibold text-[#006a4f] shadow-sm transition hover:bg-[#006a4f] hover:text-white"
+                                        >
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                            Continuer
+                                        </a>
                                     @endif
 
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                         class="h-4 w-4"
-                                         fill="none"
-                                         viewBox="0 0 24 24"
-                                         stroke="currentColor"
-                                         stroke-width="1.8">
-                                        <path stroke-linecap="round"
-                                              stroke-linejoin="round"
-                                              d="M5 12h14M13 6l6 6-6 6"/>
-                                    </svg>
-
-                                </a>
-
+                                </div>
                             </td>
 
                         </tr>
 
-                    @endforeach
+                    @empty
+
+                        {{-- AUCUN RECENSEMENT --}}
+                        <tr>
+                            <td colspan="6" class="px-6 py-16 text-center">
+                                <div class="flex flex-col items-center">
+
+                                    <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#e5f2ee] text-[#006a4f]">
+                                        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6l5 5v11a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+
+                                    <p class="font-semibold text-[#212529]">
+                                        Aucun recensement trouvé
+                                    </p>
+
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        Aucun historique de recensement n'est enregistré pour cette habitation.
+                                    </p>
+
+                                    @if(request()->filled('search'))
+                                        <a
+                                            href="{{ route('agent.recensements.index', request('maison_id') ? ['maison_id' => request('maison_id')] : []) }}"
+                                            class="mt-4 text-sm font-semibold text-[#006a4f] hover:underline"
+                                        >
+                                            Réinitialiser les filtres
+                                        </a>
+                                    @endif
+
+                                </div>
+                            </td>
+                        </tr>
+
+                    @endforelse
 
                 </tbody>
 
@@ -382,210 +552,18 @@
         </div>
 
 
-        {{-- ====================================================
-            VERSION MOBILE
-        ==================================================== --}}
-        <div class="divide-y divide-slate-100 md:hidden">
+        {{-- =====================================================
+             PAGINATION
+        ====================================================== --}}
+        @if($recensements->hasPages())
 
-            @foreach($recensements as $recensement)
-
-                @php
-                    $statut = $recensement->statut;
-
-                    $statutLibelle = match ($statut) {
-                        'brouillon' => 'Brouillon',
-                        'en_cours' => 'En cours',
-                        'termine' => 'Terminé',
-                        'valide' => 'Validé',
-                        default => ucfirst(str_replace('_', ' ', $statut)),
-                    };
-
-                    $statutClasses = match ($statut) {
-                        'brouillon' => 'bg-slate-100 text-slate-700',
-                        'en_cours' => 'bg-amber-100 text-amber-700',
-                        'termine' => 'bg-emerald-100 text-emerald-800',
-                        'valide' => 'bg-emerald-100 text-emerald-700',
-                        default => 'bg-slate-100 text-slate-700',
-                    };
-                @endphp
-
-                <a href="{{ route('agent.recensements.show', $recensement) }}"
-                   class="block p-4 transition hover:bg-slate-50">
-
-                    <div class="flex items-start justify-between gap-3">
-
-                        <div class="flex min-w-0 items-center gap-3">
-
-                            <div class="flex h-10 w-10 shrink-0 items-center justify-center
-                                        rounded-xl bg-emerald-50 text-emerald-700">
-
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                     class="h-5 w-5"
-                                     fill="none"
-                                     viewBox="0 0 24 24"
-                                     stroke="currentColor"
-                                     stroke-width="1.8">
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          d="M3 10.5L12 3l9 7.5"/>
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          d="M5.5 9.5V21h13V9.5M9 21v-6h6v6"/>
-                                </svg>
-
-                            </div>
-
-                            <div class="min-w-0">
-
-                                <div class="font-semibold text-slate-800">
-                                    Maison {{ $recensement->maison?->numeroMaison ?? '—' }}
-                                </div>
-
-                                <div class="mt-0.5 text-xs text-slate-500">
-                                    {{ $recensement->maison?->village?->nom ?? '—' }}
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold {{ $statutClasses }}">
-                            {{ $statutLibelle }}
-                        </span>
-
-                    </div>
-
-
-                    <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-
-                        <div>
-
-                            <div class="text-xs text-slate-400">
-                                {{ $recensement->campagne?->libelle ?? '—' }}
-                            </div>
-
-                            @if($recensement->dateDerniereModification)
-                                <div class="mt-1 text-xs text-slate-500">
-                                    Mis à jour le
-                                    {{ $recensement->dateDerniereModification->format('d/m/Y à H:i') }}
-                                </div>
-                            @endif
-
-                        </div>
-
-                        <span class="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700">
-
-                            @if(in_array($statut, ['brouillon', 'en_cours']))
-                                Continuer
-                            @else
-                                Consulter
-                            @endif
-
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 class="h-4 w-4"
-                                 fill="none"
-                                 viewBox="0 0 24 24"
-                                 stroke="currentColor"
-                                 stroke-width="1.8">
-                                <path stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      d="M5 12h14M13 6l6 6-6 6"/>
-                            </svg>
-
-                        </span>
-
-                    </div>
-
-                </a>
-
-            @endforeach
-
-        </div>
-
-
-        {{-- Pagination --}}
-        <div class="border-t border-slate-200 px-5 py-4">
-            {{ $recensements->links() }}
-        </div>
-
-
-    @else
-
-        {{-- ====================================================
-            AUCUN RÉSULTAT
-        ==================================================== --}}
-        <div class="px-6 py-16 text-center">
-
-            <div class="mx-auto flex h-14 w-14 items-center justify-center
-                        rounded-2xl bg-slate-100 text-slate-400">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-7 w-7"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="1.6">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6.586L19 7.586V19a2 2 0 01-2 2z"/>
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M14 3v5h5"/>
-                </svg>
-
+            <div class="border-t border-[#e5e7eb] px-6 py-4">
+                {{ $recensements->withQueryString()->links() }}
             </div>
 
-            <h3 class="mt-5 text-base font-bold text-slate-800">
-                Aucun recensement trouvé
-            </h3>
+        @endif
 
-            @if($search !== '')
-
-                <p class="mx-auto mt-2 max-w-md text-sm text-slate-500">
-                    Aucun recensement ne correspond à
-                    « {{ $search }} ».
-                </p>
-
-                <a href="{{ route('agent.recensements.index') }}"
-                   class="mt-5 inline-flex items-center rounded-xl bg-emerald-700
-                          px-4 py-2.5 text-sm font-semibold text-white
-                          transition hover:bg-emerald-800">
-                    Effacer la recherche
-                </a>
-
-            @else
-
-                <p class="mx-auto mt-2 max-w-md text-sm text-slate-500">
-                    Vos recensements apparaîtront ici après le début
-                    d'une collecte.
-                </p>
-
-                <a href="{{ route('agent.affectations') }}"
-                   class="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-700
-                          px-4 py-2.5 text-sm font-semibold text-white
-                          transition hover:bg-emerald-800">
-
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="h-5 w-5"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor"
-                         stroke-width="1.8">
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
-                    </svg>
-
-                    Voir mes affectations
-                </a>
-
-            @endif
-
-        </div>
-
-    @endif
-
-</div>
+    </div>
 
 </div>
 

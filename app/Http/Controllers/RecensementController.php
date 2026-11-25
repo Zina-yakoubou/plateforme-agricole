@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
+use App\Models\CampagneRecensement;
+use App\Models\Prefecture;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 class RecensementController extends Controller
 {
     /**
@@ -73,10 +77,52 @@ class RecensementController extends Controller
     /**
      * Liste des recensements de l'agent connecté.
      */
-    public function index(Request $request): View
+    // public function index(Request $request): View
+    // {
+    //     $user = Auth::user();
+    //     $search = trim($request->input('search', ''));
+
+    //     $recensements = Recensement::query()
+    //         ->with([
+    //             'campagne',
+    //             'maison.village.canton.commune',
+    //             'affectation.equipe',
+    //         ])
+    //         ->where('agent_id', $user->id)
+    //         ->when($search !== '', function ($query) use ($search) {
+    //             $query->where(function ($q) use ($search) {
+    //                 $q->whereHas('maison', function ($maison) use ($search) {
+    //                     $maison->where('numeroMaison', 'like', "%{$search}%")
+    //                         ->orWhere('uid', 'like', "%{$search}%")
+    //                         ->orWhere('adresse', 'like', "%{$search}%");
+    //                 });
+
+    //                 $q->orWhereHas('campagne', function ($campagne) use ($search) {
+    //                     $campagne->where('libelle', 'like', "%{$search}%")
+    //                         ->orWhere('codeCampagne', 'like', "%{$search}%");
+    //                 });
+
+    //                 $q->orWhere('statut', 'like', "%{$search}%");
+    //             });
+    //         })
+    //         ->latest('idRecensement')
+    //         ->paginate(15)
+    //         ->withQueryString();
+
+    //     return view('agent.recensements.index', compact('recensements', 'search'));
+    // }
+
+
+        public function index(Request $request): View
     {
-        $user = Auth::user();
+        $user   = Auth::user();
         $search = trim($request->input('search', ''));
+
+        // Maison ciblée (si on vient de la fiche d'une maison)
+        $maison = null;
+        if ($request->filled('maison_id')) {
+            $maison = Maison::with('village')->findOrFail($request->input('maison_id'));
+        }
 
         $recensements = Recensement::query()
             ->with([
@@ -85,6 +131,24 @@ class RecensementController extends Controller
                 'affectation.equipe',
             ])
             ->where('agent_id', $user->id)
+
+            // Historique d'une seule maison
+            ->when($maison, function ($query) use ($maison) {
+                $query->where('maison_id', $maison->idMaison);
+            })
+
+            // Filtre village (bouton « Reprendre le village »)
+            ->when($request->filled('village'), function ($query) use ($request) {
+                $query->whereHas('maison', function ($maison) use ($request) {
+                    $maison->where('village_id', $request->input('village'));
+                });
+            })
+
+            // Filtre « à rappeler / incomplets »
+            ->when($request->input('statut') === 'en_attente', function ($query) {
+                $query->whereNotIn('statut', ['termine', 'valide']);
+            })
+
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->whereHas('maison', function ($maison) use ($search) {
@@ -105,7 +169,7 @@ class RecensementController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('agent.recensements.index', compact('recensements', 'search'));
+        return view('agent.recensements.index', compact('recensements', 'search', 'maison'));
     }
 
     /**
@@ -299,26 +363,70 @@ class RecensementController extends Controller
 
 
 
-        public function show(Recensement $recensement): View
+    //     public function show(Recensement $recensement): View
+    // {
+    //     $recensement->load([
+    //         'campagne',
+    //         'maison.village.canton.commune.prefecture',
+    //         'affectation.equipe',
+    //         'affectation.village',
+    //         'agent',
+    //         'menages.exploitants.exploitation',
+    //     ]);
+        
+
+    //     $this->verifierAccesRecensement($recensement);
+
+    //     return view('agent.recensements.show', compact('recensement'));
+    // }
+
+//  public function show(Recensement $recensement)
+// {
+//     $recensement->load([
+//         'affectation.campagne', 
+//         'affectation.village.canton.commune.prefecture', 
+//         'affectation.equipe.membres',
+//         'maison.village',
+//         'agent'
+//     ]);
+
+//     $affectation = $recensement->affectation;
+//     $village = $affectation?->village;
+
+    
+//     $stats = [
+//         'total'        => $village ? $village->maisons()->count() : 0,
+//         'termine'      => 0, 
+//         'en_cours'     => 0,
+//         'non_commence' => 0,
+//     ];
+
+//     if ($village) {
+//         $maisonsIds = $village->maisons()->pluck('idMaison');
+//         $stats['termine'] = Recensement::whereIn('maison_id', $maisonsIds)->where('statut', 'termine')->count();
+//         $stats['en_cours'] = Recensement::whereIn('maison_id', $maisonsIds)->where('statut', 'en_cours')->count();
+//         $stats['non_commence'] = max(0, $stats['total'] - ($stats['termine'] + $stats['en_cours']));
+//     }
+
+//     return view('agent.recensements.show', compact('recensement', 'affectation', 'stats'));
+// }
+
+
+    public function show(Recensement $recensement): View
     {
         $recensement->load([
             'campagne',
-            'maison.village.canton.commune.prefecture',
-            'affectation.equipe',
-            'affectation.village',
+            'maison.village',
             'agent',
-            'menages.exploitants.exploitation',
+            'menages' // <--- Indispensable pour lister les ménages de la maison
         ]);
-        
 
         $this->verifierAccesRecensement($recensement);
 
         return view('agent.recensements.show', compact('recensement'));
     }
 
-    /**
-     * Passe le recensement de "brouillon" à "en_cours".
-     */
+   
     public function mettreEnCours(Recensement $recensement)
     {
         $this->verifierAccesRecensement($recensement);
@@ -449,5 +557,247 @@ class RecensementController extends Controller
     }
 
 
-    
+    //     public function incomplets(Request $request): View
+    // {
+    //     $user   = Auth::user();
+    //     $search = trim($request->input('search', ''));
+
+    //     $recensements = Recensement::query()
+    //         ->with(['campagne', 'maison.village'])
+    //         ->where('agent_id', $user->id)
+    //         ->when($request->filled('campagne'), fn ($q) => $q->where('campagne_id', $request->campagne))
+    //         ->get()
+    //         ->filter(fn ($r) => $r->maison && $r->maison->village);
+
+    //     $totaux = Maison::query()
+    //         ->whereIn('village_id', $recensements->pluck('maison.village_id')->unique())
+    //         ->selectRaw('village_id, COUNT(*) as total')
+    //         ->groupBy('village_id')
+    //         ->pluck('total', 'village_id');
+
+    //     $villages = $recensements
+    //         ->groupBy(fn ($r) => $r->maison->village_id . '-' . $r->campagne_id)
+    //         ->map(function ($items) use ($totaux) {
+    //             $premier  = $items->first();
+    //             $termines = $items->whereIn('statut', ['termine', 'valide'])->count();
+    //             $enCours  = $items->count() - $termines;
+    //             $total    = max((int) ($totaux[$premier->maison->village_id] ?? 0), $items->count());
+
+    //             return (object) [
+    //                 'village'    => $premier->maison->village,
+    //                 'campagne'   => $premier->campagne,
+    //                 'termines'   => $termines,
+    //                 'en_cours'   => $enCours,
+    //                 'restantes'  => $total - $termines - $enCours,
+    //                 'total'      => $total,
+    //                 'pct_term'   => round($termines / $total * 100),
+    //                 'pct_cours'  => round($enCours / $total * 100),
+    //                 'activite'   => $items->max('dateDerniereModification'),
+    //             ];
+    //         })
+    //         ->filter(fn ($v) => $v->termines < $v->total)
+    //         ->when($search !== '', fn ($c) => $c->filter(
+    //             fn ($v) => str_contains(mb_strtolower($v->village->nom), mb_strtolower($search))
+    //         ))
+    //         ->sortBy('activite')   
+    //         ->values();
+
+    //     return view('agent.recensements.incomplets', compact('villages', 'search'));
+    // }
+
+        public function incomplets(Request $request): View
+    {
+        $user   = Auth::user();
+        $search = trim($request->input('search', ''));
+
+        $villages = Recensement::query()
+            ->with(['campagne', 'maison.village', 'affectation'])
+            ->where('agent_id', $user->id)
+            ->whereHas('affectation', fn ($q) => $q->where('statut', 'active'))
+            ->get()
+            ->filter(fn ($r) => $r->maison && $r->maison->village && $r->affectation)
+            ->groupBy(fn ($r) => $r->affectation->getKey())
+            ->map(function ($items) {
+                $premier  = $items->first();
+                $termines = $items->whereIn('statut', ['termine', 'valide'])->count();
+                $total    = $items->count();
+
+                return (object) [
+                    'affectation' => $premier->affectation,
+                    'village'     => $premier->maison->village,
+                    'campagne'    => $premier->campagne,
+                    'recenses'    => $total,
+                    'termines'    => $termines,
+                    'en_cours'    => $total - $termines,
+                    'pct_term'    => round($termines / $total * 100),
+                    'activite'    => $items->max('dateDerniereModification'),
+                ];
+            })
+            ->when($search !== '', fn ($c) => $c->filter(
+                fn ($v) => str_contains(mb_strtolower($v->village->nom), mb_strtolower($search))
+            ))
+            ->sortBy([['en_cours', 'desc'], ['activite', 'asc']])
+            ->values();
+
+        return view('agent.recensements.incomplets', compact('villages', 'search'));
+    }
+
+
+        /* ================= CONSULTATION ADMIN / DPA ================= */
+
+       /* ================= CONSULTATION ADMIN / DPA ================= */
+
+        private const CONSULT_TERMINES = ['termine', 'valide'];
+
+    public function consultationIndex(Request $request): View
+    {
+        $user    = Auth::user();
+        $prefixe = $this->consultPrefixe($request);
+        $this->consultAutoriser($user, $prefixe);
+
+        $perimetre = $this->consultPerimetre($user, $prefixe);
+        $filtre    = $this->consultFiltres(clone $perimetre, $request, $prefixe);
+
+        $parStatut = (clone $filtre)->reorder()
+            ->selectRaw('statut, COUNT(*) as total')
+            ->groupBy('statut')
+            ->pluck('total', 'statut');
+
+        $total    = (int) $parStatut->sum();
+        $termines = (int) collect(self::CONSULT_TERMINES)->sum(fn ($s) => $parStatut[$s] ?? 0);
+
+        $stats = [
+            'total'      => $total,
+            'incomplets' => $total - $termines,
+            'termines'   => $termines,
+            'valides'    => (int) ($parStatut['valide'] ?? 0),
+        ];
+
+        $recensements = (clone $filtre)
+            ->when($request->filled('statut'), function ($q) use ($request) {
+                $request->statut === 'incomplets'
+                    ? $q->whereNotIn('statut', self::CONSULT_TERMINES)
+                    : $q->where('statut', $request->statut);
+            })
+            ->latest('idRecensement')
+            ->paginate(20)
+            ->withQueryString();
+
+        $campagnes   = CampagneRecensement::orderByDesc('idCampagne')->get();
+        $agents      = User::whereIn('id', (clone $perimetre)->reorder()->distinct()->pluck('agent_id'))
+                            ->orderBy('name')->get(['id', 'name']);
+        $prefectures = $prefixe === 'admin' ? Prefecture::orderBy('nom')->get() : collect();
+
+        // Nom de la préfecture du DPA (carte « Ma préfecture »)
+        $prefectureNom = $prefixe === 'dpa'
+            ? Prefecture::where('idPrefecture', $this->consultPrefectureId($user))->value('nom')
+            : null;
+
+        return view('consultation.recensements.index', compact(
+            'recensements', 'stats', 'campagnes', 'agents', 'prefectures', 'prefixe', 'prefectureNom'
+        ));
+    }
+
+    public function consultationShow(Request $request, Recensement $recensement): View
+    {
+        $user    = Auth::user();
+        $prefixe = $this->consultPrefixe($request);
+        $this->consultAutoriser($user, $prefixe);
+
+        $recensement->load(['campagne', 'maison.village.canton.commune', 'affectation', 'agent']);
+
+        if ($prefixe === 'dpa') {
+            $prefectureId = $recensement->maison?->village?->canton?->commune?->prefecture_id;
+            abort_unless(
+                $prefectureId !== null && (int) $prefectureId === $this->consultPrefectureId($user),
+                403
+            );
+        }
+
+        return view('consultation.recensements.show', compact('recensement', 'prefixe'));
+    }
+
+    private function consultPrefixe(Request $request): string
+    {
+        return $request->routeIs('dpa.*') ? 'dpa' : 'admin';
+    }
+
+    private function consultAutoriser($user, string $prefixe): void
+    {
+        if ($prefixe === 'admin') {
+            abort_unless($user?->isAdmin(), 403);
+            return;
+        }
+
+        abort_unless($user && method_exists($user, 'isDpa') && $user->isDpa(), 403);
+        abort_if(
+            $this->consultPrefectureId($user) === null,
+            403,
+            "Aucune préfecture n'est associée à votre compte."
+        );
+    }
+
+    private function consultPerimetre($user, string $prefixe): Builder
+    {
+        $q = Recensement::query()->with([
+            'campagne', 'maison.village.canton.commune', 'affectation', 'agent',
+        ]);
+
+        if ($prefixe === 'dpa') {
+            $prefectureId = $this->consultPrefectureId($user);
+
+            $q->whereHas('maison.village.canton.commune',
+                fn ($c) => $c->where('prefecture_id', $prefectureId));
+        }
+
+        return $q;
+    }
+
+    private function consultFiltres(Builder $q, Request $request, string $prefixe): Builder
+    {
+        $search = trim($request->input('search', ''));
+
+        return $q
+            ->when($prefixe === 'admin' && $request->filled('prefecture'), fn ($q) =>
+                $q->whereHas('maison.village.canton.commune',
+                    fn ($c) => $c->where('prefecture_id', $request->prefecture)))
+            ->when($request->filled('campagne'), fn ($q) => $q->where('campagne_id', $request->campagne))
+            ->when($request->filled('agent'), fn ($q) => $q->where('agent_id', $request->agent))
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where(function ($w) use ($search) {
+                    $w->whereHas('maison', fn ($m) => $m
+                            ->where('numeroMaison', 'like', "%{$search}%")
+                            ->orWhere('uid', 'like', "%{$search}%")
+                            ->orWhere('adresse', 'like', "%{$search}%"))
+                      ->orWhereHas('campagne', fn ($c) => $c
+                            ->where('libelle', 'like', "%{$search}%")
+                            ->orWhere('codeCampagne', 'like', "%{$search}%"))
+                      ->orWhereHas('agent', fn ($a) => $a->where('name', 'like', "%{$search}%"));
+                });
+            });
+    }
+
+    /**
+     * Préfecture active du DPA, lue dans la table rattachements_prefecture.
+     */
+    private function consultPrefectureId($user): ?int
+    {
+        $aujourdhui = now()->toDateString();
+
+        $id = \Illuminate\Support\Facades\DB::table('rattachements_prefecture')
+            ->where('user_id', $user->id)
+            ->where('statut', 'actif')
+            ->where(function ($q) use ($aujourdhui) {
+                $q->whereNull('dateDebut')->orWhere('dateDebut', '<=', $aujourdhui);
+            })
+            ->where(function ($q) use ($aujourdhui) {
+                $q->whereNull('dateFin')->orWhere('dateFin', '>=', $aujourdhui);
+            })
+            ->orderByDesc('id')
+            ->value('prefecture_id');
+
+        return $id ? (int) $id : null;
+    }
 }
+
+    

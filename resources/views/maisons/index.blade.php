@@ -15,14 +15,14 @@
 
             {{-- FIL D'ARIANE --}}
             <div class="mb-2 flex items-center gap-2 text-sm text-gray-500">
-                <span>{{ $village->canton->nomCanton ?? 'Canton inconnu' }}</span>
+                <span>{{ $village->canton->nomCanton ?? $village->canton->nom ?? 'Canton inconnu' }}</span>
                 <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" />
                 </svg>
-                <span class="text-gray-700">{{ $village->nomVillage }}</span>
+                <span class="text-gray-700">{{ $village->nomVillage ?? $village->nom }}</span>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
+            {{-- <div class="flex flex-wrap items-center gap-3">
                 <h1 class="text-2xl font-semibold tracking-tight text-[#212529]">
                     Maisons du village
                 </h1>
@@ -37,18 +37,18 @@
                         Campagne {{ $affectation->campagne->libelle ?? 'en cours' }}
                     </span>
                 @endif
-            </div>
+            </div> --}}
 
-            <p class="mt-1 text-sm text-gray-500">
+            {{-- <p class="mt-1 text-sm text-gray-500">
                 Référentiel permanent des maisons et suivi de leur recensement pour la campagne active.
-            </p>
+            </p> --}}
 
         </div>
 
 
         {{-- ACTIONS --}}
         <div class="flex items-center gap-2">
-            <a href="{{ $affectation ? route('agent.recensements.maison.create', $affectation->idAffectation) : route('villages.maisons.create', $village->idVillage) }}"
+            <a href="{{ route('villages.maisons.create', ['village' => $village->idVillage, 'affectation_id' => $affectation?->idAffectation]) }}"
                class="inline-flex items-center gap-2 rounded-lg bg-[#006a4f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#156c52]">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -71,7 +71,7 @@
         $localisees = $maisons->filter(fn($m) => $m->latitude !== null)->count();
     @endphp
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    {{-- <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 
         <div class="rounded-lg border border-[#e5e7eb] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
             <div class="flex items-center justify-between">
@@ -118,51 +118,52 @@
             </div>
         </div>
 
-    </div>
+    </div> --}}
 
 
-    {{-- =========================================================
-         RECHERCHE
-    ========================================================== --}}
-    <div class="rounded-lg border border-[#e5e7eb] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-        <form method="GET">
-            <div class="flex flex-col gap-3 sm:flex-row">
-
-                <div class="relative flex-1">
-                    <svg class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z" />
-                    </svg>
-                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Numéro ou adresse..."
-                           class="w-full rounded-lg border border-[#e5e7eb] bg-white py-3 pl-11 pr-4 text-sm text-[#212529] placeholder:text-gray-400 focus:border-[#006a4f] focus:outline-none focus:ring-2 focus:ring-[#006a4f]/10">
-                    @if($affectation)
-                        <input type="hidden" name="affectation_id" value="{{ $affectation->idAffectation }}">
-                    @endif
-                </div>
-
-                <button type="submit"
-                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#006a4f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#156c52]">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z" />
-                    </svg>
-                    Rechercher
-                </button>
-
-                @if(request('q'))
-                    <a href="{{ request()->fullUrlWithQuery(['q' => null]) }}"
-                       class="inline-flex items-center justify-center rounded-lg border border-[#e5e7eb] bg-white px-4 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">
-                        Réinitialiser
-                    </a>
-                @endif
-
-            </div>
-        </form>
-    </div>
+    
 
 
     {{-- =========================================================
          TABLEAU DES MAISONS
     ========================================================== --}}
     <div class="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+        {{-- =========================================================
+            RECHERCHE
+        ========================================================== --}}
+        <div class="rounded-lg border border-[#e5e7eb] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+            <form method="GET">
+                <div class="flex flex-col gap-3 sm:flex-row">
+
+                    <div class="relative flex-1">
+                        <svg class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z" />
+                        </svg>
+                        <input type="text" name="q" value="{{ request('q') }}" placeholder="Numéro ou adresse..."
+                            class="w-full rounded-lg border border-[#e5e7eb] bg-white py-3 pl-11 pr-4 text-sm text-[#212529] placeholder:text-gray-400 focus:border-[#006a4f] focus:outline-none focus:ring-2 focus:ring-[#006a4f]/10">
+                        @if($affectation)
+                            <input type="hidden" name="affectation_id" value="{{ $affectation->idAffectation }}">
+                        @endif
+                    </div>
+
+                    <button type="submit"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#006a4f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#156c52]">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z" />
+                        </svg>
+                        Rechercher
+                    </button>
+
+                    @if(request('q'))
+                        <a href="{{ request()->fullUrlWithQuery(['q' => null]) }}"
+                        class="inline-flex items-center justify-center rounded-lg border border-[#e5e7eb] bg-white px-4 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50">
+                            Réinitialiser
+                        </a>
+                    @endif
+
+                </div>
+            </form>
+        </div>
 
         <div class="flex flex-col gap-1 border-b border-[#e5e7eb] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -184,9 +185,11 @@
                     <thead class="bg-[#f8faf9]">
                         <tr class="border-b border-[#e5e7eb]">
                             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">N°</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Maison</th>
+                            {{-- <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Maison</th> --}}
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Nom chef</th>
+
                             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Adresse</th>
-                            <th class="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">GPS</th>
+                            {{-- <th class="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">GPS</th> --}}
                             <th class="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
                                 {{ $affectation ? 'Statut campagne' : 'Statut' }}
                             </th>
@@ -213,19 +216,23 @@
                                     {{ $maisons->firstItem() + $loop->index }}
                                 </td>
 
-                                <td class="px-6 py-4">
+                                {{-- <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e5f2ee] text-sm font-semibold text-[#006a4f]">
                                             {{ strtoupper(substr($maison->numeroMaison ?? 'M', -2)) }}
                                         </div>
                                         <div class="min-w-0">
-                                            <a href="{{ route('maisons.show', $maison->idMaison) }}"
+                                            <a href="{{ route('maisons.show', array_filter(['maison' => $maison->idMaison, 'affectation_id' => $affectation->idAffectation ?? null])) }}"
                                                class="truncate font-semibold text-[#212529] hover:text-[#006a4f] hover:underline">
                                                 {{ $maison->numeroMaison }}
                                             </a>
-                                            <p class="mt-0.5 truncate font-mono text-xs text-gray-400">{{ $maison->uid }}</p>
                                         </div>
                                     </div>
+                                </td> --}}
+                                 <td class="max-w-xs px-6 py-4">
+                                    <span class="block truncate {{ $maison->nomChef ? 'text-gray-700' : 'text-gray-400' }}">
+                                        {{ $maison->nomChef ?: 'Non renseignée' }}
+                                    </span>
                                 </td>
 
                                 <td class="max-w-xs px-6 py-4">
@@ -234,7 +241,7 @@
                                     </span>
                                 </td>
 
-                                <td class="px-6 py-4 text-center">
+                                {{-- <td class="px-6 py-4 text-center">
                                     @if($maison->latitude !== null && $maison->longitude !== null)
                                         <span class="inline-flex items-center gap-1.5 text-xs font-medium text-[#006a4f]">
                                             <span class="h-1.5 w-1.5 rounded-full bg-[#006a4f]"></span>
@@ -243,7 +250,7 @@
                                     @else
                                         <span class="text-xs text-gray-400">—</span>
                                     @endif
-                                </td>
+                                </td> --}}
 
                                 <td class="px-6 py-4 text-center">
                                     @if($recensement && $termine)
@@ -277,7 +284,7 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-end gap-2">
 
-                                        <a href="{{ route('maisons.show', $maison->idMaison) }}"
+                                        <a href="{{ route('maisons.show', array_filter(['maison' => $maison->idMaison, 'affectation_id' => $affectation->idAffectation ?? null])) }}"
                                            title="Voir la fiche"
                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#e5e7eb] bg-white text-gray-600 transition hover:border-[#006a4f] hover:bg-[#e5f2ee] hover:text-[#006a4f]">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,7 +293,7 @@
                                             </svg>
                                         </a>
 
-                                        @if($affectation)
+                                        {{-- @if($affectation)
                                             @if($recensement)
                                                 <a href="{{ route('agent.recensements.menages.index', $recensement) }}"
                                                    class="rounded-lg bg-[#006a4f] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#156c52]">
@@ -304,7 +311,7 @@
                                                     </button>
                                                 </form>
                                             @endif
-                                        @endif
+                                        @endif --}}
 
                                     </div>
                                 </td>
@@ -342,7 +349,7 @@
                             Réinitialiser la recherche
                         </a>
                     @else
-                        <a href="{{ $affectation ? route('agent.recensements.maison.create', $affectation->idAffectation) : route('villages.maisons.create', $village->idVillage) }}"
+                        <a href="{{ route('villages.maisons.create', ['village' => $village->idVillage, 'affectation_id' => $affectation?->idAffectation]) }}"
                            class="inline-flex items-center gap-2 text-sm font-semibold text-[#006a4f] hover:underline">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -367,7 +374,7 @@
     {{-- =========================================================
          RAPPEL
     ========================================================== --}}
-    @if($affectation)
+    {{-- @if($affectation)
         <div class="rounded-lg border border-blue-200 bg-blue-50 px-5 py-4">
             <div class="flex items-start gap-3">
                 <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,7 +390,7 @@
                 </div>
             </div>
         </div>
-    @endif
+    @endif --}}
 
 </div>
 

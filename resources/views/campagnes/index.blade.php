@@ -69,7 +69,7 @@
          MESSAGES
     ========================================================== --}}
 
-    @if(session('success'))
+    {{-- @if(session('success'))
 
         <div class="flex items-start gap-3 rounded-lg
                     border border-[#b7dfd2]
@@ -94,7 +94,7 @@
 
         </div>
 
-    @endif
+    @endif --}}
 
 
     @if(session('error'))
@@ -153,7 +153,26 @@
     @endif
 
 
+    
+
+
     {{-- =========================================================
+         LISTE DES CAMPAGNES
+    ========================================================== --}}
+    <div class="overflow-hidden rounded-lg
+                border border-[#e5e7eb]
+                bg-white
+                shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+
+
+        {{-- =====================================================
+             EN-TÊTE DU TABLEAU
+        ====================================================== --}}
+        <div class="flex flex-col gap-3
+                    border-b border-[#e5e7eb]
+                    px-6 py-5
+                    sm:flex-row sm:items-center sm:justify-between">
+                    {{-- =========================================================
          FILTRES / RECHERCHE
     ========================================================== --}}
     <div class="rounded-lg border border-[#e5e7eb]
@@ -348,24 +367,6 @@
 
     </div>
 
-
-    {{-- =========================================================
-         LISTE DES CAMPAGNES
-    ========================================================== --}}
-    <div class="overflow-hidden rounded-lg
-                border border-[#e5e7eb]
-                bg-white
-                shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-
-
-        {{-- =====================================================
-             EN-TÊTE DU TABLEAU
-        ====================================================== --}}
-        <div class="flex flex-col gap-3
-                    border-b border-[#e5e7eb]
-                    px-6 py-5
-                    sm:flex-row sm:items-center sm:justify-between">
-
             <div>
 
                 <h2 class="text-base font-semibold text-[#212529]">
@@ -516,7 +517,7 @@
                                             {{ $campagne->libelle }}
                                         </span>
 
-                                        @if($campagne->estOfficielle)
+                                        {{-- @if($campagne->estOfficielle)
 
                                             <span
                                                 title="Campagne officielle"
@@ -529,12 +530,12 @@
                                                 Officielle
                                             </span>
 
-                                        @endif
+                                        @endif --}}
 
                                     </div>
 
 
-                                    <div class="mt-1 flex items-center gap-3">
+                                    {{-- <div class="mt-1 flex items-center gap-3">
 
                                         <span class="font-mono text-xs
                                                      font-medium text-[#006a4f]">
@@ -550,7 +551,7 @@
 
                                         @endif
 
-                                    </div>
+                                    </div> --}}
 
                                 </div>
 
@@ -873,7 +874,7 @@
                                     {{-- =================================================
                                          DÉPLOYER
                                     ================================================== --}}
-                                    @if(
+                                    {{-- @if(
                                         $campagne->statut === 'planifiee'
                                         && $nombreDeploiements === 0
                                     )
@@ -921,7 +922,7 @@
 
                                         </form>
 
-                                    @endif
+                                    @endif --}}
 
 
                                     {{-- =================================================

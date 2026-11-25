@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Carbon\Carbon;
+
 class CampagneRecensement extends Model
 {
     /*
@@ -67,10 +69,6 @@ class CampagneRecensement extends Model
     |--------------------------------------------------------------------------
     | CRÉATEUR
     |--------------------------------------------------------------------------
-    |
-    | Utilisateur désigné pour enregistrer la campagne officielle
-    | dans SIRA-Mô.
-    |
     */
 
     public function createur(): BelongsTo
@@ -135,23 +133,6 @@ class CampagneRecensement extends Model
     |--------------------------------------------------------------------------
     | ZONES DE LA CAMPAGNE
     |--------------------------------------------------------------------------
-    |
-    | Les zones permettent de déterminer précisément les territoires
-    | concernés par la campagne.
-    |
-    | Selon la portée :
-    |
-    | nationale
-    |     → régions concernées
-    |
-    | regionale
-    |     → préfectures concernées
-    |
-    | prefectorale
-    |     → préfectures concernées
-    |
-    | Les niveaux territoriaux sont gérés dans campagne_zones.
-    |
     */
 
     public function zones(): HasMany
@@ -168,10 +149,6 @@ class CampagneRecensement extends Model
     |--------------------------------------------------------------------------
     | DÉPLOIEMENTS
     |--------------------------------------------------------------------------
-    |
-    | Permet de suivre la transmission de la campagne aux territoires
-    | concernés.
-    |
     */
 
     public function deploiements(): HasMany
@@ -188,9 +165,6 @@ class CampagneRecensement extends Model
     |--------------------------------------------------------------------------
     | QUESTIONNAIRES
     |--------------------------------------------------------------------------
-    |
-    | Une campagne peut utiliser un ou plusieurs questionnaires.
-    |
     */
 
     public function questionnaires(): BelongsToMany
@@ -226,13 +200,9 @@ class CampagneRecensement extends Model
     |--------------------------------------------------------------------------
     | PLANIFICATIONS
     |--------------------------------------------------------------------------
-    |
-    | Une campagne officielle peut faire l'objet d'une ou plusieurs
-    | planifications opérationnelles.
-    |
     */
 
-        public function planification(): HasOne
+    public function planification(): HasOne
     {
         return $this->hasOne(
             CampagnePlanification::class,
@@ -242,86 +212,173 @@ class CampagneRecensement extends Model
     }
 
 
-    
-
     /*
     |--------------------------------------------------------------------------
-    | HELPERS DE STATUT
+    | GESTION DU TEMPS ET STATUTS EN TEMPS RÉEL
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Calcule dynamiquement le statut réel en fonction de la date et de l'heure courante.
+     */
+    // public function getStatutReelAttribute(): string
+    // {
+    //     if (in_array($this->statut, ['archivee', 'annulee'])) {
+    //         return $this->statut;
+    //     }
+
+    //     $maintenant = now();
+
+    //     if ($this->dateDebut && $maintenant->lt($this->dateDebut)) {
+    //         return 'planifiee';
+    //     }
+
+    //     if ($this->dateDebut && $maintenant->gte($this->dateDebut) && ($this->dateFin === null || $maintenant->lte($this->dateFin))) {
+    //         return 'active';
+    //     }
+
+    //     if ($this->dateFin && $maintenant->gt($this->dateFin)) {
+    //         return 'cloturee';
+    //     }
+
+    //     return $this->statut;
+    // }
+
+    /**
+     * Synchronise et met à jour en BDD si le statut a basculé.
+     */
+    // public function synchroniserStatut(): bool
+    // {
+    //     $nouveauStatut = $this->statut_reel;
+
+    //     if ($this->statut !== $nouveauStatut) {
+    //         $this->statut = $nouveauStatut;
+    //         return $this->save();
+    //     }
+
+    //     return false;
+    // }
+
+
+    /**
+     * Synchronise et met à jour en BDD si le statut a basculé.
+     * Désactive automatiquement toutes les affectations si la campagne est clôturée.
+     */
+   /**
+     * Calcule dynamiquement le statut réel en fonction de la date et de l'heure courante.
+     */
+    public function getStatutReelAttribute(): string
+    {
+        if (in_array($this->statut, ['archivee', 'annulee'])) {
+            return $this->statut;
+        }
+
+        $maintenant = now();
+
+        if ($this->dateDebut && $maintenant->lt($this->dateDebut)) {
+            return 'planifiee';
+        }
+
+        if ($this->dateDebut && $maintenant->gte($this->dateDebut) && ($this->dateFin === null || $maintenant->lte($this->dateFin))) {
+            return 'active';
+        }
+
+        if ($this->dateFin && $maintenant->gt($this->dateFin)) {
+            return 'cloturee';
+        }
+
+        return $this->statut;
+    }
+
+    /**
+     * Synchronise le statut de la campagne ET désactive ses affectations si elle est clôturée.
+     */
+    public function synchroniserStatut(): bool
+    {
+        $nouveauStatut = $this->statut_reel;
+        $estModifie = false;
+
+        // 1. Mettre à jour le statut de la campagne
+        if ($this->statut !== $nouveauStatut) {
+            $this->statut = $nouveauStatut;
+            $this->save();
+            $estModifie = true;
+        }
+
+        // 2. Si la campagne est clôturée ou archivée, basculer ses affectations actives en "annulee"
+        if (in_array($this->statut, ['cloturee', 'archivee'])) {
+            $nbModifies = $this->affectations()
+                ->where('statut', 'active')
+                ->update([
+                    'statut'  => 'inactive',
+                    'dateFin' => now(),
+                ]);
+
+            if ($nbModifies > 0) {
+                $estModifie = true;
+            }
+        }
+
+        return $estModifie;
+    }
+
+    /**
+     * Synchronise TOUTES les campagnes de la base de données.
+     */
+    public static function synchroniserToutes(): void
+    {
+        $campagnes = self::all();
+        foreach ($campagnes as $campagne) {
+            $campagne->synchroniserStatut();
+        }
+    }
+
+    /**
+     * Synchronise toutes les campagnes de la base de données.
+     */
+    // public static function synchroniserToutes(): void
+    // {
+    //     $campagnes = self::whereNotIn('statut', ['archivee', 'annulee'])->get();
+    //     foreach ($campagnes as $campagne) {
+    //         $campagne->synchroniserStatut();
+    //     }
+    // }
+
     public function estPlanifiee(): bool
     {
+        $this->synchroniserStatut();
         return $this->statut === 'planifiee';
     }
 
-
     public function estActive(): bool
     {
+        $this->synchroniserStatut();
         return $this->statut === 'active';
     }
 
-
     public function estCloturee(): bool
     {
+        $this->synchroniserStatut();
         return $this->statut === 'cloturee';
     }
 
-
     public function estArchivee(): bool
     {
+        $this->synchroniserStatut();
         return $this->statut === 'archivee';
     }
 
-
-   /**
-     * Synchronise automatiquement le statut de la campagne 
-     * en fonction de la date du jour (dateDebut et dateFin).
-     */
-    public function synchroniserStatut()
+    public function estModifiable(): bool
     {
-        $maintenant = now();
-
-        // 1. Si la campagne est 'planifiee' et que la date de début est atteinte ou dépassée
-        if ($this->statut === 'planifiee' && $maintenant->greaterThanOrEqualTo($this->dateDebut)) {
-            $this->update(['statut' => 'active']);
-        }
-
-        // 2. Si la campagne est 'active' et qu'il y a une date de fin dépassée
-        if ($this->statut === 'active' && $this->dateFin && $maintenant->greaterThan($this->dateFin)) {
-            $this->update(['statut' => 'cloturee']);
-        }
+        $this->synchroniserStatut();
+        return !in_array($this->statut, ['cloturee', 'archivee']);
     }
 
-        /**
-         * Synchronise l'ensemble des campagnes de la base de données (utilisé par le contrôleur ou le scheduler).
-         */
-        public static function synchroniserToutes()
-        {
-            $maintenant = now();
-
-            // Activer les campagnes planifiées dont la date de début est atteinte
-            self::where('statut', 'planifiee')
-                ->where('dateDebut', '<=', $maintenant)
-                ->update(['statut' => 'active']);
-
-            // Clôturer les campagnes actives dont la date de fin est dépassée
-            self::where('statut', 'active')
-                ->whereNotNull('dateFin')
-                ->where('dateFin', '<', $maintenant)
-                ->update(['statut' => 'cloturee']);
-        }
 
     /*
     |--------------------------------------------------------------------------
     | PRÉFECTURES CONCERNÉES PAR LA CAMPAGNE
     |--------------------------------------------------------------------------
-    |
-    | Calcule la liste unique des préfectures réellement concernées,
-    | en remontant la hiérarchie territoriale pour chaque zone
-    | (région exclue : une campagne nationale/régionale sans précision
-    | n'implique pas de préfecture déterminée).
-    |
     */
 
     public function prefecturesConcernees()
@@ -334,17 +391,21 @@ class CampagneRecensement extends Model
     }
 
 
-    /**
-     * Vérifie si la campagne est encore modifiable (ni clôturée ni archivée).
-     */
-    public function estModifiable(): bool
+        public function periodeTexte(): string
     {
-        $this->synchroniserStatut();
-
-        return !in_array($this->statut, ['cloturee', 'archivee']);
+        return 'du ' . \Illuminate\Support\Carbon::parse($this->dateDebut)->format('d/m/Y')
+            . ' au ' . \Illuminate\Support\Carbon::parse($this->dateFin)->format('d/m/Y');
     }
 
+    /** Vrai si la période donnée est entièrement comprise dans celle de la campagne (au jour près). */
+    public function contientPeriode($debut, $fin = null): bool
+    {
+        $d = \Illuminate\Support\Carbon::parse($debut)->toDateString();
+        $f = \Illuminate\Support\Carbon::parse($fin ?? $debut)->toDateString();
 
+        $cd = \Illuminate\Support\Carbon::parse($this->dateDebut)->toDateString();
+        $cf = \Illuminate\Support\Carbon::parse($this->dateFin)->toDateString();
 
-    
+        return $d >= $cd && $f <= $cf;
+    }
 }

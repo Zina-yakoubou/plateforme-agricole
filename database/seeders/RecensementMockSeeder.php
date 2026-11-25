@@ -194,18 +194,42 @@ class RecensementMockSeeder extends Seeder
                     $totalZones++;
                 }
 
+                // $deploiement = CampagneDeploiement::firstOrCreate(
+                //     [
+                //         'campagne_id' => $campagne->idCampagne,
+                //         'prefecture_id' => $prefectureId,
+                //     ],
+                //     [
+                //         'statut' => 'notifiee',
+                //     ]
+                // );
+
+                // if ($deploiement->wasRecentlyCreated) {
+                //     $totalDeploiements++;
+                // }
+
+
+                $cloturee = $campagne->statut === 'cloturee';
+
                 $deploiement = CampagneDeploiement::firstOrCreate(
                     [
                         'campagne_id' => $campagne->idCampagne,
                         'prefecture_id' => $prefectureId,
                     ],
                     [
-                        'statut' => 'notifiee',
+                        'statut' => $cloturee ? 'recue' : 'notifiee',
+                        'dateReception' => $cloturee ? $campagne->dateFin : null,
                     ]
                 );
 
-                if ($deploiement->wasRecentlyCreated) {
-                    $totalDeploiements++;
+                // Si le déploiement existait déjà en « notifiee », on le passe en « recue »
+                if ($cloturee && $deploiement->statut !== 'recue') {
+                    DB::table('campagne_deploiements')
+                        ->where('idDeploiement', $deploiement->getKey())
+                        ->update([
+                            'statut' => 'recue',
+                            'dateReception' => $campagne->dateFin,
+                        ]);
                 }
 
                 /*

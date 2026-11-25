@@ -54,11 +54,19 @@
 
         <div class="flex items-center gap-3 min-w-0">
 
-            <img
+            {{-- <img
                 src="{{ asset('images/im.png') }}"
                 class="w-9 h-9 rounded-md shrink-0"
                 alt="SIRA-Mô"
-            >
+            > --}}
+
+            <svg width="40" height="40" viewBox="0 0 64 64" aria-hidden="true" class="shrink-0">
+                <rect width="64" height="64" rx="14" fill="#14532d"/>
+                <path d="M43 22 C43 17 38 14.5 32 14.5 C26 14.5 21 17.5 21 22.5
+                        C21 27.5 26 29.5 32 32 C38 34.5 43 36.5 43 41.5
+                    C43 46.5 38 49.5 32 49.5 C26 49.5 21 47 21 42"
+                    fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round"/>
+            </svg>
 
             <div
                 class="min-w-0"
@@ -214,259 +222,135 @@
         ================================================================== --}}
         @if($user->isAdmin())
 
-            <div class="mt-6">
+    @php
+        $adminMenu = [
+            [
+                'route'   => 'users.index',
+                'pattern' => 'users.*',
+                'label'   => 'Utilisateurs',
+                'title'   => 'Utilisateurs',
+                'icon'    => 'M17 20h5v-2a4 4 0 00-3-3.87 M9 20H4v-2a4 4 0 013-3.87 m5-9.13a4 4 0 110 8 4 4 0 010-8 m6 4a4 4 0 100 8',
+            ],
+            // [
+            //     'route'   => 'admin.entites.index',
+            //     'pattern' => 'admin.entites.*',
+            //     'label'   => 'Entités administratives',
+            //     'title'   => 'Régions, préfectures, communes, cantons, villages et maisons',
+            //     'icon'    => 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z',
+            // ],
+            [
+                'route'   => 'admin.referentiel.index',
+                'pattern' => 'admin.referentiel.*',
+                'label'   => 'Référentiel',
+                'title'   => 'Référentiel cultures et intrants',
+                'icon'    => 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10',
+            ],
+            [
+                'route'   => 'campagnes.index',
+                'pattern' => 'campagnes.*',
+                'label'   => 'Campagnes',
+                'title'   => 'Campagnes',
+                'icon'    => 'M8 7V3 m8 4V3 M4 11h16 M5 5h14a1 1 0 011 1v13 a1 1 0 01-1 1H5 a1 1 0 01-1-1V6 a1 1 0 011-1z',
+            ],
+            [
+                'route'   => 'admin.besoins.index',
+                'pattern' => 'admin.besoins.*',
+                'label'   => 'Besoins',
+                'title'   => 'Besoins par préfecture et besoins globaux',
+                'icon'    => 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
+            ],
+            [
+                'route'   => 'admin.recensements.index',
+                'pattern' => 'admin.recensements.*',
+                'label'   => 'Recensements',
+                'title'   => 'Tous les recensements',
+                'icon'    => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+            ],
+            [
+                'route'   => 'statistiques.index',
+                'pattern' => 'statistiques.*',
+                'label'   => 'Statistiques',
+                'title'   => 'Statistiques',
+                'icon'    => 'M4 19V5 M4 19h16 M8 16v-5 M12 16V8 M16 16v-8',
+            ],
+            // [
+            //     'route'   => 'admin.carte.index',
+            //     'pattern' => 'admin.carte.*',
+            //     'label'   => 'Carte',
+            //     'title'   => 'Carte des exploitations',
+            //     'icon'    => 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7',
+            // ],
+            [
+                'route'   => 'admin.activites.index',
+                'pattern' => 'admin.activites.*',
+                'label'   => "Journal d'activités",
+                'title'   => "Journal d'activités",
+                'icon'    => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
+            ],
+            [
+                'route'   => 'admin.parametres.index',
+                'pattern' => 'admin.parametres.*',
+                'label'   => 'Paramètres',
+                'title'   => 'Paramètres du système',
+                'icon'    => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+            ],
+        ];
+    @endphp
 
-                <p
+    <div class="mt-6">
+
+        <p
+            x-show="!sidebarCollapsed"
+            class="text-xs uppercase tracking-widest
+                   text-text-muted mb-3 px-1 whitespace-nowrap"
+        >
+            Administration
+        </p>
+
+        @foreach($adminMenu as $item)
+            @php
+                $existe = Route::has($item['route']);
+                $actif  = $existe && request()->routeIs($item['pattern']);
+            @endphp
+
+            <a
+                href="{{ $existe ? route($item['route']) : '#' }}"
+                @click="sidebarOpen = false"
+                :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                class="flex items-center gap-3 py-3 rounded-md mb-1
+                       transition-colors duration-150
+                       {{ $actif
+                            ? 'bg-green-50 text-green-700 font-semibold'
+                            : 'text-text-secondary hover:bg-background-muted' }}"
+                title="{{ $item['title'] }}{{ $existe ? '' : ' (bientôt disponible)' }}"
+            >
+                <svg
+                    class="w-5 h-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="{{ $item['icon'] }}"
+                    />
+                </svg>
+
+                <span
                     x-show="!sidebarCollapsed"
-                    class="text-xs uppercase tracking-widest
-                           text-text-muted mb-3 px-1 whitespace-nowrap"
+                    x-transition.opacity
+                    class="whitespace-nowrap"
                 >
-                    Administration
-                </p>
+                    {{ $item['label'] }}
+                </span>
+            </a>
+        @endforeach
 
+    </div>
 
-                {{-- UTILISATEURS --}}
-                <a
-                    href="{{ route('users.index') }}"
-                    @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="flex items-center gap-3 py-3 rounded-md mb-1
-                           transition-colors duration-150
-                           {{ request()->routeIs('users.*')
-                                ? 'bg-green-50 text-green-700 font-semibold'
-                                : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Utilisateurs"
-                >
-
-                    <svg
-                        class="w-5 h-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M17 20h5v-2a4 4 0 00-3-3.87
-                               M9 20H4v-2a4 4 0 013-3.87
-                               m5-9.13a4 4 0 110 8 4 4 0 010-8
-                               m6 4a4 4 0 100 8"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Utilisateurs
-                    </span>
-
-                </a>
-
-
-                {{-- CAMPAGNES --}}
-                <a
-                    href="{{ route('campagnes.index') }}"
-                    @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="flex items-center gap-3 py-3 rounded-md mb-1
-                           transition-colors duration-150
-                           {{ request()->routeIs('campagnes.*')
-                                ? 'bg-green-50 text-green-700 font-semibold'
-                                : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Campagnes"
-                >
-
-                    <svg
-                        class="w-5 h-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M8 7V3
-                               m8 4V3
-                               M4 11h16
-                               M5 5h14a1 1 0 011 1v13
-                               a1 1 0 01-1 1H5
-                               a1 1 0 01-1-1V6
-                               a1 1 0 011-1z"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Campagnes
-                    </span>
-
-                </a>
-
-
-                {{-- SAISONS DE DISTRIBUTION --}}
-                <a
-                    href="{{ route('saison-distributions.index') }}"
-                    @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="flex items-center gap-3 py-3 rounded-md mb-1
-                           transition-colors duration-150
-                           {{ request()->routeIs('saison-distributions.*')
-                                ? 'bg-green-50 text-green-700 font-semibold'
-                                : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Saisons de Distribution"
-                >
-                    <svg
-                        class="w-5 h-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Saisons de Distribution
-                    </span>
-                </a>
-
-
-                {{-- CONSULTATION GLOBAL INTRANTS & BESOINS (ADMIN) --}}
-                <a
-A2                    {{-- href="{{ route('admin.intrants.index') }}" --}}
-
-                    @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="flex items-center gap-3 py-3 rounded-md mb-1
-                           transition-colors duration-150
-                           {{ request()->routeIs('admin.intrants.*')
-                                ? 'bg-green-50 text-green-700 font-semibold'
-                                : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Consultation Intrants & Stocks"
-                >
-                    <svg
-                        class="w-5 h-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.8"
-                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Consultation Intrants
-                    </span>
-                </a>
-
-
-                {{-- STATISTIQUES --}}
-                <a
-                    href="{{ route('statistiques.index') }}"
-                    @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="flex items-center gap-3 py-3 rounded-md mb-1
-                        transition-colors duration-150 ease-in-out
-                        {{ request()->routeIs('statistiques.*')
-                                ? 'bg-green-50 text-green-700 font-semibold'
-                                : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Statistiques"
-                >
-
-                    <svg
-                        class="w-5 h-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M4 19V5
-                            M4 19h16
-                            M8 16v-5
-                            M12 16V8
-                            M16 16v-8"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Statistiques
-                    </span>
-
-                </a>
-
-
-                {{-- JOURNAL D'ACTIVITÉS --}}
-                <a
-                    href="#"
-                    @click="sidebarOpen = false"
-                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
-                    class="flex items-center gap-3 py-3 rounded-md mb-1
-                           transition-colors duration-150
-                           {{ request()->routeIs('activites.*')
-                                ? 'bg-green-50 text-green-700 font-semibold'
-                                : 'text-text-secondary hover:bg-background-muted' }}"
-                    title="Journal d'activités"
-                >
-
-                   <svg
-                        class="w-5 h-5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.8"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                        />
-                    </svg>
-
-                    <span
-                        x-show="!sidebarCollapsed"
-                        x-transition.opacity
-                        class="whitespace-nowrap"
-                    >
-                        Journal d'activités
-                    </span>
-
-                </a>
-
-            </div>
-
-        @endif
-
-
+@endif
 
         {{-- =================================================================
             DPA (DIRECTION PRÉFECTORALE DE L'AGRICULTURE)
@@ -807,10 +691,8 @@ A2                    {{-- href="{{ route('admin.intrants.index') }}" --}}
                     </a>
 
                     {{-- 3. ALLOCATIONS & QUOTAS --}}
-                    <a
-                        {{-- href="#" --}}
-
-                        {{-- href="{{ route('dpa.allocations.index') }}" --}}
+                    {{-- <a
+                       
                         @click="sidebarOpen = false"
                         :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
                         class="mb-1 flex items-center gap-3 rounded-md py-2.5 transition-colors duration-150
@@ -825,16 +707,15 @@ A2                    {{-- href="{{ route('admin.intrants.index') }}" --}}
                         <span x-show="!sidebarCollapsed" x-transition.opacity class="whitespace-nowrap">
                             Allocations & Quotas
                         </span>
-                    </a>
+                    </a> --}}
 
                     {{-- 4. DISTRIBUTIONS --}}
-                    <a
+                    {{-- <a
                         href="#
                         
     
                         "
 
-                        {{-- href="{{ route('dpa.distributions.index') }}" --}}
                         @click="sidebarOpen = false"
                         :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
                         class="mb-1 flex items-center gap-3 rounded-md py-2.5 transition-colors duration-150
@@ -849,6 +730,24 @@ A2                    {{-- href="{{ route('admin.intrants.index') }}" --}}
                         <span x-show="!sidebarCollapsed" x-transition.opacity class="whitespace-nowrap">
                             Suivi Distributions
                         </span>
+                    </a> --}}
+
+                    <a
+                        href="{{ Route::has('dpa.recensements.index') ? route('dpa.recensements.index') : '#' }}"
+                        @click="sidebarOpen = false"
+                        :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                        class="flex items-center gap-3 py-3 rounded-md mb-1
+                            transition-colors duration-150
+                            {{ request()->routeIs('dpa.recensements.*')
+                                    ? 'bg-green-50 text-green-700 font-semibold'
+                                    : 'text-text-secondary hover:bg-background-muted' }}"
+                        title="Recensements de la préfecture"
+                    >
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span x-show="!sidebarCollapsed" x-transition.opacity class="whitespace-nowrap">Recensements</span>
                     </a>
                 </div>
 
@@ -966,7 +865,7 @@ A2                    {{-- href="{{ route('admin.intrants.index') }}" --}}
 
 
                 {{-- MES RECENSEMENTS --}}
-                <a
+                {{-- <a
                     href="{{ route('agent.recensements.index') }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
@@ -1006,11 +905,11 @@ A2                    {{-- href="{{ route('admin.intrants.index') }}" --}}
                         Mes recensements
                     </span>
 
-                </a>
+                </a> --}}
 
 
                 {{-- À RAPPELER / INCOMPLETS --}}
-                <a
+                {{-- <a
                     href="{{ route('agent.recensements.index', ['statut' => 'en_attente']) }}"
                     @click="sidebarOpen = false"
                     :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
@@ -1044,6 +943,76 @@ A2                    {{-- href="{{ route('admin.intrants.index') }}" --}}
                         À rappeler / Incomplets
                     </span>
 
+                </a> --}}
+                {{-- @php
+                    $isRappel = request()->routeIs('agent.recensements*') && request('statut') === 'en_attente';
+                @endphp
+
+                <a
+                    href="{{ route('agent.recensements.index', ['statut' => 'en_attente']) }}"
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                        transition-colors duration-150
+                        {{ $isRappel
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Dossiers à rappeler ou incomplets"
+                >
+                    <svg
+                        class="h-5 w-5 shrink-0 {{ $isRappel ? 'text-green-600' : 'text-amber-500' }}"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                    </svg>
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition.opacity
+                        class="whitespace-nowrap"
+                    >
+                        À rappeler / Incomplets
+                    </span>
+                </a> --}}
+
+                @php $isRappel = request()->routeIs('agent.incomplets');
+                @endphp
+
+                <a
+                    href="{{ route('agent.incomplets') }}"
+                    @click="sidebarOpen = false"
+                    :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-4'"
+                    class="mb-1 flex items-center gap-3 rounded-md py-3
+                        transition-colors duration-150
+                        {{ $isRappel
+                                ? 'bg-green-50 text-green-700 font-semibold'
+                                : 'text-text-secondary hover:bg-background-muted' }}"
+                    title="Villages commencés mais pas terminés"
+                >
+                    <svg
+                        class="h-5 w-5 shrink-0 {{ $isRappel ? 'text-green-600' : 'text-amber-500' }}"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                    </svg>
+
+                    <span x-show="!sidebarCollapsed" x-transition.opacity class="whitespace-nowrap">
+                        À rappeler / Incomplets
+                    </span>
                 </a>
 
             </div>

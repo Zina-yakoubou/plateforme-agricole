@@ -180,7 +180,7 @@
             href="{{ route('campagnes.show', $campagne) }}"
             class="inline-flex items-center rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
-            ← Retour à la campagne
+            Retour à la campagne
         </a>
 
     </div>

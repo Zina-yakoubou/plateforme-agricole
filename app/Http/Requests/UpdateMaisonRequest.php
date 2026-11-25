@@ -75,6 +75,14 @@ class UpdateMaisonRequest extends FormRequest
                 'string',
                 'max:255',
             ],
+
+            
+             ' nomChef' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+           
         ];
     }
 

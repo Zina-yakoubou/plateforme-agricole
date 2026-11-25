@@ -38,68 +38,55 @@ class CampagnePlanificationController extends Controller
      * ENREGISTRER LA PLANIFICATION
      * ==========================================================
      */
-    public function store(
-        StoreCampagnePlanificationRequest $request,
-        CampagneRecensement $campagne
-    ) {
-
-        if (!$campagne->estModifiable()) {
-            return back()->with('error', 'Action impossible : cette campagne est clôturée ou archivée.');
-        }
-
-
-
-        // Sécurité : une seule planification par campagne
-        if ($campagne->planification()->exists()) {
-            return redirect()
-                ->route('campagnes.planification.show', $campagne)
-                ->with(
-                    'info',
-                    'Cette campagne possède déjà une planification.'
-                );
-        }
-
-        $data = $request->validated();
-
-        $activites = $data['activites'];
-
-        DB::transaction(function () use (
-            $campagne,
-            $data,
-            $activites
-        ) {
-
-            $planification = CampagnePlanification::create([
-                'campagne_id'  => $campagne->idCampagne,
-                'planifie_par' => Auth::user()->id,
-                'statut'       => 'planifiee',
-                'observations' => $data['observations'] ?? null,
-            ]);
-
-            foreach ($activites as $index => $activite) {
-
-                $planification->activites()->create([
-                    'ordre'       => $index + 1,
-                    'libelle'     => $activite['libelle'],
-                    'description' => $activite['description'] ?? null,
-                    'dateDebut'   => $activite['dateDebut'],
-                    'dateFin'     => $activite['dateFin'],
-                    'statut'      => 'planifiee',
-                ]);
-            }
-        });
-
-        return redirect()
-            ->route(
-                'campagnes.planification.show',
-                $campagne
-            )
-            ->with(
-                'success',
-                'La planification de la campagne a été créée avec succès.'
-            );
+  public function store(
+    StoreCampagnePlanificationRequest $request,
+    CampagneRecensement $campagne
+) {
+    if (! $campagne->estModifiable()) {
+        return back()->with('error', 'Action impossible : cette campagne est clôturée ou archivée.');
     }
 
+    // Sécurité : une seule planification par campagne
+    if ($campagne->planification()->exists()) {
+        return redirect()
+            ->route('campagnes.planification.show', $campagne)
+            ->with('info', 'Cette campagne possède déjà une planification.');
+    }
+
+    $data = $request->validated();
+
+    // Chaque activité doit rester dans la période de la campagne
+    if ($erreurs = $this->erreursPeriode($campagne, $data['activites'])) {
+        return back()->withInput()->withErrors($erreurs);
+    }
+
+    $activites = $data['activites'];
+
+    DB::transaction(function () use ($campagne, $data, $activites) {
+
+        $planification = CampagnePlanification::create([
+            'campagne_id'  => $campagne->idCampagne,
+            'planifie_par' => Auth::id(),
+            'statut'       => 'planifiee',
+            'observations' => $data['observations'] ?? null,
+        ]);
+
+        foreach ($activites as $index => $activite) {
+            $planification->activites()->create([
+                'ordre'       => $index + 1,
+                'libelle'     => $activite['libelle'],
+                'description' => $activite['description'] ?? null,
+                'dateDebut'   => $activite['dateDebut'],
+                'dateFin'     => $activite['dateFin'],
+                'statut'      => 'planifiee',
+            ]);
+        }
+    });
+
+    return redirect()
+        ->route('campagnes.planification.show', $campagne)
+        ->with('success', 'La planification de la campagne a été créée avec succès.');
+}
     /**
      * ==========================================================
      * AFFICHER LA PLANIFICATION
@@ -148,27 +135,26 @@ class CampagnePlanificationController extends Controller
      * METTRE À JOUR LA PLANIFICATION
      * ==========================================================
      */
-    public function update(
+   public function update(
         StoreCampagnePlanificationRequest $request,
         CampagneRecensement $campagne
     ) {
-
-        if (!$campagne->estModifiable()) {
+        if (! $campagne->estModifiable()) {
             return back()->with('error', 'Action impossible : cette campagne est clôturée ou archivée.');
         }
 
-        $planification = $campagne->planification()
-            ->firstOrFail();
+        $planification = $campagne->planification()->firstOrFail();
 
         $data = $request->validated();
 
+        // Chaque activité doit rester dans la période de la campagne
+        if ($erreurs = $this->erreursPeriode($campagne, $data['activites'])) {
+            return back()->withInput()->withErrors($erreurs);
+        }
+
         $activites = $data['activites'];
 
-        DB::transaction(function () use (
-            $planification,
-            $data,
-            $activites
-        ) {
+        DB::transaction(function () use ($planification, $data, $activites) {
 
             $planification->update([
                 'observations' => $data['observations'] ?? null,
@@ -178,7 +164,6 @@ class CampagnePlanificationController extends Controller
             $planification->activites()->delete();
 
             foreach ($activites as $index => $activite) {
-
                 $planification->activites()->create([
                     'ordre'       => $index + 1,
                     'libelle'     => $activite['libelle'],
@@ -191,16 +176,9 @@ class CampagnePlanificationController extends Controller
         });
 
         return redirect()
-            ->route(
-                'campagnes.planification.show',
-                $campagne
-            )
-            ->with(
-                'success',
-                'La planification a été mise à jour avec succès.'
-            );
+            ->route('campagnes.planification.show', $campagne)
+            ->with('success', 'La planification a été mise à jour avec succès.');
     }
-
     /**
      * ==========================================================
      * SUPPRIMER LA PLANIFICATION
@@ -229,6 +207,22 @@ class CampagnePlanificationController extends Controller
             );
     }
 
+    /**
+     * Vérifie que chaque activité reste dans la période de la campagne.
+     * Retourne un tableau d'erreurs (vide si tout est valide).
+     */
+    private function erreursPeriode(CampagneRecensement $campagne, array $activites): array
+    {
+        $erreurs = [];
 
+        foreach ($activites as $index => $activite) {
+            if (! $campagne->contientPeriode($activite['dateDebut'], $activite['dateFin'])) {
+                $erreurs["activites.{$index}.dateDebut"] =
+                    "L'activité n°" . ($index + 1) . " doit rester comprise dans la période de la campagne, {$campagne->periodeTexte()}.";
+            }
+        }
+
+        return $erreurs;
+    }
     
 }

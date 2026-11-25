@@ -32,6 +32,13 @@ class StoreMaisonRequest extends FormRequest
                 'max:255',
             ],
 
+             ' nomChef' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+           
+
             'latitude' => [
                 'nullable',
                 'numeric',

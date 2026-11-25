@@ -34,8 +34,13 @@ class DatabaseSeeder extends Seeder
             QuestionnaireSeeder::class, // Insère questionnaires + pivot
             CampagnePlanificationSeeder::class,
             PlanificationActiviteSeeder::class,
-            CultureSeeder::class,
             IntrantSeeder::class,
+            CultureSeeder::class,
+
+            CultureIntrantSeeder::class,
+            EquipesChaineAgricoleSeeder::class,
+            CollecteIntrantsSeeder::class,
+
 
             //DirecteurPrefectureSeeder::class,
             //AffectationSeeder::class,

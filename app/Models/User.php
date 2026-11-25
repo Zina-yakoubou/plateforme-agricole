@@ -198,4 +198,11 @@ class User extends Authenticatable
     {
         return $this->hasRole('Agent recenseur');
     }
+
+        public function prefectureId(): ?int
+    {
+        $id = $this->rattachementPrefectureActif?->prefecture_id;
+
+        return $id ? (int) $id : null;
+    }
 }

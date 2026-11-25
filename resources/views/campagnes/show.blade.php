@@ -109,7 +109,7 @@
                            transition hover:bg-blue-700"
                 >
 
-                    <svg
+                    {{-- <svg
                         class="h-4 w-4"
                         fill="none"
                         stroke="currentColor"
@@ -121,7 +121,7 @@
                             stroke-width="2"
                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 8.5-8.5z"
                         />
-                    </svg>
+                    </svg> --}}
 
                     Modifier
 
@@ -151,7 +151,7 @@
                                transition hover:bg-[#156c52]"
                     >
 
-                        <svg
+                        {{-- <svg
                             class="h-4 w-4"
                             fill="none"
                             stroke="currentColor"
@@ -163,7 +163,7 @@
                                 stroke-width="2"
                                 d="M5 12h14M13 6l6 6-6 6"
                             />
-                        </svg>
+                        </svg> --}}
 
                         Déployer
 

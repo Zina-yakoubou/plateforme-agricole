@@ -110,6 +110,11 @@
                         {{ session('success') }}
                     </div>
                 @endif
+                @if(session('warning'))
+                    <div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 shadow-sm">
+                        {{ session('warning') }}
+                    </div>
+                @endif
 
                 @yield('content')
 

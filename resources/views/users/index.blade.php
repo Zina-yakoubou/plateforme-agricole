@@ -162,106 +162,7 @@
     @endif
 
 
-    {{-- =========================================================
-         RECHERCHE
-    ========================================================== --}}
-
-    <div class="rounded-lg
-                border border-[#e5e7eb]
-                bg-white
-                p-4
-                shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-
-        <form
-            method="GET"
-            action="{{ route('users.index') }}"
-        >
-
-            <div class="flex flex-col gap-3 sm:flex-row">
-
-                <div class="relative flex-1">
-
-                    <svg
-                        class="pointer-events-none
-                               absolute left-4 top-1/2
-                               h-5 w-5
-                               -translate-y-1/2
-                               text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="m21 21-4.35-4.35
-                               m2.35-5.65a8 8 0 11-16 0
-                               8 8 0 0116 0z"
-                        />
-                    </svg>
-
-                    <input
-                        type="text"
-                        name="search"
-                        value="{{ $search }}"
-                        placeholder="Rechercher par nom, email, login ou téléphone..."
-                        class="w-full
-                               rounded-lg
-                               border border-[#e5e7eb]
-                               bg-white
-                               py-3 pl-11 pr-4
-                               text-sm text-[#212529]
-                               placeholder:text-gray-400
-                               focus:border-[#006a4f]
-                               focus:outline-none
-                               focus:ring-2
-                               focus:ring-[#006a4f]/10"
-                    >
-
-                </div>
-
-
-                <button
-                    type="submit"
-                    class="inline-flex
-                           items-center
-                           justify-center
-                           gap-2
-                           rounded-lg
-                           bg-[#006a4f]
-                           px-5 py-3
-                           text-sm font-semibold
-                           text-white
-                           transition
-                           hover:bg-[#156c52]"
-                >
-
-                    <svg
-                        class="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="m21 21-4.35-4.35
-                               m2.35-5.65a8 8 0 11-16 0
-                               8 8 0 0116 0z"
-                        />
-                    </svg>
-
-                    Rechercher
-
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
+    
 
 
     {{-- =========================================================
@@ -273,6 +174,106 @@
                 border border-[#e5e7eb]
                 bg-white
                 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                {{-- =========================================================
+                    RECHERCHE
+                ========================================================== --}}
+
+                <div class="rounded-lg
+                            border border-[#e5e7eb]
+                            bg-white
+                            p-4
+                            shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+
+                    <form
+                        method="GET"
+                        action="{{ route('users.index') }}"
+                    >
+
+                        <div class="flex flex-col gap-3 sm:flex-row">
+
+                            <div class="relative flex-1">
+
+                                <svg
+                                    class="pointer-events-none
+                                        absolute left-4 top-1/2
+                                        h-5 w-5
+                                        -translate-y-1/2
+                                        text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="m21 21-4.35-4.35
+                                        m2.35-5.65a8 8 0 11-16 0
+                                        8 8 0 0116 0z"
+                                    />
+                                </svg>
+
+                                <input
+                                    type="text"
+                                    name="search"
+                                    value="{{ $search }}"
+                                    placeholder="Rechercher par nom, email, login ou téléphone..."
+                                    class="w-full
+                                        rounded-lg
+                                        border border-[#e5e7eb]
+                                        bg-white
+                                        py-3 pl-11 pr-4
+                                        text-sm text-[#212529]
+                                        placeholder:text-gray-400
+                                        focus:border-[#006a4f]
+                                        focus:outline-none
+                                        focus:ring-2
+                                        focus:ring-[#006a4f]/10"
+                                >
+
+                            </div>
+
+
+                            <button
+                                type="submit"
+                                class="inline-flex
+                                    items-center
+                                    justify-center
+                                    gap-2
+                                    rounded-lg
+                                    bg-[#006a4f]
+                                    px-5 py-3
+                                    text-sm font-semibold
+                                    text-white
+                                    transition
+                                    hover:bg-[#156c52]"
+                            >
+
+                                <svg
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="m21 21-4.35-4.35
+                                        m2.35-5.65a8 8 0 11-16 0
+                                        8 8 0 0116 0z"
+                                    />
+                                </svg>
+
+                                Rechercher
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
 
 
         {{-- EN-TÊTE DU TABLEAU --}}

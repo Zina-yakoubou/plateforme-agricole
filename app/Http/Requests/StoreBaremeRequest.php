@@ -4,32 +4,46 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StoreBaremeRequest extends FormRequest
 {
     public function authorize(): bool
     {
         $user = Auth::user();
-        return $user !== null && ($user->isAdmin() || $user->isDpa() || $user->prefecture_id !== null);
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->isAdmin() || ($user->isDpa() && $user->prefectureId() !== null);
     }
 
     public function rules(): array
     {
+        $user = Auth::user();
+
         return [
-            // On autorise soit l'un soit l'autre sans bloquer
+            // L'admin choisit la préfecture ; pour un DPA, ce champ est ignoré par le contrôleur
+            'prefecture_id'          => [
+                Rule::requiredIf(fn () => $user && $user->isAdmin()),
+                'nullable', 'integer', 'exists:prefectures,idPrefecture',
+            ],
+
             'culture_id'             => ['nullable', 'integer', 'exists:cultures,idCulture'],
             'nouvelle_culture'       => ['nullable', 'string', 'max:100'],
-            
+            'categorie'              => ['nullable', 'required_with:nouvelle_culture',
+                                         'in:vivriere,rente,maraichere,fruitiere,fourragere,autre'],
+
             'intrant_id'             => ['nullable', 'integer', 'exists:intrants,idIntrant'],
             'nouvel_intrant'         => ['nullable', 'string', 'max:100'],
-            
+
             'dose_par_hectare'       => ['required', 'numeric', 'min:0.01'],
             'unite'                  => ['required', 'string', 'max:20'],
             'plafond_max_producteur' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 
-    // Ajout d'une vérification personnalisée après validation de base
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
@@ -45,10 +59,12 @@ class StoreBaremeRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'prefecture_id.required'    => 'Choisissez la préfecture concernée par ce barème.',
             'dose_par_hectare.required' => 'La dose par hectare est obligatoire.',
             'dose_par_hectare.numeric'  => 'La dose doit être un nombre valide.',
             'dose_par_hectare.min'      => 'La dose doit être strictement supérieure à 0.',
-            'unite.required'            => 'L\'unité de mesure est requise.',
+            'unite.required'            => "L'unité de mesure est requise.",
+            'categorie.required_with'   => 'Choisissez la catégorie de la nouvelle culture.',
         ];
     }
 }

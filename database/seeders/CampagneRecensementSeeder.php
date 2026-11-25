@@ -63,10 +63,10 @@ class CampagneRecensementSeeder extends Seeder
                 'methodologie' => 'Collecte active de terrain.',
                 'instructions' => 'Suivre les consignes régionales.',
                 'portee' => 'regionale',
-                'dateDebut' => '2026-09-01 08:00:00',
-                'dateFin' => '2026-12-31 18:00:00',
+                'dateDebut' => '2026-12-01 08:00:00',
+                'dateFin' => '2027-01-31 18:00:00',
                 'estOfficielle' => true,
-                'statut' => 'active',
+                'statut' => 'planifiee',
                 'created_by' => $createur?->id,
             ]
         );

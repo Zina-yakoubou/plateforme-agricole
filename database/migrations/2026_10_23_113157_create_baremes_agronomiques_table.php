@@ -13,6 +13,7 @@ return new class extends Migration
 
             // Préfecture concernée (Décentralisation DPA)
             $table->foreignId('prefecture_id')
+                ->nullable()
                 ->constrained('prefectures', 'idPrefecture')
                 ->cascadeOnDelete();
 

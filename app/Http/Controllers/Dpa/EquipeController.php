@@ -12,15 +12,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use App\Models\CampagneRecensement;
 
 class EquipeController extends Controller
 {
-
     /**
- * =========================================================================
- * GÉNÉRER LE NUMÉRO AUTOMATIQUE DE L'ÉQUIPE
- * =========================================================================
- */
+     * =========================================================================
+     * GÉNÉRER LE NUMÉRO AUTOMATIQUE DE L'ÉQUIPE
+     * =========================================================================
+     */
     private function genererReference(): string
     {
         $dernierNumero = Equipe::query()
@@ -44,9 +44,10 @@ class EquipeController extends Controller
             STR_PAD_LEFT
         );
     }
+
     /**
      * =========================================================================
-     * PRÉFECTURE DU DPA
+     * PRÉFECTURE DU DPA CONNECTÉ
      * =========================================================================
      */
     private function prefectureId(): int
@@ -64,51 +65,70 @@ class EquipeController extends Controller
 
     /**
      * =========================================================================
-     * VÉRIFIER UNE ÉQUIPE
+     * RÉCUPÉRER LA PRÉFECTURE D'UN UTILISATEUR QUELCONQUE
+     * =========================================================================
+     */
+    private function prefectureIdUtilisateur(User $user): ?int
+    {
+        $rattachement = $user->rattachementPrefectureActif;
+        return $rattachement?->prefecture_id ? (int) $rattachement->prefecture_id : null;
+    }
+
+    /**
+     * =========================================================================
+     * VÉRIFIER QU'UNE ÉQUIPE APPARTIENT BIEN À LA PRÉFECTURE
      * =========================================================================
      */
     private function verifierEquipePrefecture(
-        Equipe $equipe
+        Equipe $equipe,
+        int $prefectureId
     ): void {
 
-        $prefectureId = $this->prefectureId();
-
-        /*
-         * Si l'équipe possède directement une préfecture,
-         * elle doit correspondre à celle du DPA.
-         */
-        if (
-            $equipe->prefecture_id !== null &&
-            (int) $equipe->prefecture_id !== $prefectureId
-        ) {
+        if (!$equipe) {
             abort(
-                403,
-                "Cette équipe n'appartient pas à votre préfecture."
+                404,
+                'Équipe introuvable.'
             );
         }
 
         /*
-         * Sinon on passe par le superviseur.
+         * Si l'équipe possède son propre prefecture_id.
+         */
+        if ($equipe->prefecture_id !== null) {
+            if ((int) $equipe->prefecture_id !== (int) $prefectureId) {
+                abort(
+                    403,
+                    'Cette équipe n’appartient pas à votre préfecture.'
+                );
+            }
+            return;
+        }
+
+        /*
+         * Sinon, on vérifie via le superviseur.
          */
         $equipe->loadMissing('superviseur');
 
         $superviseur = $equipe->superviseur;
 
-        abort_if(
-            !$superviseur,
-            403,
-            "Le superviseur de cette équipe est introuvable."
-        );
+        if (!$superviseur) {
+            abort(
+                403,
+                'Cette équipe ne possède pas de superviseur permettant de déterminer sa préfecture.'
+            );
+        }
 
-        $rattachement =
-            $superviseur->rattachementPrefectureActif;
+        $prefectureSuperviseur = $this->prefectureIdUtilisateur($superviseur);
 
-        abort_if(
-            !$rattachement ||
-            (int) $rattachement->prefecture_id !== $prefectureId,
-            403,
-            "Cette équipe n'appartient pas à votre préfecture."
-        );
+        if (
+            !$prefectureSuperviseur ||
+            (int) $prefectureSuperviseur !== (int) $prefectureId
+        ) {
+            abort(
+                403,
+                'Cette équipe n’appartient pas à votre préfecture.'
+            );
+        }
     }
 
     /**
@@ -126,34 +146,14 @@ class EquipeController extends Controller
                 'membres',
             ])
             ->withCount('membres')
-
-            /*
-             * ÉQUIPE DU DPA UNIQUEMENT
-             */
             ->where(function ($q) use ($prefectureId) {
-
-                /*
-                 * Si prefecture_id est renseigné.
-                 */
                 $q->where('prefecture_id', $prefectureId)
-
-                    /*
-                     * Sinon appartenance via le superviseur.
-                     */
                     ->orWhereHas(
                         'superviseur.rattachementPrefectureActif',
                         function ($q) use ($prefectureId) {
-                            $q->where(
-                                'prefecture_id',
-                                $prefectureId
-                            )
-                            ->where(
-                                'statut',
-                                'actif'
-                            )
-                            ->whereNull(
-                                'dateFin'
-                            );
+                            $q->where('prefecture_id', $prefectureId)
+                              ->where('statut', 'actif')
+                              ->whereNull('dateFin');
                         }
                     );
             });
@@ -162,42 +162,19 @@ class EquipeController extends Controller
          * RECHERCHE
          */
         if ($request->filled('search')) {
-
             $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
-
-                $q->where(
-                    'reference',
-                    'like',
-                    "%{$search}%"
-                )
-                ->orWhere(
-                    'nom',
-                    'like',
-                    "%{$search}%"
-                )
-                ->orWhere(
-                    'libelle',
-                    'like',
-                    "%{$search}%"
-                )
-                ->orWhereHas(
-                    'superviseur',
-                    function ($q) use ($search) {
-
-                        $q->where(
-                            'name',
-                            'like',
-                            "%{$search}%"
-                        )
-                        ->orWhere(
-                            'telephone',
-                            'like',
-                            "%{$search}%"
-                        );
-                    }
-                );
+                $q->where('reference', 'like', "%{$search}%")
+                  ->orWhere('nom', 'like', "%{$search}%")
+                  ->orWhere('libelle', 'like', "%{$search}%")
+                  ->orWhereHas(
+                      'superviseur',
+                      function ($q) use ($search) {
+                          $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('telephone', 'like', "%{$search}%");
+                      }
+                  );
             });
         }
 
@@ -205,13 +182,7 @@ class EquipeController extends Controller
          * STATUT
          */
         if ($request->filled('statut')) {
-
-            $query->where(
-                'statut',
-                strtoupper(
-                    $request->statut
-                )
-            );
+            $query->where('statut', strtoupper($request->statut));
         }
 
         $equipes = $query
@@ -237,81 +208,38 @@ class EquipeController extends Controller
     {
         $prefectureId = $this->prefectureId();
 
-        /*
-         * SUPERVISEURS DE LA PRÉFECTURE
-         */
         $superviseurs = User::query()
             ->with('rattachementPrefectureActif')
-            ->whereHas('role', function ($query) {
-                $query->where(
-                    'nom',
-                    'Superviseur'
-                );
-            })
+            ->whereHas('role', fn ($q) => $q->where('nom', 'Superviseur'))
             ->whereHas(
                 'rattachementPrefectureActif',
                 function ($query) use ($prefectureId) {
-                    $query
-                        ->where(
-                            'prefecture_id',
-                            $prefectureId
-                        )
-                        ->where(
-                            'statut',
-                            'actif'
-                        )
-                        ->whereNull(
-                            'dateFin'
-                        );
+                    $query->where('prefecture_id', $prefectureId)
+                          ->where('statut', 'actif')
+                          ->whereNull('dateFin');
                 }
             )
-            ->where(
-                'statut',
-                true
-            )
+            ->where('statut', true)
             ->orderBy('name')
             ->get();
 
-        /*
-         * AGENTS DE LA PRÉFECTURE
-         */
         $agents = User::query()
-            ->whereHas('role', function ($query) {
-                $query->where(
-                    'nom',
-                    'Agent recenseur'
-                );
-            })
+            ->whereHas('role', fn ($q) => $q->where('nom', 'Agent recenseur'))
             ->whereHas(
                 'rattachementPrefectureActif',
                 function ($query) use ($prefectureId) {
-                    $query
-                        ->where(
-                            'prefecture_id',
-                            $prefectureId
-                        )
-                        ->where(
-                            'statut',
-                            'actif'
-                        )
-                        ->whereNull(
-                            'dateFin'
-                        );
+                    $query->where('prefecture_id', $prefectureId)
+                          ->where('statut', 'actif')
+                          ->whereNull('dateFin');
                 }
             )
-            ->where(
-                'statut',
-                true
-            )
+            ->where('statut', true)
             ->orderBy('name')
             ->get();
 
         return view(
             'dpa.equipes.create',
-            compact(
-                'superviseurs',
-                'agents'
-            )
+            compact('superviseurs', 'agents')
         );
     }
 
@@ -320,49 +248,22 @@ class EquipeController extends Controller
      * STORE
      * =========================================================================
      */
-    public function store(
-        StoreEquipeRequest $request
-    ): RedirectResponse {
-
+    public function store(StoreEquipeRequest $request): RedirectResponse
+    {
         $prefectureId = $this->prefectureId();
 
-        /*
-         * Le superviseur doit appartenir à la préfecture.
-         */
         $superviseur = User::query()
-            ->whereKey(
-                $request->superviseur_id
-            )
-            ->whereHas(
-                'role',
-                function ($query) {
-                    $query->where(
-                        'nom',
-                        'Superviseur'
-                    );
-                }
-            )
+            ->whereKey($request->superviseur_id)
+            ->whereHas('role', fn ($q) => $q->where('nom', 'Superviseur'))
             ->whereHas(
                 'rattachementPrefectureActif',
                 function ($query) use ($prefectureId) {
-                    $query
-                        ->where(
-                            'prefecture_id',
-                            $prefectureId
-                        )
-                        ->where(
-                            'statut',
-                            'actif'
-                        )
-                        ->whereNull(
-                            'dateFin'
-                        );
+                    $query->where('prefecture_id', $prefectureId)
+                          ->where('statut', 'actif')
+                          ->whereNull('dateFin');
                 }
             )
-            ->where(
-                'statut',
-                true
-            )
+            ->where('statut', true)
             ->first();
 
         abort_if(
@@ -371,51 +272,23 @@ class EquipeController extends Controller
             "Le superviseur sélectionné n'appartient pas à votre préfecture."
         );
 
-        /*
-         * Tous les membres doivent appartenir à la préfecture.
-         */
         $membres = User::query()
-            ->whereIn(
-                'id',
-                $request->membres ?? []
-            )
-            ->whereHas(
-                'role',
-                function ($query) {
-                    $query->where(
-                        'nom',
-                        'Agent recenseur'
-                    );
-                }
-            )
+            ->whereIn('id', $request->membres ?? [])
+            ->whereHas('role', fn ($q) => $q->where('nom', 'Agent recenseur'))
             ->whereHas(
                 'rattachementPrefectureActif',
                 function ($query) use ($prefectureId) {
-                    $query
-                        ->where(
-                            'prefecture_id',
-                            $prefectureId
-                        )
-                        ->where(
-                            'statut',
-                            'actif'
-                        )
-                        ->whereNull(
-                            'dateFin'
-                        );
+                    $query->where('prefecture_id', $prefectureId)
+                          ->where('statut', 'actif')
+                          ->whereNull('dateFin');
                 }
             )
-            ->where(
-                'statut',
-                true
-            )
+            ->where('statut', true)
             ->pluck('id');
 
-        $demandesMembres = collect(
-            $request->membres ?? []
-        )->map(
-            fn ($id) => (int) $id
-        )->unique();
+        $demandesMembres = collect($request->membres ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique();
 
         abort_if(
             $membres->count() !== $demandesMembres->count(),
@@ -424,51 +297,24 @@ class EquipeController extends Controller
         );
 
         $equipe = DB::transaction(
-            function () use (
-                $request,
-                $membres,
-                $prefectureId,
-                $superviseur
-            ) {
-
+            function () use ($request, $membres, $prefectureId, $superviseur) {
                 $equipe = Equipe::create([
-                    'reference' =>
-                        $this->genererReference(),
-
-                    'nom' =>
-                        $request->nom,
-
-                    /*
-                     * On conserve la préfecture de l'équipe
-                     * si cette colonne existe dans ta table.
-                     */
-                    'prefecture_id' =>
-                        $prefectureId,
-
-                    'superviseur_id' =>
-                        $superviseur->id,
-
-                    'statut' =>
-                        'ACTIVE',
+                    'reference'      => $this->genererReference(),
+                    'nom'            => $request->nom,
+                    'prefecture_id'  => $prefectureId,
+                    'superviseur_id' => $superviseur->id,
+                    'statut'         => 'ACTIVE',
                 ]);
 
-                $equipe->membres()->sync(
-                    $membres
-                );
+                $equipe->membres()->sync($membres);
 
                 return $equipe;
             }
         );
 
         return redirect()
-            ->route(
-                'dpa.equipes.index',
-                $equipe
-            )
-            ->with(
-                'success',
-                "L'équipe a été créée avec succès."
-            );
+            ->route('dpa.equipes.index', $equipe)
+            ->with('success', "L'équipe a été créée avec succès.");
     }
 
     /**
@@ -476,13 +322,9 @@ class EquipeController extends Controller
      * SHOW
      * =========================================================================
      */
-    public function show(
-        Equipe $equipe
-    ): View {
-
-        $this->verifierEquipePrefecture(
-            $equipe
-        );
+    public function show(Equipe $equipe): View
+    {
+        $this->verifierEquipePrefecture($equipe, $this->prefectureId());
 
         $equipe->load([
             'superviseur',
@@ -500,75 +342,37 @@ class EquipeController extends Controller
      * EDIT
      * =========================================================================
      */
-    public function edit(
-        Equipe $equipe
-    ): View {
-
-        $this->verifierEquipePrefecture(
-            $equipe
-        );
-
+    public function edit(Equipe $equipe): View
+    {
         $prefectureId = $this->prefectureId();
 
+        $this->verifierEquipePrefecture($equipe, $prefectureId);
+
         $superviseurs = User::query()
-            ->whereHas('role', function ($query) {
-                $query->where(
-                    'nom',
-                    'Superviseur'
-                );
-            })
+            ->whereHas('role', fn ($q) => $q->where('nom', 'Superviseur'))
             ->whereHas(
                 'rattachementPrefectureActif',
                 function ($query) use ($prefectureId) {
-                    $query
-                        ->where(
-                            'prefecture_id',
-                            $prefectureId
-                        )
-                        ->where(
-                            'statut',
-                            'actif'
-                        )
-                        ->whereNull(
-                            'dateFin'
-                        );
+                    $query->where('prefecture_id', $prefectureId)
+                          ->where('statut', 'actif')
+                          ->whereNull('dateFin');
                 }
             )
-            ->where(
-                'statut',
-                true
-            )
+            ->where('statut', true)
             ->orderBy('name')
             ->get();
 
         $agents = User::query()
-            ->whereHas('role', function ($query) {
-                $query->where(
-                    'nom',
-                    'Agent recenseur'
-                );
-            })
+            ->whereHas('role', fn ($q) => $q->where('nom', 'Agent recenseur'))
             ->whereHas(
                 'rattachementPrefectureActif',
                 function ($query) use ($prefectureId) {
-                    $query
-                        ->where(
-                            'prefecture_id',
-                            $prefectureId
-                        )
-                        ->where(
-                            'statut',
-                            'actif'
-                        )
-                        ->whereNull(
-                            'dateFin'
-                        );
+                    $query->where('prefecture_id', $prefectureId)
+                          ->where('statut', 'actif')
+                          ->whereNull('dateFin');
                 }
             )
-            ->where(
-                'statut',
-                true
-            )
+            ->where('statut', true)
             ->orderBy('name')
             ->get();
 
@@ -579,12 +383,7 @@ class EquipeController extends Controller
 
         return view(
             'dpa.equipes.edit',
-            compact(
-                'equipe',
-                'superviseurs',
-                'agents',
-                'membresActuels'
-            )
+            compact('equipe', 'superviseurs', 'agents', 'membresActuels')
         );
     }
 
@@ -597,39 +396,19 @@ class EquipeController extends Controller
         UpdateEquipeRequest $request,
         Equipe $equipe
     ): RedirectResponse {
-
-        $this->verifierEquipePrefecture(
-            $equipe
-        );
-
         $prefectureId = $this->prefectureId();
 
+        $this->verifierEquipePrefecture($equipe, $prefectureId);
+
         $superviseur = User::query()
-            ->whereKey(
-                $request->superviseur_id
-            )
-            ->whereHas(
-                'role',
-                fn ($q) =>
-                    $q->where(
-                        'nom',
-                        'Superviseur'
-                    )
-            )
+            ->whereKey($request->superviseur_id)
+            ->whereHas('role', fn ($q) => $q->where('nom', 'Superviseur'))
             ->whereHas(
                 'rattachementPrefectureActif',
                 function ($q) use ($prefectureId) {
-                    $q->where(
-                        'prefecture_id',
-                        $prefectureId
-                    )
-                    ->where(
-                        'statut',
-                        'actif'
-                    )
-                    ->whereNull(
-                        'dateFin'
-                    );
+                    $q->where('prefecture_id', $prefectureId)
+                      ->where('statut', 'actif')
+                      ->whereNull('dateFin');
                 }
             )
             ->first();
@@ -641,32 +420,14 @@ class EquipeController extends Controller
         );
 
         $membres = User::query()
-            ->whereIn(
-                'id',
-                $request->membres ?? []
-            )
-            ->whereHas(
-                'role',
-                fn ($q) =>
-                    $q->where(
-                        'nom',
-                        'Agent recenseur'
-                    )
-            )
+            ->whereIn('id', $request->membres ?? [])
+            ->whereHas('role', fn ($q) => $q->where('nom', 'Agent recenseur'))
             ->whereHas(
                 'rattachementPrefectureActif',
                 function ($q) use ($prefectureId) {
-                    $q->where(
-                        'prefecture_id',
-                        $prefectureId
-                    )
-                    ->where(
-                        'statut',
-                        'actif'
-                    )
-                    ->whereNull(
-                        'dateFin'
-                    );
+                    $q->where('prefecture_id', $prefectureId)
+                      ->where('statut', 'actif')
+                      ->whereNull('dateFin');
                 }
             )
             ->pluck('id');
@@ -674,45 +435,25 @@ class EquipeController extends Controller
         abort_if(
             $membres->count() !== count(
                 array_unique(
-                    array_map(
-                        'intval',
-                        $request->membres ?? []
-                    )
+                    array_map('intval', $request->membres ?? [])
                 )
             ),
             403,
             "Un ou plusieurs agents sélectionnés n'appartiennent pas à votre préfecture."
         );
 
-        DB::transaction(function () use (
-            $request,
-            $equipe,
-            $superviseur,
-            $membres
-        ) {
-
+        DB::transaction(function () use ($request, $equipe, $superviseur, $membres) {
             $equipe->update([
-                'nom' =>
-                    $request->nom,
-
-                'superviseur_id' =>
-                    $superviseur->id,
+                'nom'            => $request->nom,
+                'superviseur_id' => $superviseur->id,
             ]);
 
-            $equipe->membres()->sync(
-                $membres
-            );
+            $equipe->membres()->sync($membres);
         });
 
         return redirect()
-            ->route(
-                'dpa.equipes.show',
-                $equipe
-            )
-            ->with(
-                'success',
-                "L'équipe a été modifiée avec succès."
-            );
+            ->route('dpa.equipes.show', $equipe)
+            ->with('success', "L'équipe a été modifiée avec succès.");
     }
 
     /**
@@ -720,26 +461,17 @@ class EquipeController extends Controller
      * DESTROY
      * =========================================================================
      */
-    public function destroy(
-        Equipe $equipe
-    ): RedirectResponse {
-
-        $this->verifierEquipePrefecture(
-            $equipe
-        );
+    public function destroy(Equipe $equipe): RedirectResponse
+    {
+        $this->verifierEquipePrefecture($equipe, $this->prefectureId());
 
         $equipe->update([
             'statut' => 'INACTIVE',
         ]);
 
         return redirect()
-            ->route(
-                'dpa.equipes.index'
-            )
-            ->with(
-                'success',
-                "L'équipe a été désactivée avec succès."
-            );
+            ->route('dpa.equipes.index')
+            ->with('success', "L'équipe a été désactivée avec succès.");
     }
 
     /**
@@ -747,43 +479,75 @@ class EquipeController extends Controller
      * RÉACTIVER
      * =========================================================================
      */
-    public function reactiver(
-        Equipe $equipe
-    ): RedirectResponse {
+    // public function reactiver(Equipe $equipe): RedirectResponse
+    // {
+    //     $this->verifierEquipePrefecture($equipe, $this->prefectureId());
 
-        $this->verifierEquipePrefecture(
-            $equipe
-        );
+    //     if (strtoupper($equipe->statut ?? '') === 'ACTIVE') {
+    //         return redirect()
+    //             ->route('dpa.equipes.index')
+    //             ->with('error', "Cette équipe est déjà active.");
+    //     }
 
-        if ($equipe->statut === 'ACTIVE') {
-            return redirect()
-                ->route(
-                    'dpa.equipes.index'
-                )
-                ->with(
-                    'error',
-                    "Cette équipe est déjà active."
-                );
-        }
+    //     $equipe->update([
+    //         'statut' => 'ACTIVE',
+    //     ]);
 
-        $equipe->update([
+    //     return redirect()
+    //         ->route('dpa.equipes.index')
+    //         ->with('success', "L'équipe a été réactivée avec succès.");
+    // }
+
+
+    public function reactiver(Equipe $equipe): RedirectResponse
+    {
+        $this->verifierEquipePrefecture($equipe, $this->prefectureId());
+
+        // Forcer directement la mise à jour à 'ACTIVE' sans condition bloquante
+        // pour voir si la base enregistre bien la modification
+        $equipe->forceFill([
             'statut' => 'ACTIVE',
-        ]);
+        ])->save();
 
         return redirect()
-            ->route(
-                'dpa.equipes.index'
-            )
-            ->with(
-                'success',
-                "L'équipe a été réactivée avec succès."
-            );
+            ->route('dpa.equipes.index')
+            ->with('success', "L'équipe {$equipe->reference} a été réactivée avec succès.");
     }
 
-    
+    /**
+     * =========================================================================
+     * ESPACE SUPERVISEUR
+     * =========================================================================
+     */
+    // public function mesEquipes(Request $request): View
+    // {
+    //     $user = Auth::user();
+    //     $search = trim($request->input('search', ''));
 
+    //     $equipes = Equipe::query()
+    //         ->with([
+    //             'superviseur',
+    //             'membres',
+    //             'affectations.village.canton.commune',
+    //             'affectations.campagne',
+    //         ])
+    //         ->where('superviseur_id', $user->id)
+    //         ->when($search !== '', function ($query) use ($search) {
+    //             $query->where(function ($q) use ($search) {
+    //                 $q->where('reference', 'like', "%{$search}%")
+    //                   ->orWhere('libelle', 'like', "%{$search}%")
+    //                   ->orWhere('nom', 'like', "%{$search}%");
+    //             });
+    //         })
+    //         ->orderBy('libelle')
+    //         ->paginate(10)
+    //         ->withQueryString();
 
-    
+    //     return view(
+    //         'superviseur.equipes.index',
+    //         compact('equipes', 'search')
+    //     );
+    // }
 
     public function mesEquipes(Request $request): View
     {
@@ -791,6 +555,12 @@ class EquipeController extends Controller
 
         $search = trim($request->input('search', ''));
 
+        // 1. Récupération de la campagne active en cours
+        $campagneActive = CampagneRecensement::query()
+            ->where('statut', 'active')
+            ->first();
+
+        // 2. Requête des équipes du superviseur
         $equipes = Equipe::query()
             ->with([
                 'superviseur',
@@ -799,30 +569,25 @@ class EquipeController extends Controller
                 'affectations.campagne',
             ])
             ->where('superviseur_id', $user->id)
-
             ->when($search !== '', function ($query) use ($search) {
-
                 $query->where(function ($q) use ($search) {
-
                     $q->where('reference', 'like', "%{$search}%")
-                        ->orWhere('libelle', 'like', "%{$search}%")
-                        ->orWhere('nom', 'like', "%{$search}%");
+                      ->orWhere('libelle', 'like', "%{$search}%")
+                      ->orWhere('nom', 'like', "%{$search}%");
                 });
             })
-
             ->orderBy('libelle')
             ->paginate(10)
             ->withQueryString();
 
+        // 3. Envoi de $campagneActive à la vue
         return view(
             'superviseur.equipes.index',
-            compact('equipes', 'search')
+            compact('equipes', 'search', 'campagneActive')
         );
     }
 
-
-
-        public function showSuperviseur(Equipe $equipe): View
+    public function showSuperviseur(Equipe $equipe): View
     {
         $user = Auth::user();
 

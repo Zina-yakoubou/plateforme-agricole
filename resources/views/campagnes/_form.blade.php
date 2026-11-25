@@ -1165,7 +1165,7 @@
     {{-- ================================================================
         QUESTIONNAIRES
     ================================================================= --}}
-    <div class="md:col-span-2">
+    {{-- <div class="md:col-span-2">
 
         <label class="mb-2 block text-sm font-medium text-gray-700">
             Questionnaires de collecte
@@ -1226,8 +1226,307 @@
             </p>
         @enderror
 
-    </div>
+    </div> --}}
+               {{-- ================================================================
+        QUESTIONNAIRES
+    ================================================================= --}}
+    <div
+        class="md:col-span-2"
+        @keydown.escape.window="ouvert = false"
+        x-data="{
+            ouvert: false,
+            envoi: false,
+            erreur: '',
+            nouveaux: [],
+            fichier: null,
+            form: { titre: '', description: '', type: '', version: '1.0', actif: true },
 
+            ouvrir() {
+                this.erreur = '';
+                this.ouvert = true;
+                this.$nextTick(() => this.$refs.titre.focus());
+            },
+
+            reinitialiser() {
+                this.form = { titre: '', description: '', type: '', version: '1.0', actif: true };
+                this.fichier = null;
+                this.$refs.fichier.value = '';
+            },
+
+            async creer() {
+                this.erreur = '';
+
+                if (this.form.titre.trim() === '') {
+                    this.erreur = 'Le titre du questionnaire est obligatoire.';
+                    return;
+                }
+
+                if (this.form.type === '') {
+                    this.erreur = 'Veuillez sélectionner le type de questionnaire.';
+                    return;
+                }
+
+                if (!this.fichier) {
+                    this.erreur = 'Veuillez sélectionner le fichier du questionnaire.';
+                    return;
+                }
+
+                this.envoi = true;
+
+                try {
+                    const donnees = new FormData();
+                    donnees.append('titre', this.form.titre);
+                    donnees.append('type', this.form.type);
+                    donnees.append('version', this.form.version);
+                    donnees.append('description', this.form.description);
+                    donnees.append('actif', this.form.actif ? 1 : 0);
+                    donnees.append('fichier', this.fichier);
+
+                    const reponse = await fetch(@js(route('questionnaires.store-ajax')), {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': @js(csrf_token())
+                        },
+                        body: donnees
+                    });
+
+                    const resultat = await reponse.json();
+
+                    if (!reponse.ok) {
+                        this.erreur = resultat.errors
+                            ? Object.values(resultat.errors)[0][0]
+                            : (resultat.message || 'Création impossible.');
+                        return;
+                    }
+
+                    this.nouveaux.push({ id: resultat.id, titre: resultat.titre, code: resultat.code });
+                    this.reinitialiser();
+                    this.ouvert = false;
+                } catch (e) {
+                    this.erreur = 'Connexion impossible. Réessayez.';
+                } finally {
+                    this.envoi = false;
+                }
+            }
+        }"
+    >
+
+        <div class="mb-2 flex items-center justify-between gap-3">
+            <label class="block text-sm font-medium text-gray-700">
+                Questionnaires de collecte
+            </label>
+
+            <button
+                type="button"
+                @click="ouvrir()"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-green-600 px-3 py-1.5
+                    text-xs font-semibold text-green-700 transition hover:bg-green-50"
+            >
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nouveau questionnaire
+            </button>
+        </div>
+
+        @php
+
+            $selectionnes = old(
+                'questionnaire_ids',
+                isset($campagne)
+                    ? $campagne->questionnaires
+                        ->pluck('idQuestionnaire')
+                        ->toArray()
+                    : []
+            );
+
+        @endphp
+
+        <div class="space-y-2 rounded-lg border border-gray-200 p-4">
+
+            @foreach($questionnaires as $questionnaire)
+
+                <label class="flex cursor-pointer items-center gap-3">
+
+                    <input
+                        type="checkbox"
+                        name="questionnaire_ids[]"
+                        value="{{ $questionnaire->idQuestionnaire }}"
+                        @checked(
+                            in_array(
+                                $questionnaire->idQuestionnaire,
+                                $selectionnes
+                            )
+                        )
+                        class="rounded border-gray-300 text-green-600
+                            focus:ring-green-500"
+                    >
+
+                    <span class="text-sm text-gray-700">
+                        {{ $questionnaire->titre }}
+                    </span>
+
+                </label>
+
+            @endforeach
+
+            {{-- Questionnaires créés pendant la saisie : cochés d'office --}}
+            <template x-for="q in nouveaux" :key="q.id">
+                <label class="flex cursor-pointer items-center gap-3">
+                    <input
+                        type="checkbox"
+                        name="questionnaire_ids[]"
+                        :value="q.id"
+                        checked
+                        class="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    >
+                    <span class="text-sm text-gray-700" x-text="q.titre"></span>
+                    <span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Nouveau</span>
+                </label>
+            </template>
+
+            @if($questionnaires->isEmpty())
+                <p class="text-sm text-amber-600" x-show="nouveaux.length === 0">
+                    Aucun questionnaire disponible. Utilisez « Nouveau questionnaire » pour en créer un.
+                </p>
+            @endif
+
+        </div>
+
+        @error('questionnaire_ids')
+            <p class="mt-1 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
+
+        {{-- Fenêtre de création (sans <form> : on est déjà dans le formulaire de la campagne) --}}
+        <div
+            x-show="ouvert"
+            style="display: none;"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            @click.self="ouvert = false"
+        >
+            <div class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
+
+                <div class="mb-4 flex items-start justify-between gap-3">
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900">Nouveau questionnaire</h3>
+                        <p class="mt-0.5 text-xs text-gray-500">
+                            Il sera créé tout de suite et sélectionné pour cette campagne.
+                        </p>
+                    </div>
+                    <button type="button" @click="ouvert = false" class="text-gray-400 hover:text-gray-600" title="Fermer">✕</button>
+                </div>
+
+                <div class="space-y-4">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">
+                            Titre <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            x-ref="titre"
+                            x-model="form.titre"
+                            @keydown.enter.prevent="creer()"
+                            maxlength="255"
+                            placeholder="Ex : Questionnaire exploitation agricole 2026"
+                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm
+                                focus:border-green-500 focus:ring-green-500"
+                        >
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">
+                                Type <span class="text-red-500">*</span>
+                            </label>
+                            <select
+                                x-model="form.type"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm
+                                    focus:border-green-500 focus:ring-green-500"
+                            >
+                                <option value="">Choisir un type…</option>
+                                <option value="exploitation">Exploitation</option>
+                                <option value="menage">Ménage</option>
+                                <option value="village">Village</option>
+                                <option value="communaute">Communauté</option>
+                                <option value="thematique">Thématique</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Version</label>
+                            <input
+                                type="text"
+                                x-model="form.version"
+                                @keydown.enter.prevent="creer()"
+                                maxlength="50"
+                                placeholder="Ex : 1.0"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm
+                                    focus:border-green-500 focus:ring-green-500"
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea
+                            x-model="form.description"
+                            rows="3"
+                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm
+                                focus:border-green-500 focus:ring-green-500"
+                        ></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">
+                            Fichier du questionnaire <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="file"
+                            x-ref="fichier"
+                            accept=".xls,.xlsx,.csv,.xml,.json,.zip"
+                            @change="fichier = $event.target.files[0] || null"
+                            class="mt-1 block w-full text-sm text-gray-600
+                                file:mr-3 file:rounded-lg file:border-0 file:bg-green-50
+                                file:px-4 file:py-2 file:text-sm file:font-semibold
+                                file:text-green-700 hover:file:bg-green-100"
+                        >
+                        <p class="mt-1 text-xs text-gray-500">
+                            Formats acceptés : XLS, XLSX, CSV, XML, JSON, ZIP (10 Mo maximum).
+                        </p>
+                    </div>
+
+                    <label class="flex cursor-pointer items-center gap-3">
+                        <input type="checkbox" x-model="form.actif"
+                               class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                        <span class="text-sm text-gray-700">Questionnaire actif</span>
+                    </label>
+
+                    <p x-show="erreur" x-text="erreur"
+                       class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"></p>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" @click="ouvert = false"
+                            class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                        Annuler
+                    </button>
+
+                    <button type="button" @click="creer()" :disabled="envoi"
+                            class="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white
+                                hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60">
+                        <span x-show="!envoi">Créer et sélectionner</span>
+                        <span x-show="envoi" style="display: none;">Création…</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 

@@ -390,12 +390,12 @@ class CultureSeeder extends Seeder
                 'active' => true,
             ],
 
-            [
-                'nomCulture' => 'Papaye',
-                'categorie' => 'fruitiere',
-                'description' => 'Fruit du papayer.',
-                'active' => true,
-            ],
+            // [
+            //     'nomCulture' => 'Papaye',
+            //     'categorie' => 'fruitiere',
+            //     'description' => 'Fruit du papayer.',
+            //     'active' => true,
+            // ],
 
             /*
             |--------------------------------------------------------------------------
@@ -475,9 +475,7 @@ class CultureSeeder extends Seeder
 
         foreach ($cultures as $culture) {
             Culture::updateOrCreate(
-                [
-                    'nomCulture' => $culture['nomCulture'],
-                ],
+                ['nomCulture' => $culture['nomCulture']],
                 $culture
             );
         }

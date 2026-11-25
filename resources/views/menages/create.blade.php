@@ -30,9 +30,9 @@
 
             <div class="pt-4 flex justify-end gap-2">
 
-                <a
+               <a
                     href="{{ route('agent.recensements.show', $recensement) }}"
-                    class="px-4 py-2 text-sm text-gray-600 hover:underline"
+                    class="inline-flex justify-center items-center px-5 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50"
                 >
                     Annuler
                 </a>

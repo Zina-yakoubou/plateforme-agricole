@@ -9,8 +9,20 @@ class UpdateBaremeRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $user = Auth::user();
         $bareme = $this->route('bareme');
-        return Auth::check() && $bareme && $bareme->prefecture_id === Auth::user()->prefecture_id;
+
+        if (! $user || ! $bareme) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $user->isDpa()
+            && $user->prefectureId() !== null
+            && (int) $bareme->prefecture_id === (int) $user->prefectureId();
     }
 
     public function rules(): array
@@ -25,10 +37,10 @@ class UpdateBaremeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'dose_par_hectare.required' => 'La dose par hectare est obligatoire.',
-            'dose_par_hectare.numeric'  => 'La dose doit être un nombre valide.',
-            'dose_par_hectare.min'      => 'La dose doit être supérieure à 0.',
-            'unite.required'            => 'L\'unité de mesure est requise.',
+            'dose_par_hectare.required'      => 'La dose par hectare est obligatoire.',
+            'dose_par_hectare.numeric'       => 'La dose doit être un nombre valide.',
+            'dose_par_hectare.min'           => 'La dose doit être strictement supérieure à 0.',
+            'unite.required'                 => "L'unité de mesure est requise.",
             'plafond_max_producteur.numeric' => 'Le plafond doit être un nombre valide.',
         ];
     }
