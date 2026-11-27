@@ -10,7 +10,7 @@
                 <div class="space-y-5">
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="inline-flex items-center rounded-md border border-[#ced4da] bg-[#ebeff4] px-3 py-1.5 text-sm font-medium text-[#333333]">
-                            Préfecture de Mô • Togo
+                            Application nationale • Togo
                         </span>
 
                         @if(isset($campagneActive))
@@ -22,15 +22,15 @@
                     </div>
 
                     <h1 class="text-5xl font-extrabold tracking-tight text-[#006a4f] sm:text-6xl lg:text-7xl">
-                        SIRA-Mô
+                        SIRA-TOGO
                     </h1>
 
                     <p class="text-xl font-semibold text-slate-800 sm:text-2xl">
-                        Le recensement agricole de la préfecture de Mô, appuyé sur des données de référence fiables.
+                        Le recensement agricole national, appuyé sur des données de référence fiables.
                     </p>
 
                     <p class="max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
-                        SIRA-Mô permet d'enregistrer les ménages agricoles, de localiser leurs parcelles
+                        SIRA-TOGO permet d'enregistrer les ménages agricoles, de localiser leurs parcelles
                         par GPS et de connaître les cultures pratiquées, à partir de listes de référence
                         communes (territoires, cultures, intrants, barèmes) qui garantissent des données
                         cohérentes d'un agent à l'autre.
@@ -70,7 +70,7 @@
                         </div>
                     @else
                         <div class="flex h-64 items-center justify-center rounded-2xl bg-[#006a4f] shadow-lg">
-                            <p class="text-2xl font-bold text-white">SIRA-Mô</p>
+                            <p class="text-2xl font-bold text-white">SIRA-TOGO</p>
                         </div>
                     @endif
                 </div>
@@ -137,12 +137,12 @@
 
 
         {{-- =========================================================
-            3. QUI UTILISE SIRA-MÔ
+            3. QUI UTILISE SIRA-TOGO
         ========================================================= --}}
         <section class="mb-20">
             <div class="mb-8 text-center">
                 <h2 class="text-sm font-bold uppercase tracking-wider text-[#006a4f]">Utilisateurs</h2>
-                <p class="mt-1 text-2xl font-bold text-slate-800 sm:text-3xl">Qui utilise SIRA-Mô ?</p>
+                <p class="mt-1 text-2xl font-bold text-slate-800 sm:text-3xl">Qui utilise SIRA-TOGO ?</p>
             </div>
 
             <div class="grid gap-5 md:grid-cols-3">
@@ -178,7 +178,7 @@
         <section class="mb-20 rounded-xl border border-[#ced4da] bg-white p-8 shadow-sm">
             <div class="mb-8 text-center">
                 <h2 class="text-sm font-bold uppercase tracking-wider text-[#006a4f]">Couverture du territoire</h2>
-                <p class="mt-1 text-2xl font-bold text-slate-800 sm:text-3xl">Données réelles enregistrées dans la préfecture</p>
+                <p class="mt-1 text-2xl font-bold text-slate-800 sm:text-3xl">Données réelles enregistrées sur le territoire</p>
             </div>
 
             <div class="grid grid-cols-2 gap-5 text-center md:grid-cols-3">
@@ -216,9 +216,9 @@
             6. FOOTER
         ========================================================= --}}
         <footer class="border-t border-[#ced4da] pt-6 text-center">
-            <p class="text-sm font-semibold text-[#006a4f]">SIRA-Mô</p>
+            <p class="text-sm font-semibold text-[#006a4f]">SIRA-TOGO</p>
             <p class="mt-1 text-xs text-slate-500">
-                Système d'Information et de Recensement Agricole • Préfecture de Mô • République Togolaise
+                Système d'Information et de Recensement Agricole • République Togolaise
             </p>
         </footer>
 

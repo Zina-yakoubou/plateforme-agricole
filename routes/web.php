@@ -315,6 +315,10 @@ Route::middleware(['auth'])
         ->whereNumber('maison')
         ->name('maisons.recensements');
         Route::get('/incomplets', [RecensementController::class, 'incomplets'])->name('incomplets');
+        Route::get('/recensements/{recensement}/menages/{menage}/mise-a-jour', [MenageController::class, 'miseAJour'])
+            ->name('recensements.menages.mise-a-jour');
+        Route::post('/recensements/{recensement}/menages/{menage}/mise-a-jour', [MenageController::class, 'enregistrerMiseAJour'])
+            ->name('recensements.menages.mise-a-jour.store');
 
 
         /* -------------------------------------------------------- */

@@ -74,7 +74,7 @@
                 x-transition.opacity
             >
                 <h2 class="text-sm font-bold text-text-primary leading-tight whitespace-nowrap">
-                    SIRA-Mô
+                    SIRA-TOGO
                 </h2>
 
                 <p class="text-xs text-text-secondary whitespace-nowrap">

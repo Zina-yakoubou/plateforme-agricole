@@ -7,37 +7,15 @@ use App\Http\Requests\UpdateMenageRequest;
 use App\Models\Menage;
 use App\Models\Recensement;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class MenageController extends Controller
 {
-    /**
-     * Liste des ménages d'un recensement.
-     */
-    // public function index(Recensement $recensement): View
-    // {
-    //     $this->verifierAccesRecensement($recensement);
-
-    //     $recensement->load([
-    //         'campagne',
-    //         'maison.village.canton.commune.prefecture',
-    //     ]);
-
-    //     $menages = $recensement->menages()
-    //         ->latest('idMenage')
-    //         ->paginate(15);
-
-    //     return view(
-    //         'menages.index',
-    //         compact('recensement', 'menages')
-    //     );
-    // }
-
-
-
     /**
      * Liste des ménages d'un recensement.
      */
@@ -50,30 +28,14 @@ class MenageController extends Controller
             'maison.village.canton.commune.prefecture',
         ]);
 
-        // Terme de recherche
         $search = trim((string) request('search'));
 
         $menages = $recensement->menages()
             ->when($search !== '', function ($query) use ($search) {
-
                 $query->where(function ($q) use ($search) {
-
-                    $q->where(
-                        'numeroMenage',
-                        'like',
-                        '%' . $search . '%'
-                    )
-                    ->orWhere(
-                        'nomChef',
-                        'like',
-                        '%' . $search . '%'
-                    )
-                    ->orWhere(
-                        'prenomChef',
-                        'like',
-                        '%' . $search . '%'
-                    );
-
+                    $q->where('numeroMenage', 'like', '%' . $search . '%')
+                        ->orWhere('nomChef', 'like', '%' . $search . '%')
+                        ->orWhere('prenomChef', 'like', '%' . $search . '%');
                 });
             })
             ->latest('idMenage')
@@ -82,13 +44,10 @@ class MenageController extends Controller
 
         return view(
             'menages.index',
-            compact(
-                'recensement',
-                'menages',
-                'search'
-            )
+            compact('recensement', 'menages', 'search')
         );
     }
+
     /**
      * Formulaire d'ajout d'un ménage.
      */
@@ -101,10 +60,6 @@ class MenageController extends Controller
             'maison.village.canton.commune.prefecture',
         ]);
 
-        /*
-         * Déterminer automatiquement le prochain numéro
-         * de ménage pour ce recensement (affichage uniquement).
-         */
         $dernierNumero = $recensement->menages()
             ->max('numeroMenage');
 
@@ -114,105 +69,27 @@ class MenageController extends Controller
 
         return view(
             'menages.create',
-            compact(
-                'recensement',
-                'prochainNumero'
-            )
+            compact('recensement', 'prochainNumero')
         );
     }
 
     /**
      * Enregistrer un ménage.
      */
-    // public function store(
-        
-    //     StoreMenageRequest $request,
-    //     Recensement $recensement
-    // ): RedirectResponse {
-
-    //     // 🔒 SÉCURITÉ : Bloquer si la campagne est fermée ou si le recensement est terminé
-    //     if (!$recensement->campagne->estModifiable() || $recensement->statut === 'termine') {
-    //         return back()->with('error', 'Action impossible : les données de cette campagne sont en lecture seule.');
-    //     }
-
-    //     $this->verifierAccesRecensement($recensement);
-
-    //     $menage = DB::transaction(function () use ($request, $recensement) {
-
-    //         $dernierNumero = $recensement->menages()
-    //             ->lockForUpdate()
-    //             ->max('numeroMenage');
-
-    //         $nouveauNumero = $dernierNumero
-    //             ? ((int) $dernierNumero + 1)
-    //             : 1;
-
-    //         $menage = Menage::create(array_merge(
-    //             $request->validated(),
-    //             [
-    //                 'recensement_id' => $recensement->idRecensement,
-    //                 'numeroMenage' => $nouveauNumero,
-    //                 'uid' => (string) Str::uuid(),
-    //             ]
-    //         ));
-
-    //         $recensement->update([
-    //             'dateDerniereModification' => now(),
-    //         ]);
-
-    //         return $menage;
-    //     });
-
-    //     /*
-    //     * Si le ménage possède une exploitation,
-    //     * on poursuit directement vers l'enregistrement de l'exploitant.
-    //     */
-    //     if ($menage->possedeExploitation) {
-    //         return redirect()
-    //             ->route(
-    //                 'agent.recensements.menages.exploitants.create',
-    //                 [
-    //                     'recensement' => $recensement->idRecensement,
-    //                     'menage' => $menage->idMenage,
-    //                 ]
-    //             )
-    //             ->with(
-    //                 'success',
-    //                 'Le ménage a été ajouté. Vous pouvez maintenant enregistrer l’exploitant.'
-    //             );
-    //     }
-
-    //     /*
-    //     * Si le ménage ne possède pas d'exploitation,
-    //     * on retourne simplement à la fiche du recensement.
-    //     */
-    //     return redirect()
-    //         ->route(
-    //             'agent.recensements.show',
-    //             $recensement
-    //         )
-    //         ->with(
-    //             'success',
-    //             'Le ménage a été ajouté avec succès.'
-    //         );
-    // }
-
-
-
     public function store(
-        StoreMenageRequest $request, // On garde uniquement la Form Request validée
+        StoreMenageRequest $request,
         Recensement $recensement
     ): RedirectResponse {
-
-        // 🔒 SÉCURITÉ : Bloquer si la campagne est fermée ou si le recensement est terminé
-        if (!$recensement->campagne->estModifiable() || $recensement->statut === 'termine') {
-            return back()->with('error', 'Action impossible : les données de cette campagne sont en lecture seule.');
+        if (! $recensement->campagne?->estModifiable() || $recensement->statut === 'termine') {
+            return back()->with(
+                'error',
+                'Action impossible : les données de cette campagne sont en lecture seule.'
+            );
         }
 
         $this->verifierAccesRecensement($recensement);
 
         $menage = DB::transaction(function () use ($request, $recensement) {
-
             $dernierNumero = $recensement->menages()
                 ->lockForUpdate()
                 ->max('numeroMenage');
@@ -225,8 +102,8 @@ class MenageController extends Controller
                 $request->validated(),
                 [
                     'recensement_id' => $recensement->idRecensement,
-                    'numeroMenage' => $nouveauNumero,
-                    'uid' => (string) Str::uuid(),
+                    'numeroMenage'   => $nouveauNumero,
+                    'uid'            => (string) Str::uuid(),
                 ]
             ));
 
@@ -237,17 +114,13 @@ class MenageController extends Controller
             return $menage;
         });
 
-        /*
-         * Si le ménage possède une exploitation,
-         * on poursuit directement vers l'enregistrement de l'exploitant.
-         */
         if ($menage->possedeExploitation) {
             return redirect()
                 ->route(
                     'agent.recensements.menages.exploitants.create',
                     [
                         'recensement' => $recensement->idRecensement,
-                        'menage' => $menage->idMenage,
+                        'menage'      => $menage->idMenage,
                     ]
                 )
                 ->with(
@@ -256,19 +129,9 @@ class MenageController extends Controller
                 );
         }
 
-        /*
-         * Si le ménage ne possède pas d'exploitation,
-         * on retourne simplement à la fiche du recensement.
-         */
         return redirect()
-            ->route(
-                'agent.recensements.show',
-                $recensement
-            )
-            ->with(
-                'success',
-                'Le ménage a été ajouté avec succès.'
-            );
+            ->route('agent.recensements.show', $recensement)
+            ->with('success', 'Le ménage a été ajouté avec succès.');
     }
 
     /**
@@ -278,13 +141,13 @@ class MenageController extends Controller
         Recensement $recensement,
         Menage $menage
     ): View {
-
         $this->verifierAccesRecensement($recensement);
+        $this->verifierMenageDuRecensement($recensement, $menage);
 
-        $this->verifierMenageDuRecensement(
-            $recensement,
-            $menage
-        );
+        $recensement->load([
+            'campagne',
+            'maison.village.canton.commune.prefecture',
+        ]);
 
         return view(
             'menages.edit',
@@ -300,13 +163,15 @@ class MenageController extends Controller
         Recensement $recensement,
         Menage $menage
     ): RedirectResponse {
+        if (! $recensement->campagne?->estModifiable() || $recensement->statut === 'termine') {
+            return back()->with(
+                'error',
+                'Action impossible : les données de cette campagne sont en lecture seule.'
+            );
+        }
 
         $this->verifierAccesRecensement($recensement);
-
-        $this->verifierMenageDuRecensement(
-            $recensement,
-            $menage
-        );
+        $this->verifierMenageDuRecensement($recensement, $menage);
 
         $menage->update($request->validated());
 
@@ -315,14 +180,8 @@ class MenageController extends Controller
         ]);
 
         return redirect()
-            ->route(
-                'agent.recensements.show',
-                $recensement
-            )
-            ->with(
-                'success',
-                'Le ménage a été modifié avec succès.'
-            );
+            ->route('agent.recensements.show', $recensement)
+            ->with('success', 'Le ménage a été modifié avec succès.');
     }
 
     /**
@@ -332,13 +191,15 @@ class MenageController extends Controller
         Recensement $recensement,
         Menage $menage
     ): RedirectResponse {
+        if (! $recensement->campagne?->estModifiable() || $recensement->statut === 'termine') {
+            return back()->with(
+                'error',
+                'Action impossible : les données de cette campagne sont en lecture seule.'
+            );
+        }
 
         $this->verifierAccesRecensement($recensement);
-
-        $this->verifierMenageDuRecensement(
-            $recensement,
-            $menage
-        );
+        $this->verifierMenageDuRecensement($recensement, $menage);
 
         $menage->delete();
 
@@ -347,14 +208,143 @@ class MenageController extends Controller
         ]);
 
         return redirect()
-            ->route(
-                'agent.recensements.show',
-                $recensement
-            )
-            ->with(
-                'success',
-                'Le ménage a été supprimé avec succès.'
+            ->route('agent.recensements.show', $recensement)
+            ->with('success', 'Le ménage a été supprimé avec succès.');
+    }
+
+    /**
+     * Formulaire de mise à jour d'un ménage existant pour la campagne active
+     * (présence/absence et ajout de nouveaux exploitants).
+     */
+    public function miseAJour(
+        Recensement $recensement,
+        Menage $menage
+    ): View {
+        $this->verifierAccesRecensement($recensement);
+        $this->verifierMenageDuRecensement($recensement, $menage);
+
+        $recensement->load([
+            'campagne',
+            'maison.village.canton.commune.prefecture',
+        ]);
+
+        $menage->load(['exploitants']);
+
+        return view(
+            'menages.mise-a-jour',
+            compact('recensement', 'menage')
+        );
+    }
+
+    /**
+     * Enregistre la mise à jour d'un ménage (ajout ou absence d'exploitants).
+     */
+    public function enregistrerMiseAJour(
+        Request $request,
+        Recensement $recensement,
+        Menage $menage
+    ): RedirectResponse {
+        if (! $recensement->campagne?->estModifiable() || $recensement->statut === 'termine') {
+            return back()->with(
+                'error',
+                'Action impossible : les données de cette campagne sont en lecture seule.'
             );
+        }
+
+        $this->verifierAccesRecensement($recensement);
+        $this->verifierMenageDuRecensement($recensement, $menage);
+
+        $validated = $request->validate([
+            'statut_menage'                     => ['required', 'in:present,absent'],
+            'motif_absence_menage'              => ['nullable', 'string', 'max:255'],
+            'exploitants_statuts'               => ['nullable', 'array'],
+            'exploitants_statuts.*'             => ['in:present,absent'],
+            'exploitants_motifs'                => ['nullable', 'array'],
+            'exploitants_motifs.*'              => ['nullable', 'string', 'max:255'],
+            'nouveaux_exploitants'              => ['nullable', 'array'],
+            'nouveaux_exploitants.*.nom'        => ['nullable', 'string', 'max:120'],
+            'nouveaux_exploitants.*.prenom'     => ['nullable', 'string', 'max:120'],
+            'nouveaux_exploitants.*.cooperative' => ['nullable', 'string', 'max:150'],
+            'nouveaux_exploitants.*.numero_piece' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        DB::transaction(function () use ($validated, $recensement, $menage) {
+            $menageUpdate = [];
+            if (Schema::hasColumn('menages', 'statut_campagne')) {
+                $menageUpdate['statut_campagne'] = $validated['statut_menage'];
+            }
+            if (Schema::hasColumn('menages', 'motif_absence')) {
+                $menageUpdate['motif_absence'] = $validated['statut_menage'] === 'absent'
+                    ? ($validated['motif_absence_menage'] ?? 'Absent lors de la campagne')
+                    : null;
+            }
+            if (! empty($menageUpdate)) {
+                $menage->update($menageUpdate);
+            }
+
+            $hasStatutPresence = Schema::hasColumn('exploitants', 'statut_presence');
+            $hasMotifAbsence   = Schema::hasColumn('exploitants', 'motif_absence');
+
+            foreach (($validated['exploitants_statuts'] ?? []) as $exploitantId => $etat) {
+                $expUpdate = ['updated_at' => now()];
+
+                if ($hasStatutPresence) {
+                    $expUpdate['statut_presence'] = $etat;
+                }
+                if ($hasMotifAbsence) {
+                    $expUpdate['motif_absence'] = $etat === 'absent'
+                        ? ($validated['exploitants_motifs'][$exploitantId] ?? 'Absent / Retiré')
+                        : null;
+                }
+
+                if (count($expUpdate) > 1) {
+                    DB::table('exploitants')
+                        ->where('idExploitant', $exploitantId)
+                        ->where('menage_id', $menage->idMenage)
+                        ->update($expUpdate);
+                }
+            }
+
+            $hasCooperative = Schema::hasColumn('exploitants', 'cooperative');
+            $hasNumeroPiece = Schema::hasColumn('exploitants', 'numero_piece');
+
+            foreach (($validated['nouveaux_exploitants'] ?? []) as $nouveau) {
+                $nom    = trim((string) ($nouveau['nom'] ?? ''));
+                $prenom = trim((string) ($nouveau['prenom'] ?? ''));
+
+                if ($nom === '' && $prenom === '') {
+                    continue;
+                }
+
+                $insertData = [
+                    'menage_id'  => $menage->idMenage,
+                    'nom'        => $nom,
+                    'prenom'     => $prenom,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+
+                if ($hasStatutPresence) {
+                    $insertData['statut_presence'] = 'ajoute';
+                }
+                if ($hasCooperative && ! empty($nouveau['cooperative'])) {
+                    $insertData['cooperative'] = trim((string) $nouveau['cooperative']);
+                }
+                if ($hasNumeroPiece && ! empty($nouveau['numero_piece'])) {
+                    $insertData['numero_piece'] = trim((string) $nouveau['numero_piece']);
+                }
+
+                DB::table('exploitants')->insert($insertData);
+            }
+
+            $recensement->update([
+                'dateDerniereModification' => now(),
+            ]);
+        });
+
+        return redirect()
+            ->route('agent.recensements.menages.index', $recensement)
+            ->with('success', 'Mise à jour du ménage enregistrée pour cette campagne.');
     }
 
     /**
@@ -364,13 +354,11 @@ class MenageController extends Controller
     private function verifierAccesRecensement(
         Recensement $recensement
     ): void {
-
         $recensement->loadMissing([
             'affectation.equipe.membres',
         ]);
 
         $user = Auth::user();
-
         $affectation = $recensement->affectation;
 
         abort_unless(
@@ -403,7 +391,6 @@ class MenageController extends Controller
         Recensement $recensement,
         Menage $menage
     ): void {
-
         abort_unless(
             (int) $menage->recensement_id === (int) $recensement->idRecensement,
             404,

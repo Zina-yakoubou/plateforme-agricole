@@ -15,7 +15,7 @@
                 <div>
 
                     <h1 class="text-2xl font-bold text-green-800">
-                        SIRA-MO
+                        SIRA-TG
                     </h1>
 
                     <p class="text-xs text-gray-500">

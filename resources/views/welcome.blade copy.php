@@ -33,7 +33,7 @@
             <div>
 
                 <div class="text-lg font-extrabold tracking-tight text-slate-900">
-                    SIRA-Mô
+                    SIRA-TG
                 </div>
 
                 <div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -131,7 +131,7 @@
                         Recensement Agricole
                     </span>
 
-                    de Mô
+                    du TOGO
 
                 </h1>
 

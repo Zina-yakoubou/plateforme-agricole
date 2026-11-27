@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>SIRA-Mô — Système d'Information et de Recensement Agricole</title>
+    <title>SIRA-TOGO — Système d'Information et de Recensement Agricole</title>
 
     <link
         rel="icon"
@@ -33,7 +33,7 @@
                 <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-1.5 text-[10px] text-white sm:px-6 lg:px-8">
 
                     <span>
-                        Préfecture de Mô • République Togolaise
+                        République Togolaise • Phase pilote : préfecture de Mô
                     </span>
 
                     <span class="hidden sm:block">
@@ -95,7 +95,7 @@
                         </p>
 
                         <p class="text-base font-bold leading-tight text-[#006a4f]">
-                            SIRA-Mô
+                            SIRA-TOGO
                         </p>
                     </div>
 
@@ -132,15 +132,13 @@
             <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-3 text-center sm:flex-row sm:text-left">
 
                 <p class="text-[10px] font-medium text-slate-500">
-                    SIRA-Mô
+                    SIRA-TOGO
                     <span class="mx-1 text-slate-300">•</span>
                     Système d'Information et de Recensement Agricole
                 </p>
 
                 <p class="text-[10px] text-slate-400">
-                    Préfecture de Mô
-                    <span class="mx-1 text-slate-300">•</span>
-                    Togo
+                    République Togolaise
                     <span class="mx-1 text-slate-300">•</span>
                     © {{ date('Y') }}
                 </p>

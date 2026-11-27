@@ -3,7 +3,7 @@
 
         <div class="text-sm text-gray-500">
             © {{ date('Y') }}
-            <span class="font-semibold text-gray-700">SIRA-Mô</span>.
+            <span class="font-semibold text-gray-700">SIRA-TOGO</span>.
             Tous droits réservés.
         </div>
 
